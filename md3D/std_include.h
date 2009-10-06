@@ -182,6 +182,11 @@ struct Param_struct {
 	int verbosity; /* Si verbose = 1, affiche plus d'infos sur le terminal */
 	char i_field_mode[SIZE_STR_BUFFER]; /* incident field (PLANE_WAVE, GAUSSIAN, FROM_BINARY, FROM_ASCII) */
 
+	/* calcul_type = STACK */
+	int n_patterned_layer;
+	double *h_stack;
+	complex *nu_stack;
+
 	};
 
 struct Efficacites_struct {

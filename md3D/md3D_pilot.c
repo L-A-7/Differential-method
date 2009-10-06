@@ -112,6 +112,45 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 	return 0;
 }
 
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		md3D_stack (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+ *
+ *		\brief	Case of multilayer structure with one structured stack situated at n_patterned_layer
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md3D_stack (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+{
+
+	/* Amplitude du champ incident */
+	md3D_incident_field(par,eff);
+
+
+	S_matrix(par);
+
+	/* Convert S in T and multiply by T of the homogeneous layer */
+	T_tmp1 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_tmp2 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_tmp3 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_tmp4 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_from_S(Ttmp1,Ttmp2,Ttmp3,Ttmp4,par->S11,par->S12,par->S21,par->S22,2*par->vec_size);
+
+	T_homogeneous_layer(Th11,Th12,Th21,Th22)
+
+	/* Calcul des amplitudes */
+	md3D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
+
+	/* Calcul des efficacités */
+	md3D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
+
+	/* Ecriture des résultats dans fichier_results */
+	md3D_genere_nom_fichier_results(nomfichier->fichier_results, par);
+
+	md3D_ecrire_results(nomfichier->fichier_results, par, eff);
+
+
+	return 0;
+}
+
 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		md3D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)

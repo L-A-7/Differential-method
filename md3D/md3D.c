@@ -402,8 +402,9 @@ int S_matrix(struct Param_struct *par)
 		M_x_M(S22,T_tmp,Z, 2*vec_size, 2*vec_size);
 		
 		/* Following blocks only usefull when some light is coming from below */
+		/* NOT TESTED YET, but carrefully written... (should work !) */
 		/* S11 = (T22 - S12*T12)*S11 */
-		M_equals(T_tmp, S11, 2*vec_size, 2*vec_size);
+#if 0		M_equals(T_tmp, S11, 2*vec_size, 2*vec_size);
 		M_x_M(S11,
 			sub_M(T_tmp2, T22, M_x_M(T_tmp3,
 					S12,T12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size),
@@ -413,7 +414,7 @@ int S_matrix(struct Param_struct *par)
 		sub_M(S21, S21, M_x_M(T_tmp, 
 			S22, 
 			M_x_M(T_tmp2, T12, S11, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
-
+#endif
 		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
 /*		if (par->SAVE_NEAR_FIELD){
 			md3D_save_near_field(nS, par);
@@ -443,10 +444,102 @@ printf("\nS22");SaveMatrix2file (S22, 2*vec_size, 2*vec_size, "Re", "stdout");
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int T_Matrix_TE(complex **T11, complex **T12, complex **T21, complex **T22,
+/*!	\fn	int S_matrix_stack(struct Param_struct *par)
+ *
+ *		\brief	S matrix calculation in case of stack with some homogeneous layers
+ */
+/*-------------------------------------------------------------------------------------*/
+int S_matrix_stack(struct Param_struct *par)
+{
+
+	if (par->verbosity) fprintf(stdout,"S-Matrix calculation. STACK case\n");
+	int i,j, nS;
+	int vec_size = par->vec_size;
+	int NS = par->NS;
+	complex **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3;
+	S11 = par->S11;
+	S12 = par->S12;
+	S21 = par->S21;
+	S22 = par->S22;
+	T11 = par->T11;
+	T12 = par->T12;
+	T21 = par->T21;
+	T22 = par->T22;
+
+	Z      = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_tmp  = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_tmp2 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	T_tmp3 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	
+	/* Initialisations */
+	for (i=0; i<=2*vec_size-1; i++) {
+		for (j=0; j<=2*vec_size-1; j++) {
+			S12[i][j] = 0;
+			S22[i][j] = 0;
+		}
+		S22[i][i] = 1;
+	}
+
+	/* Iterations */
+	for (n_stack=0; n_stack<=N_stack-1; n_stack++){
+
+		if (n_stack == n_structured_layer { /* Determinate the S-matrix of the structured layer (plus layers situated below), using the differential method and the S-matrix algorithm */
+			/* Redefinition of nu_substrat to adapt to md3D_T_matrix */
+			if (n_structured_layer != 0){ 
+				nu_substrat_tmp = par->nu_substrat;
+				par->nu_substrat = par->nu_superstrat;
+			}
+			for (nS=0; nS<=NS-1; nS++) {
+				/* T-Matrix calculation */
+				T_Matrix(T11, T12, T21, T22, nS, par);
+				/* Z = inv(T11 + T12*S12) */
+				invM(Z, add_M(T_tmp2, 
+					T11, M_x_M(T_tmp,
+						T12,S12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size), 2*vec_size);
+				/* S12 = (T21 +T22*S12)*Z */
+				M_x_M(S12,
+					add_M(T_tmp2, T21, M_x_M(T_tmp,
+							T22,S12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size),
+					Z, 2*vec_size, 2*vec_size);
+				/* S22 = S22*Z */
+				M_equals(T_tmp,S22, 2*vec_size, 2*vec_size);
+				M_x_M(S22,T_tmp,Z, 2*vec_size, 2*vec_size);
+			}
+			/* Reattributing right value to nu_substrat */
+			if (n_structured_layer != 0){ 
+				par->nu_substrat = nu_substrat_tmp;
+			}
+		}else{
+
+		}
+	}
+#if 0
+printf("\nT11");SaveMatrix2file (T11, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nT12");SaveMatrix2file (T12, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nT21");SaveMatrix2file (T21, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nT22");SaveMatrix2file (T22, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nS12");SaveMatrix2file (S12, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nS22");SaveMatrix2file (S22, 2*vec_size, 2*vec_size, "Re", "stdout");
+#endif	
+	free(Z[0]);
+	free(Z);
+	free(T_tmp[0]);
+	free(T_tmp);
+	free(T_tmp2[0]);
+	free(T_tmp2);
+	free(T_tmp3[0]);
+	free(T_tmp3);
+	
+	if(par->verbosity >0) {fprintf(stdout,"\n");}
+	
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22,
 				int nS, struct Param_struct *par)
  *
- *	\brief Calcul de la matrice T en polarisation TE
+ *	\brief Calcul de la matrice T
  */
 /*-------------------------------------------------------------------------------------*/
 int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22, int nS, struct Param_struct *par)
