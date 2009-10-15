@@ -85,7 +85,7 @@ $(UTILS).o : $(UTILS).c $(UTILS).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(UTILS).c $(PG)
 
 #
-$(PILOT).o : $(PILOT).c $(PILOT).h $(STD_H)
+$(PILOT).o : $(PILOT).c $(NAME).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(PILOT).c $(PG)
 
 # Link the object files :
