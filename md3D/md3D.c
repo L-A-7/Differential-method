@@ -135,7 +135,7 @@ int md3D_efficiencies(complex *Ai, complex *Ar, complex *At, struct Param_struct
 	complex *kz_super, *kz_sub, *sigma_x, *sigma_y, C_super, C_sub, sigx, sigy, sigx2, sigy2;
 	kz_super = par->kz_super;
 	kz_sub = par->kz_sub;
-	sigma_x = par->sigma_y;
+	sigma_x = par->sigma_x;
 	sigma_y = par->sigma_y;
 
 	double Pz_i, Pz_r, Pz_t, sumPzi;
@@ -404,17 +404,17 @@ int S_matrix(struct Param_struct *par)
 		/* Following blocks only usefull when some light is coming from below */
 		/* NOT TESTED YET, but carrefully written... (should work !) */
 		/* S11 = (T22 - S12*T12)*S11 */
-#if 0		M_equals(T_tmp, S11, 2*vec_size, 2*vec_size);
+/*		M_equals(T_tmp, S11, 2*vec_size, 2*vec_size);
 		M_x_M(S11,
 			sub_M(T_tmp2, T22, M_x_M(T_tmp3,
 					S12,T12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size),
 			T_tmp, 2*vec_size, 2*vec_size);
-
+*/
 		/* S21 = S21 - S22*T12*S11 */
-		sub_M(S21, S21, M_x_M(T_tmp, 
+/*		sub_M(S21, S21, M_x_M(T_tmp, 
 			S22, 
 			M_x_M(T_tmp2, T12, S11, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
-#endif
+*/
 		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
 /*		if (par->SAVE_NEAR_FIELD){
 			md3D_save_near_field(nS, par);
@@ -451,12 +451,11 @@ printf("\nS22");SaveMatrix2file (S22, 2*vec_size, 2*vec_size, "Re", "stdout");
 /*-------------------------------------------------------------------------------------*/
 int S_matrix_stack(struct Param_struct *par)
 {
-
 	if (par->verbosity) fprintf(stdout,"S-Matrix calculation. STACK case\n");
-	int i,j, nS;
+	int i,j, nS, n_stack, N_stack, n_patterned_layer;
 	int vec_size = par->vec_size;
 	int NS = par->NS;
-	complex **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3;
+	complex **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3, **Psi_sub_tmp, nu_subsuper;
 	S11 = par->S11;
 	S12 = par->S12;
 	S21 = par->S21;
@@ -465,6 +464,8 @@ int S_matrix_stack(struct Param_struct *par)
 	T12 = par->T12;
 	T21 = par->T21;
 	T22 = par->T22;
+	N_stack = par->N_stack;
+	n_patterned_layer = par->n_patterned_layer;
 
 	Z      = allocate_CplxMatrix(2*vec_size,2*vec_size);
 	T_tmp  = allocate_CplxMatrix(2*vec_size,2*vec_size);
@@ -483,11 +484,11 @@ int S_matrix_stack(struct Param_struct *par)
 	/* Iterations */
 	for (n_stack=0; n_stack<=N_stack-1; n_stack++){
 
-		if (n_stack == n_structured_layer { /* Determinate the S-matrix of the structured layer (plus layers situated below), using the differential method and the S-matrix algorithm */
-			/* Redefinition of nu_substrat to adapt to md3D_T_matrix */
-			if (n_structured_layer != 0){ 
-				nu_substrat_tmp = par->nu_substrat;
-				par->nu_substrat = par->nu_superstrat;
+		if (n_stack == n_patterned_layer) { /* Determinate the S-matrix of the structured layer (plus layers situated below), using the differential method and the S-matrix algorithm */
+			/* Redefinition of nu_sub to adapt to md3D_T_matrix */
+			Psi_sub_tmp = par->Psi_sub;
+			if (n_patterned_layer != 0){ 
+				par->Psi_sub = par->Psi_super;
 			}
 			for (nS=0; nS<=NS-1; nS++) {
 				/* T-Matrix calculation */
@@ -505,22 +506,38 @@ int S_matrix_stack(struct Param_struct *par)
 				M_equals(T_tmp,S22, 2*vec_size, 2*vec_size);
 				M_x_M(S22,T_tmp,Z, 2*vec_size, 2*vec_size);
 			}
-			/* Reattributing right value to nu_substrat */
-			if (n_structured_layer != 0){ 
-				par->nu_substrat = nu_substrat_tmp;
-			}
+			/* Reattributing right value to nu_sub */
+			par->Psi_sub = Psi_sub_tmp;
 		}else{
-
+			/* if first iteration, we consider the infinitly thin layer below the homogeneous layer to be the 
+                           same material as the substrate, otherwise it is considered to be the same as the superstrate (same as in T_matrix) */
+			if (n_stack == 0){ 
+				nu_subsuper = par->nu_sub;
+			}else{
+				nu_subsuper = par->nu_super;
+			}
+			/* Calculation of the T-Matrix of the homogeneous layer */
+			T_Matrix_homog_layer(T11, T12, T21, T22, par->nu_super, nu_subsuper, par->nu_stack[n_stack], par->h_stack[n_stack], par->lambda, par->sigma_x, par->sigma_y, vec_size, par);
+#if 0
+printf("\nT11");SaveMatrix2file (T11, 2*vec_size, 2*vec_size, "Im", "stdout");
+printf("\nT12");SaveMatrix2file (T12, 2*vec_size, 2*vec_size, "Im", "stdout");
+printf("\nT21");SaveMatrix2file (T21, 2*vec_size, 2*vec_size, "Im", "stdout");
+printf("\nT22");SaveMatrix2file (T22, 2*vec_size, 2*vec_size, "Im", "stdout");
+#endif	
+			/* Z = inv(T11 + T12*S12) */
+			invM(Z, add_M(T_tmp2, 
+				T11, M_x_M(T_tmp,
+					T12,S12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size), 2*vec_size);
+			/* S12 = (T21 +T22*S12)*Z */
+			M_x_M(S12,
+				add_M(T_tmp2, T21, M_x_M(T_tmp,
+						T22,S12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size),
+				Z, 2*vec_size, 2*vec_size);
+			/* S22 = S22*Z */
+			M_equals(T_tmp,S22, 2*vec_size, 2*vec_size);
+			M_x_M(S22,T_tmp,Z, 2*vec_size, 2*vec_size);
 		}
 	}
-#if 0
-printf("\nT11");SaveMatrix2file (T11, 2*vec_size, 2*vec_size, "Re", "stdout");
-printf("\nT12");SaveMatrix2file (T12, 2*vec_size, 2*vec_size, "Re", "stdout");
-printf("\nT21");SaveMatrix2file (T21, 2*vec_size, 2*vec_size, "Re", "stdout");
-printf("\nT22");SaveMatrix2file (T22, 2*vec_size, 2*vec_size, "Re", "stdout");
-printf("\nS12");SaveMatrix2file (S12, 2*vec_size, 2*vec_size, "Re", "stdout");
-printf("\nS22");SaveMatrix2file (S22, 2*vec_size, 2*vec_size, "Re", "stdout");
-#endif	
 	free(Z[0]);
 	free(Z);
 	free(T_tmp[0]);
@@ -581,8 +598,11 @@ int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22, int nS,
 	(*par->P_matrix)(par->P, z0, Delta_z, par);
 
 	/* T matrix : T = inv(Psi_super) * P_matrix * Psi */
+	/*************************************************************/
+	/* SHOULD BE DONE MANUALLY SINCE Psi Matrix are quite simple */
 	M_x_M(T,
 			invPsi_super, M_x_M(M_buffer_4vecsize, par->P, Psi, 4*vec_size, 4*vec_size), 4*vec_size, 4*vec_size);
+	/*************************************************************/
 
 	/* putting it block T matrices */
 	for(i=0;i<=2*vec_size-1;i++){
@@ -631,6 +651,208 @@ SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
 
 	return 0;
 }
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size, struct Param_struct *par)
+ *
+ *	\brief T-matrix of a homogeneous layer
+ */
+/*-------------------------------------------------------------------------------------*/
+int T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size, struct Param_struct *par)
+{
+	int i,j;
+	
+	double z0;
+	complex **Psi, **invPsi_super, **M_buffer_4vecsize, **T;
+	complex **k2_ptr_tmp;
+	complex **invk2_ptr_tmp;
+	M_buffer_4vecsize = allocate_CplxMatrix(4*vec_size,4*vec_size);
+	T   = allocate_CplxMatrix(4*vec_size,4*vec_size);
+
+	/* Psi matrix */
+	if (nu_super==par->nu_sub){ /* 1st S-Matrix iteration : we are in the substrat */
+		Psi = par->Psi_sub;
+	}else if (nu_super==par->nu_super){     /* Following iterations : we are in the superstrat */
+		Psi = par->Psi_super;
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, wrong nusubsuper value\n",__FILE__,__LINE__);
+		exit(EXIT_FAILURE);
+	}
+
+	invPsi_super = par->invPsi_super;
+
+
+	/* P_matrix calculation */
+	par->nu_this_layer = nu_layer;
+	/* special function pointers for k2 and 1/k2 determination */
+	k2_ptr_tmp = par->k_2;
+	invk2_ptr_tmp = par->invk_2;
+	par->k_2 = &k2_homog;
+	par->invk_2 = &invk2_homog;
+	z0 = 0; fprintf(stderr,"/////////////////////////////\n// T_Matrix_homog_layer: z0 = 0. Check that other value also works\n/////////////////////////////\n");
+
+	/* Calculate the P-matrix */
+	(*zinvar_P_matrix)(par->P, z0, h_layer, par);
+
+	/* Restitute original values to k2 and 1/k2 function pointers */
+	par->k_2 = k2_ptr_tmp;
+	par->invk_2 = invk2_ptr_tmp;
+
+	/* T matrix : T = inv(Psi_super) * P_matrix * Psi */
+	/*************************************************************/
+	/* SHOULD BE DONE MANUALLY SINCE Psi Matrix are quite simple */
+	M_x_M(T,
+			invPsi_super, M_x_M(M_buffer_4vecsize, par->P, Psi, 4*vec_size, 4*vec_size), 4*vec_size, 4*vec_size);
+	/*************************************************************/
+
+	/* putting it block T matrices */
+	for(i=0;i<=2*vec_size-1;i++){
+		for(j=0;j<=2*vec_size-1;j++){
+			T11[i][j] = T[i][j];
+			T12[i][j] = T[i][j+2*vec_size];
+			T21[i][j] = T[i+2*vec_size][j];
+			T22[i][j] = T[i+2*vec_size][j+2*vec_size];
+		}
+	}
+
+
+
+
+
+#if 0
+printf("\nRe(par->P) :\n");
+SaveMatrix2file (par->P, 4*par->vec_size, 4*par->vec_size, "Re", "stdout");
+printf("\nIm(par->P) :\n");
+SaveMatrix2file (par->P, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
+printf("\nRe(par->M) :\n");
+SaveMatrix2file (par->M, 4*par->vec_size, 4*par->vec_size, "Re", "stdout");
+printf("\nIm(par->M) :\n");
+SaveMatrix2file (par->M, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
+printf("\nRe(Psi) :\n");
+SaveMatrix2file (Psi, 4*par->vec_size, 4*par->vec_size, "Re", "stdout");
+printf("\nIm(Psi) :\n");
+SaveMatrix2file (Psi, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
+printf("\nRe(invPsi_super) :\n");
+SaveMatrix2file (invPsi_super, 4*par->vec_size, 4*par->vec_size, "Re", "stdout");
+printf("\nIm(invPsi_super) :\n");
+SaveMatrix2file (invPsi_super, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
+printf("\nRe(par->T) :\n");
+SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Re", "stdout");
+printf("\nIm(par->T) :\n");
+SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
+#endif
+
+	
+	free(T[0]);
+	free(T);
+	free(M_buffer_4vecsize[0]);
+	free(M_buffer_4vecsize);
+
+	return 0;
+}
+
+
+#if 0 /* Has never worked: Not finished */
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size)
+ *
+ *	\brief T-matrix of a homogeneous layer
+ */
+/*-------------------------------------------------------------------------------------*/
+int T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size)
+{
+	int n,m;
+	complex mu_r0 = 1, mu_r1 = 1, mu_r2 = 1; /* nonmagnetic materials */
+	complex eps_r0, eps_r1, eps_r2, k, *gamma0, *gamma1, *gamma2, C1, C0, C;
+	complex *T11s, *T12s, *T21s, *T22s, *T11p, *T12p, *T21p, *T22p, **T_buffer;
+	T_buffer= allocate_CplxMatrix(11,vec_size);
+	T11s=T_buffer[1]; T12s=T_buffer[2]; T21s=T_buffer[3]; T22s=T_buffer[4];
+	T11p=T_buffer[5]; T12p=T_buffer[6]; T21p=T_buffer[7]; T22p=T_buffer[0];
+	gamma0=T_buffer[8]; gamma1=T_buffer[9]; gamma2=T_buffer[10];
+	double h = h_layer;
+	eps_r0 = nu_sub*nu_sub;
+	eps_r1 = nu_layer*nu_layer;
+	eps_r2 = nu_super*nu_super;
+	k=2*PI/lambda;
+
+	for (n=0;n<=vec_size-1;n++){
+		gamma0[n] = csqrt (nu_sub * nu_sub * k*k - sigma_x[n]*sigma_x[n] - sigma_y[n]*sigma_y[n]);
+		gamma1[n] = csqrt (nu_layer*nu_layer*k*k - sigma_x[n]*sigma_x[n] - sigma_y[n]*sigma_y[n]);
+		gamma2[n] = csqrt (nu_super*nu_super*k*k - sigma_x[n]*sigma_x[n] - sigma_y[n]*sigma_y[n]);
+		g0=gamma0[n];
+		g1=gamma1[n];
+		g2=gamma2[n];
+		/* TE */
+		C1=(g1/g2)*(mu_r2/mu_r1);
+		C0=(g0/g1)*(mu_r1/mu_r0);
+		T11s[n]=0.25*((1-C1)*(1-C0)*cexp(I*g1*h) + (1+C1)*(1+C0)*cexp(-I*g1*h));
+		T12s[n]=0.25*((1-C1)*(1+C0)*cexp(I*g1*h) + (1+C1)*(1-C0)*cexp(-I*g1*h));
+		T21s[n]=0.25*((1+C1)*(1-C0)*cexp(I*g1*h) + (1-C1)*(1+C0)*cexp(-I*g1*h));
+		T22s[n]=0.25*((1+C1)*(1+C0)*cexp(I*g1*h) + (1-C1)*(1-C0)*cexp(-I*g1*h));
+		/* TM */
+		C1=(g1/g2)*(eps_r2/eps_r1);
+		C0=(g0/g1)*(eps_r1/eps_r0);
+		T11p[n]=0.25*((1-C1)*(1-C0)*cexp(I*g1*h) + (1+C1)*(1+C0)*cexp(-I*g1*h));
+		T12p[n]=0.25*((1-C1)*(1+C0)*cexp(I*g1*h) + (1+C1)*(1-C0)*cexp(-I*g1*h));
+		T21p[n]=0.25*((1+C1)*(1-C0)*cexp(I*g1*h) + (1-C1)*(1+C0)*cexp(-I*g1*h));
+		T22p[n]=0.25*((1+C1)*(1+C0)*cexp(I*g1*h) + (1-C1)*(1-C0)*cexp(-I*g1*h));
+	}
+	/* T11 = [T11s 0   ],  T12 = [T12s 0   ],  T21 = [T21s 0   ],  T22 = [T22s 0   ] 
+	         [0    T11p]         [0    T12p]         [0    T21p]         [0    T22p] */
+	for (n=0;n<=2*vec_size-1;n++){
+		for (m=0;m<=2*vec_size-1;m++){
+			T11[n][m]=0;
+		}
+	}
+	for (n=0;n<=vec_size-1;n++){
+		g0=gamma0[n];
+		k0=k_sub;
+		/* iR0 = inv(R0) */
+		C = 1/(1+(g0*g0/(k0*k0))*sin(Phi)*sin(Phi));
+		iR011 = C*cos(Phi);
+		iR012 = C*(g0/k0*k0)*sin(Phi);
+		iR021 = C*g0*sin(Phi);
+		iR022 = -C*cos(Phi);		
+		/* R2 */
+
+		/* T11 = R2*T11*iR0 */
+	C11 = T11s[n]*iR011
+	C12 = T11s[n]*iR012
+	C21 = T11p[n]*iR021
+	C22 = T11p[n]*iR022
+
+		T11ss = R211*C11 + R212*C21
+		T
+
+
+		/* T11 */
+		T11[n]         [n]         =T11ss;
+		T11[n]         [n+vec_size]=T11sp;
+		T11[n+vec_size][n]         =T11ps;
+		T11[n+vec_size][n+vec_size]=T11pp;
+		/* T12 */
+		T12[n]         [n]         =T12s[n];
+		T12[n]         [n+vec_size]=0;
+		T12[n+vec_size][n]         =0;
+		T12[n+vec_size][n+vec_size]=T12p[n];
+		/* T21 */
+		T21[n]         [n]         =T21s[n];
+		T21[n]         [n+vec_size]=0;
+		T21[n+vec_size][n]         =0;
+		T21[n+vec_size][n+vec_size]=T21p[n];
+		/* T22 */
+		T22[n]         [n]         =T22s[n];
+		T22[n]         [n+vec_size]=0;
+		T22[n+vec_size][n]         =0;
+		T22[n+vec_size][n+vec_size]=T22p[n];
+	}
+
+	free(T_buffer[0]);
+	free(T_buffer);
+
+	return 0;
+}
+#endif
 
 /*-------------------------------------------------------------------------------------*/
 /*!	int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
@@ -1270,7 +1492,7 @@ int md3D_toepNorm(double z, struct Param_struct *par)
 		normyz = allocate_CplxMatrix(Npry,Nprx);
 		normzz = allocate_CplxMatrix(Npry,Nprx);
 	
-		Normal_H_XY(normx, normy, normz, z, par);	
+		(*par->Normal_function)(normx, normy, normz, z, par);	
 
 		for (i=0;i<=Npry-1;i++){
 			for (j=0;j<=Nprx-1;j++){
@@ -1433,7 +1655,7 @@ complex **toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, i
 
 	return toep;
 }
-
+#if 0 /* Error in this function. Replaced by toeplitz_2D */
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	complex **toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, int Nyin)
  *
@@ -1490,6 +1712,7 @@ complex **old_toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxi
 
 	return toep;
 }
+#endif
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		complex *k2_H_XY(struct Param_struct *par, complex *k2_2D, double z)
@@ -1511,6 +1734,45 @@ complex *k2_H_XY(struct Param_struct *par, complex *k2_2D, double z)
 
 	
 	return k2_2D;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		complex *k2_homog(struct Param_struct *par, complex *k2_2D, double z)
+ *
+ *	\brief	Determine the complex array k^2(x) for a homogeneous layer (for compatibility with non homogeneous profiles)
+ *
+ */
+/*-------------------------------------------------------------------------------------*/
+complex *k2_homog(struct Param_struct *par, complex *k2_2D, double z)
+{
+	int i;
+	/* the index of the layer is placed  in par->nu_this_layer */
+	complex	k = 2*PI*par->nu_this_layer/par->lambda;
+	for (i=0;i<=par->Nprx*par->Npry-1;i++){
+		k2_2D[i] = k*k;
+	}
+printf("\nCOUCOU, I am in k2_homog !\n\n");
+	return k2_2D;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		complex *invk2_homog(struct Param_struct *par, complex *k2_2D, double z)
+ *
+ *	\brief	Determine the complex array 1/k^2(x) for a homogeneous layer (for compatibility with non homogeneous profiles)
+ *
+ */
+/*-------------------------------------------------------------------------------------*/
+complex *invk2_homog(struct Param_struct *par, complex *invk2_2D, double z)
+{
+	int i;
+	/* the index of the layer is placed  in par->nu_this_layer */
+	complex	k = 2*PI*par->nu_this_layer/par->lambda;
+	for (i=0;i<=par->Nprx*par->Npry-1;i++){
+		invk2_2D[i] = 1/(k*k);
+	}
+printf("\nCOUCOU, I am in invk2_homog !\n\n");
+
+	return invk2_2D;
 }
 
 

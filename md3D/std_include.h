@@ -37,6 +37,7 @@
 #define H_XY          1
 #define MULTICOUCHES 2
 #define N_XYZ        3
+#define H_XY_plus_STACK 4
 #define SIZE_STR_BUFFER 200
 #define SIZE_LINE_BUFFER 50000
 
@@ -62,8 +63,8 @@ struct Param_struct {
 	char **argvcp;
 	char calcul_type[SIZE_STR_BUFFER];
 	char calcul_method[SIZE_STR_BUFFER];
-	complex n_super;
-	complex n_sub;
+	complex nu_super;
+	complex nu_sub;
 	double Lx;
 	double Ly;
 	double h;
@@ -172,6 +173,7 @@ struct Param_struct {
 	int (*md3D_lire_profil)(const char *, struct Param_struct *);
 	int (*M_matrix)(complex **M, double z, struct Param_struct *par);
 	int (*P_matrix)(complex **P, double z, double Delta_z, struct Param_struct *par);
+	int (*Normal_to_profile)(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par);
 
 	clock_t clock0;         /* Stocke le temps de départ                              */
 	clock_t last_clock;     /* Durée écoulée depuis le dernier appel à md3D_temps     */
@@ -183,9 +185,11 @@ struct Param_struct {
 	char i_field_mode[SIZE_STR_BUFFER]; /* incident field (PLANE_WAVE, GAUSSIAN, FROM_BINARY, FROM_ASCII) */
 
 	/* calcul_type = STACK */
+	int N_stack;
 	int n_patterned_layer;
 	double *h_stack;
 	complex *nu_stack;
+	complex nu_this_layer;
 
 	};
 

@@ -4,7 +4,7 @@
  * 	\brief		Pilotage de md3D 
  */
 /*---------------------------------------------------------------------------------------------*/
-#include "md3D_pilot.h"
+#include "md3D.h"
 /*---------------------------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------------------------*/
@@ -95,7 +95,11 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 	/* Amplitude du champ incident */
 	md3D_incident_field(par,eff);
 
-	S_matrix(par);
+	if (par->type_profil == H_XY_plus_STACK){
+		S_matrix_stack(par); /* Case of multilayer structure with one structured stack situated at n_patterned_layer */
+	}else{
+		S_matrix(par);
+	}
 
 	/* Calcul des amplitudes */
 	md3D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
@@ -108,60 +112,6 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 
 	md3D_ecrire_results(nomfichier->fichier_results, par, eff);
 
-
-	return 0;
-}
-
-/*---------------------------------------------------------------------------------------------*/
-/*!	\fn		md3D_stack (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
- *
- *		\brief	Case of multilayer structure with one structured stack situated at n_patterned_layer
- */
-/*---------------------------------------------------------------------------------------------*/
-int md3D_stack (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
-{
-
-	/* Amplitude du champ incident */
-	md3D_incident_field(par,eff);
-
-
-	S_matrix(par);
-
-	/* Convert S in T and multiply by T of the homogeneous layer */
-	T_tmp1 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	T_tmp2 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	T_tmp3 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	T_tmp4 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	T_from_S(Ttmp1,Ttmp2,Ttmp3,Ttmp4,par->S11,par->S12,par->S21,par->S22,2*par->vec_size);
-
-	T_homogeneous_layer(Th11,Th12,Th21,Th22)
-
-	/* Calcul des amplitudes */
-	md3D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
-
-	/* Calcul des efficacités */
-	md3D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
-
-	/* Ecriture des résultats dans fichier_results */
-	md3D_genere_nom_fichier_results(nomfichier->fichier_results, par);
-
-	md3D_ecrire_results(nomfichier->fichier_results, par, eff);
-
-
-	return 0;
-}
-
-
-/*---------------------------------------------------------------------------------------------*/
-/*!	\fn		md3D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
- *
- *		\brief	Calcule efficacité TE, TM et déphasage (la valeur initiale de psi n'a pas d'influence).
- */
-/*---------------------------------------------------------------------------------------------*/
-int md3D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
-{
-	fprintf(stderr, "line %d : Nothing... EXITING\n",__LINE__);
-	exit(EXIT_FAILURE);
 
 	return 0;
 }
@@ -213,8 +163,8 @@ int md3D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct N
 int md3D_alloc_init_profil(struct Param_struct *par)
 {
 	/* Initilisation de variables */
-	par->k_super = 2*PI*par->n_super/par->lambda;
-	par->k_sub = 2*PI*par->n_sub/par->lambda;
+	par->k_super = 2*PI*par->nu_super/par->lambda;
+	par->k_sub = 2*PI*par->nu_sub/par->lambda;
 	par->Delta_sigma_x = 2*PI/par->Lx;
 	par->Delta_sigma_y = 2*PI/par->Ly;
 	par->sigma_x0 = par->k_super*sin(par->theta_i)*cos(par->phi_i);
@@ -233,7 +183,13 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 	/* Alignement des pointeurs de fonction */
 /*	par->matrice_T = (par->pola == TE ? matrice_T_TE : matrice_T_TM);
 */	switch (par->type_profil) {
-		case H_XY          : 
+		case H_XY : 
+			par->md3D_lire_profil = md3D_lire_profil_H_XY;
+			par->k_2 = k2_H_XY;
+			par->invk_2 = invk2_H_XY;
+			par->Normal_function = Normal_H_XY;
+			break;
+		case H_XY_plus_STACK : 
 			par->md3D_lire_profil = md3D_lire_profil_H_XY;
 			par->k_2 = k2_H_XY;
 			par->invk_2 = invk2_H_XY;
@@ -249,8 +205,18 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 			par->k_2 = k2_N_XYZ;
 			par->invk_2 = invk2_N_XYZ;
 			break;
+		default:
+			fprintf(stderr, "%s, line %d : ERROR, unknown profile_type\n",__FILE__,__LINE__);
+			exit(EXIT_FAILURE);
+
 	}
-	
+	printf("Coucou\n");fflush(stdout);
+	if (par->type_profil == H_XY_plus_STACK){
+printf("Alloc nu_stack et h_stack, N_stack = %d",par->N_stack);fflush(stdout);
+		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
+		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
+	}	
+
 	return 0;
 }
 
@@ -271,11 +237,11 @@ int md3D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 	/* Initialisation des variables en mode "AUTO" */
 	/* delta_h = lambda x (n_re + n_im) / 1000 */
 	if (par->delta_h == AUTO) {
-		par->delta_h = par->lambda/(cabs(par->n_sub)*1000);
+		par->delta_h = par->lambda/(cabs(par->nu_sub)*1000);
 	}
 	/* NS = (h/lambda) x (n_re + n_im) x 5 */
 	if (par->NS == AUTO) {
-		par->NS = CEIL( (par->h / par->lambda)*cabs(par->n_sub)*5 );
+		par->NS = CEIL( (par->h / par->lambda)*cabs(par->nu_sub)*5 );
 	}
 
 	/* vec_size : size of most matrices and vetcors */	
@@ -290,6 +256,13 @@ int md3D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 	par->N_steps = 0; /* Counter initialisation */
 	int Nstep_S = ROUND(ceil((par->h/par->NS)/par->delta_h));
 	par->delta_h = (par->h/par->NS)/Nstep_S;
+fprintf(stderr,"\
+**************************************\n\
+* CAUTION: parameter delta_h is not used.\n\
+* The z discretization is only done through NS so far.\n\
+* TO DO : implementing P matrix multiplication at each delta_h\n\
+* %s, line %d\n\
+**************************************\n",__FILE__,__LINE__);
 	/*par->Nstep = ROUND(par->h/par->delta_h);*/
 
 	/* tab_NS_ENABLED */
@@ -313,7 +286,6 @@ int md3D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 			par->M_matrix = M_matrix;
 	}
 
-
 	if (!strcmp(par->calcul_method,"RK4")){
 			par->P_matrix = rk4_P_matrix;
 /*			par->P_matrix = zinvar_P_matrix;printf("CAUTION ! P_matrix = zinvar_P_matrix DEBUGGING...");*/
@@ -325,6 +297,7 @@ int md3D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 		fprintf(stderr, "%s, line %d : ERROR, unknown calculation method (\"%s\")\n",__FILE__,__LINE__,par->calcul_method);
 		exit(EXIT_FAILURE);
 	}
+
 
 	return 0;
 }
@@ -464,7 +437,7 @@ int md3D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	if (par->imposed_S_steps){
 		par->tab_imposed_S_steps = (double *) malloc(sizeof(double)*(par->N_imposed_S_steps));
 	}
-	
+
 	return 0;
 }
 
@@ -480,6 +453,10 @@ int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	if (par->verbosity>=3) fprintf(stdout,"Freeing memory : "); fflush(stdout);
 
+	if (par->type_profil == H_XY_plus_STACK){
+		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
+		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
+	}	
 	
 	if (par->type_profil == N_XYZ) {
 		free(par->n_xyz[0]);

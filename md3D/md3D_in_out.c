@@ -17,7 +17,7 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	FILE *fp;
 	int ret=0, argc=par->argc;
-	double n_super_re, n_super_im, n_sub_re, n_sub_im;
+	double nu_super_re, nu_super_im, nu_sub_re, nu_sub_im;
 	char *erreur="NO_ERROR                     ";
 	char **argvcp=par->argvcp, str_profil[SIZE_STR_BUFFER], str_tmp[SIZE_STR_BUFFER];
 
@@ -25,13 +25,13 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	if (lire_str_arg(nomfichier->fichier_param, "-param", argc, argvcp)) {
 		sprintf(nomfichier->fichier_param,"md3D_param.txt");}
 
-	/* Ouverture de fichioer_param */
+	/* Ouverture de fichier_param */
 	if (!(fp = fopen(nomfichier->fichier_param,"r"))){
 		fprintf(stderr, "%s ligne %d : Error, can't open %s\n",__FILE__, __LINE__,nomfichier->fichier_param);
 		exit(EXIT_FAILURE);
 	}
 	
-	/* Verbosity level reading (default=2) */
+	/* Verbosity level (default=2) */
 	if (lire_int_arg(&par->verbosity, "-verbosity", argc, argvcp)) {
 		if (lire_int (fp, "verbosity", &(par->verbosity) )) par->verbosity = 2;}
 	if (par->verbosity >=2 ) fprintf(stdout,"Reading parameters in %s\n",nomfichier->fichier_param);
@@ -84,18 +84,18 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		if (lire_int_arg(&par->N_imposed_S_steps, "-N_imposed_S_steps", argc, argvcp)) {
 			if (lire_int (fp, "N_imposed_S_steps", &(par->N_imposed_S_steps) )) erreur="N_imposed_S_steps";}
 	}
-	if (lire_dble_arg(&n_super_re, "-n_super_re", argc, argvcp)) {
-		if (lire_complex(fp, "n_super", &(par->n_super))) erreur="n_super";
+	if (lire_dble_arg(&nu_super_re, "-nu_super_re", argc, argvcp)) {
+		if (lire_complex(fp, "nu_super", &(par->nu_super))) erreur="nu_super";
 	}else{
-		if (lire_dble_arg(&n_super_im, "-n_super_im", argc, argvcp)) {
-			n_super_im =0;}
-		par->n_super = n_super_re +I*n_super_im;}
-	if (lire_dble_arg(&n_sub_re, "-n_sub_re", argc, argvcp)) {
-		if (lire_complex(fp, "n_sub", &(par->n_sub))) erreur="n_sub";
+		if (lire_dble_arg(&nu_super_im, "-nu_super_im", argc, argvcp)) {
+			nu_super_im =0;}
+		par->nu_super = nu_super_re +I*nu_super_im;}
+	if (lire_dble_arg(&nu_sub_re, "-nu_sub_re", argc, argvcp)) {
+		if (lire_complex(fp, "nu_sub", &(par->nu_sub))) erreur="nu_sub";
 	}else{
-		if (lire_dble_arg(&n_sub_im, "-n_sub_im", argc, argvcp)) {
-			n_sub_im =0;}
-		par->n_sub = n_sub_re + I*n_sub_im;}
+		if (lire_dble_arg(&nu_sub_im, "-nu_sub_im", argc, argvcp)) {
+			nu_sub_im =0;}
+		par->nu_sub = nu_sub_re + I*nu_sub_im;}
 	/* h */
 	if (lire_dble_arg(&par->h, "-h", argc, argvcp)) {
 		if (lire_str_arg(str_tmp, "-h", argc, argvcp)) {
@@ -182,9 +182,14 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			if (lire_int (fp, "Nprz", &(par->Nprz) )) erreur="Nprz";
+		}else if (!strcmp(str_profil,"H_XY_plus_STACK")){par->type_profil = H_XY_plus_STACK;
+			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
+			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
+			par->N_layers = 0;
+			if (lire_int(fp, "N_stack", &(par->N_stack))) erreur="N_stack";
+			if (lire_int(fp, "n_patterned_layer", &(par->n_patterned_layer))) erreur="n_patterned_layer";
 		}else                                        {erreur = "type_profil_bis";}
 	}
-
 	fclose(fp);
 	
 	/* Vérification de l'absence d'erreurs de lecture */
@@ -207,8 +212,8 @@ int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 
 	/* Affichage des valeurs lues */
 	if (par->verbosity >= 2){
-		fprintf(stdout,"n_super = %f + i%f\n", creal((par->n_super)), cimag((par->n_super)));
-		fprintf(stdout,"n_sub   = %f + i%f\n", creal((par->n_sub)), cimag((par->n_sub)));
+		fprintf(stdout,"nu_super = %f + i%f\n", creal((par->nu_super)), cimag((par->nu_super)));
+		fprintf(stdout,"nu_sub   = %f + i%f\n", creal((par->nu_sub)), cimag((par->nu_sub)));
 		fprintf(stdout,"lambda  = %f\n",par->lambda);
 		fprintf(stdout,"theta_i = %f rad (%f deg)\n",par->theta_i,par->theta_i*180.0/PI);
 		fprintf(stdout,"phi_i   = %f rad (%f deg)\n",par->phi_i,par->phi_i*180.0/PI);
@@ -248,10 +253,13 @@ int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 /*---------------------------------------------------------------------------------------------*/
 int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par)
 {
-
 	int i;
+	char index_name[SIZE_STR_BUFFER], h_name[SIZE_STR_BUFFER];
+	double hstack_tmp;
+	complex index_tmp;
 	int Nprx = par->Nprx;
 	int Npry = par->Npry;
+	FILE *fp;
 	double h_tmp, *profil = par->profil[0];
 	int Npts = Nprx*Npry;
 
@@ -260,6 +268,24 @@ int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par)
 	par->k2_layer[par->N_layers+1] = (par->k_sub)*(par->k_sub);
 	par->invk2_layer[0] = 1/((par->k_super)*(par->k_super));
 	par->invk2_layer[par->N_layers+1] = 1/((par->k_sub)*(par->k_sub));
+
+	if (par->type_profil == H_XY_plus_STACK) {
+		if (!(fp = fopen(nom_fichier,"r"))){
+			fprintf(stderr, "%s line %d: Error, can't open %s\n",__FILE__, __LINE__,nom_fichier);
+			exit(EXIT_FAILURE);
+		}
+		for (i=0; i<=par->N_stack-1; i++){
+			if (i != par->n_patterned_layer){
+				sprintf(index_name,"n%d",i);
+				if (lire_complex(fp, index_name, &index_tmp)) fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,index_name);
+				par->nu_stack[i] = index_tmp;
+				sprintf(h_name,"h%d",i);
+				if (lire_double(fp, h_name, &hstack_tmp))  fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,h_name);
+				par->h_stack[i] = hstack_tmp;
+			}
+		}
+		fclose(fp);
+	}
 
 	/* Reading the profile */
 	if (par->verbosity >= 2) fprintf(stdout,"Reading the profile %s : ",nom_fichier);
@@ -345,7 +371,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	for (i=1; i<=N_layers; i++){
 		sprintf(nom_indice,"n%d",i);
 		if (lire_complex(fp, nom_indice, &indice)) erreur=nom_indice;
-		par->k2_layer[i]    = (indice*par->k_super/par->n_super)*(indice*par->k_super/par->n_super); 
+		par->k2_layer[i]    = (indice*par->k_super/par->nu_super)*(indice*par->k_super/par->nu_super); 
 		par->invk2_layer[i] = 1/par->k2_layer[i]; 
 	}
 	par->k2_layer[0]             = (par->k_super)*(par->k_super);
@@ -531,8 +557,8 @@ int md3D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"phi_i   = %f deg\n",par->phi_i*180.0/PI);
 	fprintf(fp,"psi     = %f deg\n",par->psi*180.0/PI);
 
-	fprintf(fp,"n_super = %f + i%f\n", creal((par->n_super)), cimag((par->n_super)));
-	fprintf(fp,"n_sub   = %f + i%f\n", creal((par->n_sub)), cimag((par->n_sub)));
+	fprintf(fp,"nu_super = %f + i%f\n", creal((par->nu_super)), cimag((par->nu_super)));
+	fprintf(fp,"nu_sub   = %f + i%f\n", creal((par->nu_sub)), cimag((par->nu_sub)));
 	fprintf(fp,"Lx       = %f\n",par->Lx);
 	fprintf(fp,"Ly       = %f\n",par->Ly);
 	fprintf(fp,"h       = %f\n",par->h);
