@@ -182,6 +182,10 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			if (lire_int (fp, "Nprz", &(par->Nprz) )) erreur="Nprz";
+		}else if (!strcmp(str_profil,"N_XY_ZINVAR"))       {par->type_profil = N_XY_ZINVAR;
+			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
+			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
+			if (lire_int (fp, "Nprz", &(par->Nprz) )) erreur="Nprz";
 		}else if (!strcmp(str_profil,"H_XY_plus_STACK")){par->type_profil = H_XY_plus_STACK;
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
@@ -233,8 +237,13 @@ int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 		fprintf(stdout,"i_field_mode   = %s\n",par->i_field_mode);
 		fprintf(stdout,"nom_profil     = %s\n",par->nom_profil);
 		fprintf(stdout,"fichier_profil = %s\n",nomfichier->fichier_profil);
-		fprintf(stdout,"type_profil    = %s\n",(par->type_profil==H_XY ? "H_XY" :
-		                                        (par->type_profil==N_XYZ ? "N_XYZ":"MULTICOUCHES")));
+		if (par->type_profil==H_XY){
+			fprintf(stdout,"type_profil    = %s\n","H_XY");
+		}else if (par->type_profil==N_XY_ZINVAR){
+			fprintf(stdout,"type_profil    = %s\n","N_XY_ZINVAR");
+		}else{
+			fprintf(stdout,"*** WARNING ***:\ntype_profil    = %s\n***************\n","UNKNOWN");
+		}
 		fprintf(stdout,"N_couches      = %d\n",par->N_layers);
 		fflush(stdout);
 	}
@@ -481,53 +490,110 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	return 0;
 }
 
-/*---------------------------------------------------------------------------------------------*/
-/*!	\fn	int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
+/*!---------------------------------------------------------------------------------------------
+ * \fn int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
  *
- *	\brief	Fonction lisant les valeurs de indice(x,z) décrivant un profil volumique
- */
-/*---------------------------------------------------------------------------------------------*/
+ * \brief Read profil in case of n(x,y,z) index distribution
+ *
+ * Two ways of entering the refractive index in the stack for this function:
+ * - first way: enter an array of values (1,2,3,...) corresponding to complex refractive indices
+ *   n1,n2,n3,... which values are defined in the profile file.
+ *   Ex.:   n1 = 1.5 +i0.5
+ *          n2 = 1.0 +i0.0
+ *          n_xyz = 1 1 2 1 2 2 ...
+ * - second way: enter two arrays, one for the real part and one for the imaginary part (facultative)
+ *   of the refractive index.
+ *   Ex.:   Re_n_xyz = 1.5 1.5 1.0 1.5 1.5 ...
+ *          Im_n_xyz = 0.5 0.5 0.0 0.5 0.5 ...
+ *---------------------------------------------------------------------------------------------*/
 int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 {
-	int nx, nz, Nprx=par->Nprx, Npry=par->Npry, Nprz=par->Nprz, Nptxy = Nprx*Npry;
+	int i, i_max, nx, nz, value_is_attributed, Nprx=par->Nprx, Npry=par->Npry, Nprz=par->Nprz, Nptxy = Nprx*Npry;
+	FILE *fp;	
 	complex **n_xyz = par->n_xyz;
+	char nu_name[SIZE_STR_BUFFER];
 	
-
-	/* Allocations de mémoire pour variables temporaires */
-	double *Re_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
-	double *Im_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
-
-	/* Lecture de la partie réelle */
-	if (par->verbosity >= 2) fprintf(stdout,"Lecture du profil %s :\npartie réelle : ",nom_fichier);
-	if (lire_tab(nom_fichier, "Re_n_xyz", Re_n_xyz, Nptxy*Nprz) == 0) {
-		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
-	}else{
-		fprintf(stderr,"ERREUR de lecture du profil\n");
+	/* Check Nprz for ZINVAR case */
+	if (par->type_profil == N_XY_ZINVAR && Nprz != 1){
+		fprintf(stderr, "%s line %d: ERROR, Nprz must = 1 for n_xy_zinvar. For not z-invariant profile, use type_profil = n_xyz (with uppercase).\n",__FILE__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
-	/* Lecture de la partie imaginaire */
-	if (par->verbosity >= 2) fprintf(stdout,"partie imaginaire : ");fflush(stdout);
-	if (lire_tab(nom_fichier, "Im_n_xyz", Im_n_xyz, Nptxy*Nprz) == 0) {
-		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
-	}else{
-		fprintf(stderr,"PAS DE PARTIE IMAGINAIRE (profil diélectrique)\n");
-		for (nx=0; nx<=Nptxy*Nprz-1; nx++){
-			Im_n_xyz[nx] = 0;
+
+	/* Memory allocations */
+	double *Re_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
+	double *Im_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
+	double *int_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
+	complex *nu = malloc(sizeof(complex)*SIZE_INT_BUFFER);
+	
+
+	/* Reading index distribution as n_xyz, plus values n1, n2,... */
+	if (lire_tab(nom_fichier, "n_xyz", int_n_xyz, Nptxy*Nprz) == 0) {
+		if (par->verbosity >= 2) fprintf(stdout,"Reading the N_XYZ index distribution of the type n_xyz in %s... OK\n",nom_fichier);
+		/* Reading n1, n2, n3,... indices complex values */
+		if (!(fp = fopen(nom_fichier,"r"))){
+			fprintf(stderr, "%s line %d: Error, can't open %s\n",__FILE__, __LINE__,nom_fichier);
+			exit(EXIT_FAILURE);
 		}
+		for (i=1;i>0;i++){
+ 			snprintf(nu_name, SIZE_STR_BUFFER*sizeof(char), "n%d",i);
+			if (lire_complex(fp, nu_name, &nu[i-1])){
+				i_max = i;
+				break;
+			}
+		}
+		if (i_max > SIZE_INT_BUFFER){
+			fprintf(stderr, "%s line %d: ERROR, can't handle more than %d indices (Edit the source code if you need more).\n",__FILE__, __LINE__,SIZE_INT_BUFFER);
+			exit(EXIT_FAILURE);
+		}
+		fclose(fp);
+		/* Attributing the complex values to the index array */
+		for (nz=0; nz<=Nprz-1; nz++){
+			for (nx=0; nx<=Nptxy-1; nx++){
+				value_is_attributed = 0;
+				for (i=1;i<=i_max;i++){
+					if ((int)int_n_xyz[nx+Nptxy*nz] == i){
+						n_xyz[nz][nx] = nu[i-1];
+						value_is_attributed = 1;
+						break;
+					}
+				}
+				if (!value_is_attributed){
+					fprintf(stderr, "%s line %d: Error, can't attribute value to n_xyz for element number %d\n",__FILE__, __LINE__,nx);
+					exit(EXIT_FAILURE);
+				}
+			}
+		}
+	}else if (lire_tab(nom_fichier, "Re_n_xyz", Re_n_xyz, Nptxy*Nprz) == 0) { /* Reading real part of n_xyz */
+		if (par->verbosity >= 2) fprintf(stdout,"Reading the N_XYZ index distribution %s:\nreal part, Re_n_xyz... OK\n",nom_fichier);
+		/* Reading imaginary part */
+		if (lire_tab(nom_fichier, "Im_n_xyz", Im_n_xyz, Nptxy*Nprz) == 0) {
+			if (par->verbosity >= 2) fprintf(stdout,"Reading the N_XYZ index distribution %s:\nImaginary part, Im_n_xyz... OK\n",nom_fichier);
+		}else{
+			fprintf(stderr,"NO IMAGINARY PART: Dielectric profile\n");
+			for (nx=0; nx<=Nptxy*Nprz-1; nx++){
+				Im_n_xyz[nx] = 0;
+			}
+		}
+		/* Creating complex matrix n_xyz */
+		for (nz=0; nz<=Nprz-1; nz++){
+			for (nx=0; nx<=Nptxy-1; nx++){
+				n_xyz[nz][nx] = Re_n_xyz[nx+Nptxy*nz] + I*Im_n_xyz[nx+Nptxy*nz];
+			}
+		}
+	}else{
+		fprintf(stderr, "%s line %d: ERROR, can't read either n_xyz or Re_n_xyz in %s\n",__FILE__, __LINE__,nom_fichier);
+		exit(EXIT_FAILURE);
 	}
 	
-	/* Création de la matrice complexe n_xyz */
-	for (nz=0; nz<=Nprz-1; nz++){
-		for (nx=0; nx<=Nptxy-1; nx++){
-			n_xyz[nz][nx] = Re_n_xyz[nx+Nptxy*nz] + I*Im_n_xyz[nx+Nptxy*nz];
-		}
-	}
 
 	free(Re_n_xyz);
 	free(Im_n_xyz);
+	free(int_n_xyz);
+	free(nu);
 
 	return 0;
 }
+
 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn	

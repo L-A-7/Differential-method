@@ -37,9 +37,11 @@
 #define H_XY          1
 #define MULTICOUCHES 2
 #define N_XYZ        3
-#define H_XY_plus_STACK 4
+#define N_XY_ZINVAR  4
+#define H_XY_plus_STACK 5
 #define SIZE_STR_BUFFER 200
 #define SIZE_LINE_BUFFER 50000
+#define SIZE_INT_BUFFER 1000
 
 #define NON_LU "Et_non_c_pas_lu"
 /* Macros */

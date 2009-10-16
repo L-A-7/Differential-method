@@ -30,6 +30,7 @@ int zinvar_M_matrix(complex **M, double z, struct Param_struct *par);
 complex *invk_2(struct Param_struct *par, complex *invk2_1D, double z);
 complex *k_2(struct Param_struct *par, complex *k2_1D, double z);
 int Normal_H_XY(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par);
+int Normal_N_XY_ZINVAR(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par);
 int md3D_toepNorm(double z, struct Param_struct *par);
 int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par);
 int md3D_save_S_matrix(double h_partial, struct Param_struct *par);

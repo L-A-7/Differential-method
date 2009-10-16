@@ -240,9 +240,9 @@ complex *M_x_V(complex *vector_out, complex **matrix, complex *vector_in, int nl
 #ifdef _BLAS
   if (nlign != ncol){
     fprintf (stderr, "%s : Error, M_x_V nline must equals ncol (edit the source to change this)", __FILE__); 
-    exit (EXIT_FAILURE);}
+    exit (EXIT_FAILURE);
+  }
   blas_MxV(vector_out, matrix, vector_in, ncol);
-printf("blas_MxV ");
 #else
 	#ifdef _ACML
   int i, j;
@@ -1324,13 +1324,13 @@ complex **allocate_CplxMatrix(int nlin,int ncol)
 	
   tabl = (complex **) malloc (nlin * sizeof (complex *));
   if (tabl == NULL) {
-    fprintf (stderr, "%s : Error, allocate_CplxMatrix() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_CplxMatrix() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   tabl[0] = (complex *) malloc (ncol*nlin * sizeof (complex));
   if (tabl[0] == NULL) {
     free (tabl); 
-    fprintf (stderr, "%s : Error, allocate_CplxMatrix() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_CplxMatrix() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   for(i = 1; i < nlin; i++){
@@ -1353,13 +1353,13 @@ complex ***allocate_CplxMatrix_3(int nlign, int ncol, int ntab)
 	
   tabl = (complex ***) malloc (ntab * sizeof (complex **));
   if (tabl == NULL) {
-    fprintf (stderr, "%s : Error, allocate_CplxMatrix_3() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_CplxMatrix_3() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   tabl[0] = (complex **) malloc (ntab*ncol * sizeof (complex *));
   if (tabl[0] == NULL) {
     free (tabl); 
-    fprintf (stderr, "%s : Error, allocate_CplxMatrix_3() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_CplxMatrix_3() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   for(i = 1; i < ntab; i++){
@@ -1370,7 +1370,7 @@ complex ***allocate_CplxMatrix_3(int nlign, int ncol, int ntab)
   if (tabl[0][0] == NULL) {
     free(tabl[0]);
     free (tabl); 
-    fprintf (stderr, "%s : Error, allocate_CplxMatrix_3() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_CplxMatrix_3() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   for(i = 1; i < ncol*ntab; i++){
@@ -1396,13 +1396,13 @@ complex **reallocate_CplxMatrix (complex **tabl, int ncol, int nlign)
 	
   tmp = (complex *) realloc (tabl[0], ncol*nlign*sizeof(complex));
   if (tmp == NULL) { 
-    fprintf (stderr, "%s : Error, reallocate_CplxMatrix() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, reallocate_CplxMatrix() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
 	
   ret = (complex **) realloc (tabl, ncol*sizeof(complex *));
   if (ret == NULL) {
-    fprintf (stderr, "%s : Error, reallocate_CplxMatrix() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, reallocate_CplxMatrix() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
 	
@@ -1427,13 +1427,13 @@ double **allocate_DbleMatrix(int nlign,int ncol)
 	
   tabl = (double **) malloc (nlign * sizeof (double *));
   if (tabl == NULL) {
-    fprintf (stderr, "%s : Error, allocate_DbleMatrix() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_DbleMatrix() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   tabl[0] = (double *) malloc (ncol*nlign * sizeof (double));
   if (tabl[0] == NULL) {
     free (tabl); 
-    fprintf (stderr, "%s : Error, allocate_DbleMatrix() can't allocate memory", __FILE__); 
+    fprintf (stderr, "%s : Error, allocate_DbleMatrix() can't allocate memory\n", __FILE__); 
     exit (EXIT_FAILURE);
   }
   for(i = 1; i < nlign; i++){

@@ -171,12 +171,15 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 	par->sigma_y0 = par->k_super*sin(par->theta_i)*sin(par->phi_i);
 			
 	/* Allocations */	
-	if (par->type_profil == N_XYZ) {
+	if (par->type_profil == N_XYZ || par->type_profil == N_XY_ZINVAR) {
 		par->n_xyz = allocate_CplxMatrix(par->Nprz,par->Nprx*par->Npry);
-	}else{
+	}else if(par->type_profil == H_XY){
 		par->profil = allocate_DbleMatrix(par->N_layers+3,par->Nprx*par->Npry);
 		par->k2_layer    = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
 		par->invk2_layer = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, unknown profile_type\n",__FILE__,__LINE__);
+		exit(EXIT_FAILURE);
 	}
 
 
@@ -204,15 +207,22 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 			par->md3D_lire_profil = md3D_lire_profil_N_XYZ;
 			par->k_2 = k2_N_XYZ;
 			par->invk_2 = invk2_N_XYZ;
+/*			par->Normal_function = Normal_N_XYZ;*/
+printf("\n***************\nWARNING: Normal_N_XYZ not defined yet.\n******************\n\n");
+			break;
+		case N_XY_ZINVAR : 
+			par->md3D_lire_profil = md3D_lire_profil_N_XYZ;
+			par->k_2 = k2_N_XYZ;
+			par->invk_2 = invk2_N_XYZ;
+			par->Normal_function = Normal_N_XY_ZINVAR;
 			break;
 		default:
 			fprintf(stderr, "%s, line %d : ERROR, unknown profile_type\n",__FILE__,__LINE__);
 			exit(EXIT_FAILURE);
 
 	}
-	printf("Coucou\n");fflush(stdout);
 	if (par->type_profil == H_XY_plus_STACK){
-printf("Alloc nu_stack et h_stack, N_stack = %d",par->N_stack);fflush(stdout);
+		printf("Alloc nu_stack et h_stack, N_stack = %d",par->N_stack);fflush(stdout);
 		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
 		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
 	}	
@@ -457,15 +467,18 @@ int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
 		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
 	}	
-	
-	if (par->type_profil == N_XYZ) {
+
+	if (par->type_profil == N_XYZ || par->type_profil == N_XY_ZINVAR) {
 		free(par->n_xyz[0]);
 		free(par->n_xyz);
-	}else{
+	}else if(par->type_profil == H_XY){
 		free(par->profil[0]);
 		free(par->profil);
 		free(par->k2_layer);
 		free(par->invk2_layer);
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, unknown profile_type\n",__FILE__,__LINE__);
+		exit(EXIT_FAILURE);
 	}
 	if (par->tab_NS_ENABLED){
 		free(par->tab_NS);

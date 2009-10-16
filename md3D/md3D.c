@@ -7,6 +7,7 @@
  * 
  *
  *	\date		nov 2007
+ *	\version	09.10.15
  *	\authors	Laurent ARNAUD
  */
 
@@ -1387,8 +1388,8 @@ printf("\nIm(mM44) :\n");SaveMatrix2file (mM44, vec_size, vec_size, "Im", "stdou
 /*-------------------------------------------------------------------------------------*/
 int zinvar_M_matrix(complex **M, double z, struct Param_struct *par)
 {
-	printf("zinvar_M_matrix : Not implemented...");exit(EXIT_FAILURE);
-	return 0;
+	printf("\n#*#*#*#*#*#*##*#*#*#*#*#*##*#*#*#*#*#*#\n#* zinvar_M_matrix : Not implemented...\n#* Calling normal M_matrix instead\n#*#*#*#*#*#*##*#*#*#*#*#*##*#*#*#*#*#*#");
+	return M_matrix(M, z, par);
 }
 
 /*-------------------------------------------------------------------------------------*/
@@ -1826,7 +1827,9 @@ complex *k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)
 	for (i=0;i<=par->Nprx*par->Npry-1;i++){
 		k2_1D[i] = par->n_xyz[nz][i]*par->n_xyz[nz][i]*DeuxPisurLambda2; 
 	}
-	
+/*
+printf("\nreal(k2)\n");SaveCplxTab2file (k2_1D, par->Nprx*par->Npry, "Re", "stdout", " ",par->Nprx,"\n");
+*/	
 	return k2_1D;
 }
 
@@ -1851,7 +1854,9 @@ complex *invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)
 	for (i=0;i<=par->Nprx*par->Npry-1;i++){
 		invk2_1D[i] = invDeuxPisurLambda2/(par->n_xyz[nz][i]*par->n_xyz[nz][i]); 
 	}
-	
+/*
+printf("\nreal(invk2)\n");SaveCplxTab2file (invk2_1D, par->Nprx*par->Npry, "Re", "stdout", " ",par->Nprx,"\n");
+*/	
 	return invk2_1D;
 }
 
@@ -1989,6 +1994,7 @@ int Normal_H_XY(complex **norm_x, complex **norm_y, complex **norm_z, double z, 
 	}
 	par->HXY_Normal_CALCULATED = 1;
 
+#if 0
 /********************************************************/
 if(par->verbosity == 11){ /*norm_x = 1 DEBUGGING and validation purpose only */
 printf("\nCAUTION, norm_x set to 1, DEBUGGING and VALIDATION purpose only !\n\n");
@@ -2015,9 +2021,54 @@ norm_y[i][j] = 0.0;
 norm_z[i][j] = 1.0;
 }}}
 /********************************************************/
+#endif
 
 
+	return 0;
+}
+/*!-------------------------------------------------------------------------------------
+ * \fn int Normal_N_XY_ZINVAR(complex **normx, complex **normy, complex **normz, double z, struct Param_struct *par)
+ *
+ * \brief Determine normx, normy, normz for N_XY profile
+ *
+ *-------------------------------------------------------------------------------------*/
+int Normal_N_XY_ZINVAR(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par)
+{
+	int i,j;
+	int Nprx = par->Nprx;
+	int Npry = par->Npry;
+	double x,y;
+printf("\nCAUTION, norm set to RADIAL, DEBUGGING and VALIDATION purpose only !\n\n");
+	for (i=0;i<=Npry-1;i++){
+		for (j=0;j<=Nprx-1;j++){
+			x=((double)j-((double)Nprx-1)/2);
+			y=((double)i-((double)Npry-1)/2);
+			if (cabs(x*x+y*y) == 0.0) x=0.0000001;
+			norm_x[i][j] = x/csqrt(x*x+y*y);
+			norm_y[i][j] = y/csqrt(x*x+y*y);
+			norm_z[i][j] = 0.0;
+		}
+	}
+/*
+printf("\nnorm_x\n");SaveCplxTab2file (norm_x[0], par->Nprx*par->Npry,"Re", "stdout", " ",par->Nprx,"\n");
+printf("\nnorm_y\n");SaveCplxTab2file (norm_y[0], par->Nprx*par->Npry,"Re", "stdout", " ",par->Nprx,"\n");
+*/	
 
+
+/*	double dhdx, dhdy;
+	double two_dx = 2*par->Lx/Nprx;
+	double two_dy = 2*par->Ly/Npry;
+	double *profil = par->profil[0];
+	for (i=1;i<=Npry-2;i++){
+		for (j=1;j<=Nprx-2;j++){
+			dhdx = (profil[Nprx*i+j+1]-profil[Nprx*i+j-1])/two_dx;
+			dhdy = (profil[Nprx*(i+1)+j]-profil[Nprx*(i-1)+j])/two_dy;
+			norm_x[i][j] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
+			norm_y[i][j] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
+			norm_z[i][j] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
+		}
+	}
+*/
 	return 0;
 }
 
