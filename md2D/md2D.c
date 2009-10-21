@@ -1,0 +1,1651 @@
+/*!	\file		md2D.c
+ *
+ * 	\brief		Differential method \n
+ *						2-Dimensions (as opposed to 3-D) \n
+ *						S-Matrices algorithm \n
+ * 					FFF algorithm \n
+ * 
+ *
+ *	\date		nov 2007
+ *	\authors	Laurent ARNAUD
+ */
+
+
+#include "md2D.h"
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *		\brief	Incident field determination
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	int n;
+
+
+	/* Plane wave */
+	if (!strcmp(par->i_field_mode,"PLANE_WAVE")){
+
+		for (n=0; n<=par->vec_size-1; n++) {
+			par->Ai[n] = 0;
+		}
+		par->Ai[par->vec_middle] = 1;
+
+/*		par->Ai[par->vec_middle] = -par->k_super;*/
+		 
+	}else{
+		fprintf(stderr, "%s, ligne %d : ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
+		exit(EXIT_FAILURE);
+	}
+	
+	return 0;	
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *	\brief		Calculation of Propagatives modes limits
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	int N = par->N;
+	double Delta_sigma = par->Delta_sigma;
+	complex k_super = par->k_super;
+	complex k_sub = par->k_sub;
+	double sigma0 = par->sigma0;
+	int Nmin_super, Nmax_super, Nmin_sub, Nmax_sub;
+
+	/* Propagativ modes limits */
+	Nmax_super =  FLOOR( ( creal(k_super) - sigma0 )/Delta_sigma );
+	Nmin_super = -FLOOR( ( creal(k_super) + sigma0 )/Delta_sigma );
+	Nmax_sub   =  FLOOR( ( creal(k_sub) - sigma0 )/Delta_sigma );
+	Nmin_sub   = -FLOOR( ( creal(k_sub) + sigma0 )/Delta_sigma );
+	int Nlimit = MAX(MAX(Nmax_super,Nmax_sub),MAX(-Nmin_super,-Nmin_sub));
+	if (N < Nlimit) {
+		fprintf(stderr,"ATTENTION, N trop petit pour représenter l'ensemble des modes propagatifs\n");
+		fprintf(stderr,"valeur minimale : N = %d \n",Nlimit);
+		if (N < Nmax_super)  Nmax_super =  N;
+		if (N < Nmax_sub)    Nmax_sub   =  N;
+		if (Nmin_super < -N) Nmin_super = -N;
+		if (Nmin_sub   < -N) Nmin_sub   = -N;
+	}
+	eff->Nmin_super = Nmin_super;
+	eff->Nmax_super = Nmax_super;
+	eff->Nmin_sub = Nmin_sub;
+	eff->Nmax_sub = Nmax_sub;
+
+	return 0;	
+}
+
+	
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_efficiencies(complex *Ai, complex *A0, complex *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
+ *
+ *	\brief		Efficiencies calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_efficiencies(complex *Ai, complex *Ar, complex *At, struct Param_struct *par,  struct Efficacites_struct *eff)
+{
+	int n;
+	int vec_size = par->vec_size;
+	int mid = par->vec_middle;
+	
+	complex k_super = par->k_super;
+	complex k_sub = par->k_sub;
+	complex k_super2 = k_super*k_super;
+	complex k_sub2 = k_sub*k_sub;
+/*	complex ky_0  = par->ky_0;
+	complex ky_02 = ky_0*ky_0;*/
+	
+	complex *kz_super, *kz_sub, *sigma;
+	kz_super = par->kz_super;
+	kz_sub = par->kz_sub;
+	sigma = par->sigma;
+
+	double Pz_i, Pz_r, Pz_t, sumPzi;
+	complex *Eyi, *Hpyi, *Eyr, *Hpyr, *Eyt, *Hpyt;
+	complex *Exi, *Hpxi, *Exr, *Hpxr, *Ext, *Hpxt;
+	Exi = par->Exi;
+	Exr = par->Exr;
+	Ext = par->Ext;
+	Hpxi = par->Hpxi;
+	Hpxr = par->Hpxr;
+	Hpxt = par->Hpxt;
+	
+	int Nmin_super = eff->Nmin_super;
+	int Nmax_super = eff->Nmax_super;
+	int Nmin_sub   = eff->Nmin_sub;
+	int Nmax_sub   = eff->Nmax_sub;
+
+	/* y field components */
+	Eyi  = par->Ai; /* TE */
+	Eyr  = par->Ar;
+	Eyt  = par->At;
+	Hpyi = par->Ai; /* TM */
+	Hpyr = par->Ar;
+	Hpyt = par->At;
+
+	/* x field components calculations */
+	if (par->pola == TE){
+		for(n=0;n<=vec_size-1;n++){
+			Exi[n]  = 0;
+			Exr[n]  = 0;
+			Ext[n]  = 0;
+			Hpxi[n] = kz_super[n]*Eyi[n];
+			Hpxr[n] = -kz_super[n]*Eyr[n];
+			Hpxt[n] = kz_sub[n]*Eyt[n];
+		}
+	}else if (par->pola == TM){
+		for(n=0;n<=vec_size-1;n++){
+			Exi[n]  = -kz_super[n]*Hpyi[n]/k_super2;
+			Exr[n]  =  kz_super[n]*Hpyr[n]/k_super2;
+			Ext[n]  = -kz_sub[n]*Hpyt[n]/k_sub2;
+			Hpxi[n] = 0;
+			Hpxr[n] = 0;
+			Hpxt[n] = 0;
+		}
+	}else{
+		fprintf(stderr, "%s, ligne %d : ERROR, pola = %d, must be \"TE\" or \"TM\".Exiting\n",__FILE__,__LINE__,par->pola);
+		exit(EXIT_FAILURE);
+	}
+	
+	/* Total incident energie */
+	sumPzi = 0;
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		Pz_i = fabs(creal(Exi[n+mid]*CONJ(Hpyi[n+mid]) - Eyi[n+mid]*CONJ(Hpxi[n+mid])));
+		sumPzi += Pz_i;
+	}
+
+	/* Reflexion : efficiencies and directions */
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		Pz_r = fabs(creal(Exr[n+mid]*CONJ(Hpyr[n+mid]) - Eyr[n+mid]*CONJ(Hpxr[n+mid])));
+		eff->eff_r[n-Nmin_super] = Pz_r/sumPzi;
+		eff->N_eff_r[n-Nmin_super] = (double) n;
+		eff->theta_r[n-Nmin_super] =  SIGN(sigma[n+mid])*acos(kz_super[n+mid]/k_super) * 180.0/PI;
+	}
+
+	/* Transmission : efficiencies and directions */
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		Pz_t = fabs(creal(Ext[n+mid]*CONJ(Hpyt[n+mid]) - Eyt[n+mid]*CONJ(Hpxt[n+mid])));
+		eff->eff_t[n-Nmin_sub] = Pz_t/sumPzi;
+		eff->N_eff_t[n-Nmin_sub] = (double) n;
+		eff->theta_t[n-Nmin_sub] = SIGN(sigma[n+mid])*acos(kz_sub[n+mid]/k_sub) * 180.0/PI;
+	}
+	
+	/* Sum of efficiencies */
+	eff->sum_eff_r = 0;
+	eff->sum_eff_t = 0;
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		eff->sum_eff_r += eff->eff_r[n-Nmin_super];
+	}
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		eff->sum_eff_t += eff->eff_t[n-Nmin_sub];
+	}
+	eff->sum_eff = eff->sum_eff_r + eff->sum_eff_t;
+
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_amplitudes(complex *Ai, complex *Ar, complex *At, complex **S12, 
+ *                               complex **S22, struct Param_struct *par)
+ *
+ *	\brief	Field amplitudes calculations
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_amplitudes(complex *Ai, complex *Ar, complex *At, complex **S12, complex **S22, struct Param_struct *par)
+{
+	int n;
+	int vec_size = par->vec_size;
+	complex *kz_super;
+	kz_super = par->kz_super;
+		
+	/* Vi = Ai*cexp(-I*kz_super*h) */
+	for (n=0;n<=vec_size-1;n++){
+		par->Vi[n] = Ai[n]*cexp(-I*kz_super[n]*par->h);
+/*		par->Vi[n+vec_size] = Ai[n+vec_size]*cexp(-I*kz_super[n]*par->h);*/
+	}
+	/* Vt = S22*Vi */
+	M_x_V (par->Vt, S22, par->Vi, vec_size, vec_size);
+
+	/* Vr = S12*Vi */	
+	M_x_V (par->Vr, S12, par->Vi, vec_size, vec_size);
+
+	/* Ar = Vr*cexp(-I*kz_super*h) */
+	for (n=0;n<=vec_size-1;n++){
+		Ar[n] = par->Vr[n]*cexp(-I*kz_super[n]*par->h);
+/*		Ar[n+vec_size] = par->Vr[n+vec_size]*cexp(-I*kz_super[n]*par->h);*/
+	}
+	
+	/* At = Vt */
+	/*for (n=0;n<=2*vec_size-1;n++){*/
+	for (n=0;n<=vec_size-1;n++){
+		At[n] = par->Vt[n];
+	}
+/*SaveCplxTab2file (par->Ai, par->vec_size, "Re", "stdout", "\n");
+SaveCplxTab2file (par->Ar, par->vec_size, "Re", "stdout", "\n");
+SaveCplxTab2file (par->At, par->vec_size, "Re", "stdout", "\n");*/
+
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int S_matrix(struct Param_struct *par)
+ *
+ *		\brief	S matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int S_matrix(struct Param_struct *par)
+{
+
+	if (par->verbosity) fprintf(stdout,"S-Matrix calculation\n");
+	int i, j, nS;
+	int vec_size = par->vec_size;
+	int NS = par->NS;
+	complex **S12, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2;
+	S12 = par->S12;
+	S22 = par->S22;
+	T11 = par->T11;
+	T12 = par->T12;
+	T21 = par->T21;
+	T22 = par->T22;
+
+	Z      = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp  = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp2 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	
+	/* Initialisations */
+	for (i=0; i<=vec_size-1; i++) {
+		for (j=0; j<=vec_size-1; j++) {
+			S12[i][j] = 0;
+			S22[i][j] = 0;
+		}
+		S22[i][i] = 1;
+	}
+
+	/* Iterations */
+	for (nS=0; nS<=NS-1; nS++) {
+
+		/* T-Matrix calculation */
+		T_Matrix(T11, T12, T21, T22, nS, par);
+
+		/* Z = inv(T11 + T12*S12) */
+		invM(Z, add_M(T_tmp2, 
+			T11, M_x_M(T_tmp,
+				T12,S12,	vec_size, vec_size), vec_size, vec_size), vec_size);
+		/* S12 = (T21 +T22*S12)*Z */
+		M_x_M(S12,
+			add_M(T_tmp2, T21, M_x_M(T_tmp,
+					T22,S12, vec_size, vec_size), vec_size, vec_size),
+			Z, vec_size, vec_size);
+		/* S22 = S22*Z */
+		M_equals(T_tmp,S22, vec_size, vec_size);
+		M_x_M(S22,T_tmp,Z, vec_size, vec_size);
+
+		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
+		if (!strcmp(par->calcul_type,"NEAR_FIELD")){
+			md2D_save_near_field(S12, Z, vec_size, nS, par);
+		}
+		
+	}
+	
+	free(Z[0]);
+	free(Z);
+	free(T_tmp[0]);
+	free(T_tmp);
+	free(T_tmp2[0]);
+	free(T_tmp2);
+	
+	if(par->verbosity >0) {fprintf(stdout,"\n");}
+	
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int T_Matrix_TE(complex **T11, complex **T12, complex **T21, complex **T22,
+				int nS, struct Param_struct *par)
+ *
+ *	\brief Calcul de la matrice T en polarisation TE
+ */
+/*-------------------------------------------------------------------------------------*/
+int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22, int nS, struct Param_struct *par)
+{
+	int vec_size = par->vec_size;
+	
+	double hmin, hmax, z, Delta_z;
+	complex **Psi, **invPsi_super;
+
+	/* [F] vectors are defined by 	 	[V] vectors by
+	[F] = |[Ex ]|								[V] = |[VE-]|
+			|[Ey ]|								      |[VH-]|
+			|[H'x]|								      |[VE+]|
+			|[H'y]|  							      |[VH+]|  
+	with H'=omega mu H											*/
+
+	/* Psi matrix */
+	if (nS==0){ /* 1st S-Matrix iteration : we are in the substrat */
+		if (par->pola == TE){
+			Psi = par->Psi_sub_TE;
+		}else{
+			Psi = par->Psi_sub_TM;}
+	}else{     /* Following iterations : we are in the superstrat */
+		if (par->pola == TE){
+			Psi = par->Psi_super_TE;
+		}else{
+			Psi = par->Psi_super_TM;}
+	}
+
+	if (par->pola == TE){
+		invPsi_super = par->invPsi_super_TE;
+	}else{ /* TM */
+		invPsi_super = par->invPsi_super_TM;
+	}
+
+	/* z of the considered T matrix slice */
+	hmin = par->h*nS/par->NS;
+	hmax = par->h*(nS+1)/par->NS;
+	if (par->tab_NS_ENABLED){
+		hmin = par->tab_NS[nS];
+		hmax = par->tab_NS[nS+1];
+	}
+	Delta_z = hmax - hmin;
+	z = (hmax + hmin)/2;
+
+/*printf("\nIm(par->M) :\n");
+SaveMatrix2file (par->M, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
+*/
+
+	/* P_matrix calculation */
+	(*par->P_matrix)(par->P, z, Delta_z, par);
+
+	/* T matrix : T = inv(Psi_super) * P_matrix * Psi */
+	M_x_M(par->T,
+			invPsi_super, M_x_M(par->M_buffer_2vecsize, par->P, Psi, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
+
+	/*Affichage du temps restant à l'écran */
+	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
+	
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+ *
+ *	\brief P_matrix calculation in the case of z invariance
+ */
+/*-------------------------------------------------------------------------------------*/
+int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+{
+	int i,j, vec_size = par->vec_size;
+
+	/* M matrix calculation */
+	(*par->M_matrix)(par->M, z, par);
+
+	/* Diagonalisation of M */
+	eigen_values(par->M, par->eig_values, par->EigVectors, par->eig_buffer, 2*vec_size);
+
+	/* Solution of the diagonalized system */
+	for (i=0;i<=2*vec_size-1;i++){
+		par->M_sol[i] = cexp(par->eig_values[i]*Delta_z);
+	}
+		
+	/* invEigVec = inv(EigVectors) */
+	invM(par->invEigVec, par->EigVectors, 2*vec_size);
+
+	/* M_invVec_Psi = M_sol * invVec_Psi */
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			par->M_invVec_Psi[i][j] = par->M_sol[i] * par->invEigVec[i][j];
+		}
+	}
+
+	/* P = EigVec * M_diag * inv(EigVec) */
+	M_x_M(P, par->EigVectors, par->M_invVec_Psi, 2*vec_size, 2*vec_size);
+
+	par->N_steps++;
+		
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	int rk4_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+ *
+ *	\brief P_matrix calculation with 4th order Runge Kutta vectorized method
+ */
+/*-------------------------------------------------------------------------------------*/
+int rk4_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
+{
+	int i,j, vec_size = par->vec_size;
+	complex **Mz, **Mzd, **Mzdd, **M2, **M3, **M4,**rkM_tmp;
+	Mz = par->rkMz;
+	Mzd = par->rkMzd;
+	Mzdd = par->rkMzdd;
+	M2 = par->rkM2;
+	M3 = par->rkM3;
+	M4 = par->rkM4;
+	rkM_tmp = par->rkMtmp1;
+
+	double dz_2 = 0.5*dz;
+
+	/* M matrix calculation */
+	(*par->M_matrix)(Mz,   z,         par);
+	(*par->M_matrix)(Mzd,  z+dz_2	, par);
+	(*par->M_matrix)(Mzdd, z+dz,      par);
+
+	/* M1 = Mz */
+
+	/* M2 = Mzd*(Id + M1*dz/2) */
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			rkM_tmp[i][j] = dz_2 * Mz[i][j]; 
+		}
+		rkM_tmp[i][i] += 1; 
+	}
+	M_x_M(M2, Mzd, rkM_tmp, 2*vec_size, 2*vec_size);
+
+	/* M3 = Mzd*(Id + M2*dz/2) */
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			rkM_tmp[i][j] = dz_2 * M2[i][j]; 
+		}
+		rkM_tmp[i][i] += 1; 
+	}
+	M_x_M(M3, Mzd, rkM_tmp, 2*vec_size, 2*vec_size);
+
+	
+	/* M4 = Mzdd*(Id + M3*dz) */
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			rkM_tmp[i][j] = dz * M3[i][j]; 
+		}
+		rkM_tmp[i][i] += 1; 
+	}
+	M_x_M(M4, Mzdd, rkM_tmp, 2*vec_size, 2*vec_size);
+
+	/* P = Id + (h/6)M1 + (h/3)M2 + (h/3)M3 + (h/6)M4 */
+	double dz_6 = dz/6.0;
+	double dz_3 = dz/3.0;
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			P[i][j] = dz_6*(Mz[i][j] + M4[i][j]) + dz_3*(M2[i][j] + M3[i][j]);
+		}
+		P[i][i] += 1; 
+	}
+
+	par->N_steps++;
+		
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	int euler_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+ *
+ *	\brief P_matrix calculation with vectorized Euler method
+ */
+/*-------------------------------------------------------------------------------------*/
+int euler_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
+{
+	int i,j, vec_size = par->vec_size;
+	complex **Mz;
+	Mz = par->rkMz;
+
+	/* M matrix calculation */
+	(*par->M_matrix)(Mz,  z	, par);
+
+	/* P = Id + h*M */
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			P[i][j] = dz * Mz[i][j]; 
+		}
+		P[i][i] += 1; 
+	}
+
+	par->N_steps++;
+		
+	return 0;
+}
+/*-------------------------------------------------------------------------------------*/
+/*!	int euler2_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+ *
+ *	\brief P_matrix calculation with vectorized Euler method (takes the M matrix at the middle of the interval)
+ */
+/*-------------------------------------------------------------------------------------*/
+int euler2_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
+{
+	int i,j, vec_size = par->vec_size;
+	complex **Mzd;
+	Mzd = par->rkMzd;
+
+	/* M matrix calculation */
+	(*par->M_matrix)(Mzd,  z+0.5*dz	, par);
+
+	/* P = Id + h*M(h+dz/2) */
+	for (i=0;i<=2*vec_size-1;i++){
+		for (j=0;j<=2*vec_size-1;j++){
+			P[i][j] = dz * Mzd[i][j]; 
+		}
+		P[i][i] += 1; 
+	}
+
+	par->N_steps++;
+		
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	int shooting_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+ *
+ *	\brief P_matrix calculation in the cas of z invariance
+ */
+/*-------------------------------------------------------------------------------------*/
+int shooting_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+{
+	int n,j, Nstep, vec_size = par->vec_size;
+	complex *F1,*F2;
+	F1 = par->M_buffer_2vecsize[0];
+	F2 = par->M_buffer_2vecsize[1];
+	
+	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier*/
+	double eps = -1e-10; /* Pour s'affranchir des erreurs d'arrondi */
+	Nstep = CEIL(eps + Delta_z/par->delta_h);
+	/* dz = Delta_z/Nstep; */
+
+	/* Shooting method */
+	for (n=0; n<=2*vec_size-1; n++){
+
+		/* Construction des vecteurs de base */	
+		for (j=0;j<=2*vec_size-1;j++){
+			F1[j] = 0;
+		}
+		F1[n] = 1;
+		
+   	/* Intégration des grandeurs pour une couche */
+		ode_solve((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);
+/*		eq_diff((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);*/
+
+		/* Construction de la matrice P */
+		for(j=0;j<=2*vec_size-1;j++){
+			P[j][n] = F2[j];
+		}
+		
+		/*Affichage du temps restant à l'écran */
+		/*md1D_affichTemps(n,N,nS,NS,par->ni,par->Ni,par);*/
+	}
+	
+	par->N_steps += Nstep;
+		
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int M_matrix(complex **M, double z, struct Param_struct *par)
+ *
+ *		\brief	M matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int M_matrix_TE(complex **M, double z, struct Param_struct *par)
+{
+	int i,j;
+	int vec_size = par->vec_size;
+	
+	complex *sigma = par->sigma;
+	complex *TF_k2    = par->TF_k2;
+
+	/* Calculations of the Fourier transforms of the necessary 'grandeurs' */
+	TF_k2 = FFT_k2_directe(z, TF_k2, par);
+
+	/* Matrix initialisation */
+	for(i=0;i<=2*vec_size-1;i++){
+		for(j=0;j<=2*vec_size-1;j++){
+			M[i][j] = 0;
+		}
+	}
+	for(i=0;i<=vec_size-1;i++){
+		/* M12 = -I*Id */
+		M[i][i+vec_size] = -I;
+		for(j=0;j<=vec_size-1;j++){
+			/* M21 = I*sigma2*Id - I*k2(n-m) */
+			M[i+vec_size][j] =  -I*TF_k2[i-j+2*par->N];
+		}
+		/* M21 = I*sigma2*Id - I*k2(n-m) */
+		M[i+vec_size][i] += I*sigma[i]*sigma[i];
+	}
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int M_matrix(complex **M, double z, struct Param_struct *par)
+ *
+ *		\brief	M matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int M_matrix_TM(complex **M, double z, struct Param_struct *par)
+{
+	int i,j;
+	int vec_size = par->vec_size;
+
+	complex *sigma = par->sigma;
+	complex **M11,**M12,**M21,**M22;
+	complex **M_tmp1, **M_tmp2, **M_tmp3;
+	complex **Qxx, **Qyy, **Qxz, **Qzz, **invQzz, **invQzzQxz, **invQzzsigma;
+	Qxx = par->Qxx;
+	Qyy = par->Qyy;
+	Qxz = par->Qxz;
+	Qzz = par->Qzz;
+	invQzz = par->Qzz_1;
+	M11 = par->M_tmp11;
+	M12 = par->M_tmp12;
+	M21 = par->M_tmp21;
+	M22 = par->M_tmp22;
+	M_tmp1 = par->M_tmp1;
+	M_tmp2 = par->M_tmp2;
+	M_tmp3 = par->M_tmp3;
+	
+	/* Toeplitz matrices calculations */
+	md2D_QMatrix(z, par->Toep_k2, par->invToep_invk2, Qxx, Qyy, Qxz, Qzz, invQzz, par);
+
+	/* invQzzQxz = invQzz*Qxz */
+	invQzzQxz = M_tmp2;
+	M_x_M(invQzzQxz, invQzz, Qxz, vec_size, vec_size);
+
+	/* M11 = -sigma*invQzzQxz;*/
+	for(i=0;i<=vec_size-1;i++){
+		for(j=0;j<=vec_size-1;j++){
+			M11[i][j] = -sigma[i]*invQzzQxz[i][j];
+		}
+	}
+
+	/* M21 = Qxx - Qxz*invQzzQxz */
+	sub_M(M21, Qxx, M_x_M(M_tmp1, Qxz, invQzzQxz, vec_size, vec_size), vec_size, vec_size);
+
+	/* invQzzsigma = invQzz*sigma */
+	invQzzsigma = M_tmp2;
+	for(i=0;i<=vec_size-1;i++){
+		for(j=0;j<=vec_size-1;j++){
+			invQzzsigma[i][j] = invQzz[i][j]*sigma[j];
+		}
+	}
+
+	/* M12 = Oeil - sigma * invQzzsigma */
+	for(i=0;i<=vec_size-1;i++){
+		for(j=0;j<=vec_size-1;j++){
+			M12[i][j] = -sigma[i]*invQzzsigma[i][j];
+		}
+		M12[i][i] += 1;
+	}
+
+	/* M22 = -Qxz * invQzzsigma */
+	M_x_M(M22, minus_M(M_tmp1,Qxz,vec_size,vec_size), invQzzsigma, vec_size, vec_size);
+
+	/* putting it all together */
+	for(i=0;i<=vec_size-1;i++){
+		for(j=0;j<=vec_size-1;j++){
+			M[i][j]                   = I * M11[i][j];
+			M[i][j+vec_size]          = I * M12[i][j];
+			M[i+vec_size][j]          = I * M21[i][j];
+			M[i+vec_size][j+vec_size] = I * M22[i][j];
+		}
+	}
+
+	return 0;
+}
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int zinvar_M_Matrix_TM(complex **M, double z, struct Param_struct *par)
+ *
+ *		\brief	M matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int zinvar_M_matrix_TM(complex **M, double z, struct Param_struct *par)
+{
+	int i,j;
+	int vec_size = par->vec_size;
+
+	complex *sigma = par->sigma;
+	complex **M12,**M21;
+	complex **M_tmp1, **M_tmp2, **M_tmp3;
+	complex **Qxx, **invQzz, **invToep_invk2, **invToep_k2, **Toep_k2;
+	Qxx = par->Qxx;
+	invQzz = par->Qzz_1;
+	M12 = par->M_tmp12;
+	M21 = par->M_tmp21;
+	M_tmp1 = par->M_tmp1;
+	M_tmp2 = par->M_tmp2;
+	M_tmp3 = par->M_tmp3;
+	Toep_k2       = par->Toep_k2;
+	invToep_invk2 = par->invToep_invk2;
+
+	/* Toeplitz matrices calculations */
+	md2D_zinvarQMatrix(z, Toep_k2, invToep_invk2, par);
+
+	/* M21 = Qxx */
+/*	M_equals(M21, invToep_invk2, vec_size, vec_size);
+*/
+
+	/* M12 = Oeil - sigma * invToep_k2 * sigma */
+	invToep_k2 = M_tmp2;
+	invM(invToep_k2, Toep_k2, vec_size);
+	for(i=0;i<=vec_size-1;i++){
+		for(j=0;j<=vec_size-1;j++){
+			M12[i][j] = -sigma[i]*invToep_k2[i][j]*sigma[j];
+		}
+		M12[i][i] += 1;
+	}
+
+	/* putting it all together */
+	for(i=0;i<=vec_size-1;i++){
+		for(j=0;j<=vec_size-1;j++){
+			M[i][j]                   = 0;
+			M[i][j+vec_size]          = I * M12[i][j];
+			M[i+vec_size][j]          = I * invToep_invk2[i][j];
+			M[i+vec_size][j+vec_size] = 0;
+		}
+	}
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
+ *
+ *		\brief	
+ */
+/*-------------------------------------------------------------------------------------*/
+int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
+{
+	struct Param_struct *par = (struct Param_struct *) param_void;
+	complex *F, *dF;
+
+	F = (complex *) F_reel;
+	dF = (complex *) dF_reel;
+	
+	(*par->M_matrix)(par->M, z, par);
+	M_x_V(dF, par->M, F, 2*par->vec_size, 2*par->vec_size);
+
+	return 0;	
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_QMatrix(double z, complex **Toep_k2, complex **invToep_invk2, complex **Qxx, complex **Qyy, complex **Qxz, complex **Qzz, complex **Qzz_1, struct Param_struct *par)
+ *
+ *		\brief	Q matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_QMatrix(double z, complex **Toep_k2, complex **invToep_invk2, complex **Qxx, complex **Qyy, complex **Qxz, complex **Qzz, complex **Qzz_1, struct Param_struct *par)
+{
+	int i,j,var_tmp01;
+	fftw_plan plan_TFk2, plan_TFinvk2, plan_TFNx2, plan_TFNz2, plan_TFNxNz;
+	int N_x = par->N_x;
+	int N_tf = 2*par->N;
+	int vec_size = par->vec_size;
+	double coefnorm;
+	complex *tmp_k2, *tmp_invk2, *tmp_Nx2, *tmp_Nz2, *tmp_NxNz;
+	tmp_k2    = par->tmp_tf_k2;
+	tmp_invk2 = par->tmp_tf_invk2;
+	tmp_Nx2   = par->tmp_tf_Nx2;
+	tmp_Nz2   = par->tmp_tf_Nz2;
+	tmp_NxNz  = par->tmp_tf_NxNz;
+
+	complex *TF_k2, *TF_invk2, *TF_Nx2, *TF_Nz2, *TF_NxNz;
+	TF_k2    = par->TF_k2;
+	TF_invk2 = par->TF_invk2;
+	TF_Nx2   = par->TF_Nx2;
+	TF_Nz2   = par->TF_Nz2;
+	TF_NxNz  = par->TF_NxNz;
+	
+	complex **Toep_invk2, **Toep_Nx2, **Toep_NxNz, **Toep_Nz2, **M_tmp1, **M_tmp2;
+	Toep_invk2    = par->Toep_invk2;
+	Toep_Nx2      = par->Toep_Nx2;
+	Toep_NxNz     = par->Toep_NxNz;
+	Toep_Nz2      = par->Toep_Nz2;
+	M_tmp1 = par->M_tmp1;
+	M_tmp2 = par->M_tmp2;
+		
+	/*--- Calculations of the Fourier transforms of the necessary 'grandeurs' ---*/
+
+	/* Calculating the values in the direct space, using
+	function pointors to adapt to surface definition type */
+	(*par->k_2)(par, par->k2, z);
+	(*par->invk_2)(par, par->invk2, z);
+/*printf("\nRe(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Re", "stdout"," ");
+printf("\nIm(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Im", "stdout"," ");
+*/	(*par->Normal_function)(par, par->Nx2, par->NxNz, par->Nz2, z);
+	
+	/* Creating the 'plans' for the FFTW */
+	plan_TFk2    = fftw_plan_dft_1d(N_x, (fftw_complex *)par->k2,    (fftw_complex *)tmp_k2,    FFTW_FORWARD, FFTW_ESTIMATE);	
+	plan_TFinvk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->invk2, (fftw_complex *)tmp_invk2, FFTW_FORWARD, FFTW_ESTIMATE);	
+	plan_TFNx2   = fftw_plan_dft_1d(N_x, (fftw_complex *)par->Nx2,   (fftw_complex *)tmp_Nx2,   FFTW_FORWARD, FFTW_ESTIMATE);	
+	plan_TFNz2   = fftw_plan_dft_1d(N_x, (fftw_complex *)par->Nz2,   (fftw_complex *)tmp_Nz2,   FFTW_FORWARD, FFTW_ESTIMATE);	
+	plan_TFNxNz  = fftw_plan_dft_1d(N_x, (fftw_complex *)par->NxNz,  (fftw_complex *)tmp_NxNz,  FFTW_FORWARD, FFTW_ESTIMATE);	
+
+	/* Calculating the FFT */
+	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code complexity) */	
+	fftw_execute(plan_TFk2); 
+	fftw_execute(plan_TFinvk2); 
+	fftw_execute(plan_TFNx2); 
+	fftw_execute(plan_TFNz2); 
+	fftw_execute(plan_TFNxNz); 
+
+	/* Keeping only the components between -N_tf & +N_tf */ 
+	/* and normalizing by 1/N_x */
+	coefnorm = 1.0/N_x;
+	for (i=0;i<=N_tf-1;i++){
+		TF_k2   [i] = tmp_k2   [N_x-N_tf+i] * coefnorm;
+		TF_invk2[i] = tmp_invk2[N_x-N_tf+i] * coefnorm;
+		TF_Nx2  [i] = tmp_Nx2  [N_x-N_tf+i] * coefnorm;
+		TF_Nz2  [i] = tmp_Nz2  [N_x-N_tf+i] * coefnorm;
+		TF_NxNz [i] = tmp_NxNz [N_x-N_tf+i] * coefnorm;
+		TF_k2   [i+N_tf] = tmp_k2   [i] * coefnorm;
+		TF_invk2[i+N_tf] = tmp_invk2[i] * coefnorm;
+		TF_Nx2  [i+N_tf] = tmp_Nx2  [i] * coefnorm;
+		TF_Nz2  [i+N_tf] = tmp_Nz2  [i] * coefnorm;
+		TF_NxNz [i+N_tf] = tmp_NxNz [i] * coefnorm;
+	}
+	TF_k2   [2*N_tf] = tmp_k2   [N_tf] * coefnorm;
+	TF_invk2[2*N_tf] = tmp_invk2[N_tf] * coefnorm;
+	TF_Nx2  [2*N_tf] = tmp_Nx2  [N_tf] * coefnorm;
+	TF_Nz2  [2*N_tf] = tmp_Nz2  [N_tf] * coefnorm;
+	TF_NxNz [2*N_tf] = tmp_NxNz [N_tf] * coefnorm;
+
+	/* Freeing memory */
+	fftw_destroy_plan(plan_TFk2);
+	fftw_destroy_plan(plan_TFinvk2);
+	fftw_destroy_plan(plan_TFNx2);
+	fftw_destroy_plan(plan_TFNz2);
+	fftw_destroy_plan(plan_TFNxNz);
+	
+	/* Calculating the Toeplitz matrix for k2, 1/k2, Nx2, Nxz & Nz2 */
+	for(i=0;i<=vec_size-1;i++){
+		var_tmp01 = vec_size-1+i;
+		for(j=0;j<=vec_size-1;j++){
+			Toep_k2   [i][j] = TF_k2   [var_tmp01-j];
+			Toep_invk2[i][j] = TF_invk2[var_tmp01-j];
+			Toep_Nx2  [i][j] = TF_Nx2  [var_tmp01-j];
+			Toep_NxNz [i][j] = TF_NxNz [var_tmp01-j];
+			Toep_Nz2  [i][j] = TF_Nz2  [var_tmp01-j];
+		}
+	}
+	/* Inverting Toep_invk2 to obtain invToep_invk2*/
+	invM(invToep_invk2, Toep_invk2, vec_size);
+	
+	/*--- Building Q matrices ---*/
+	
+	/* Building Qyy = Toep_k2 */
+	M_equals(Qyy, Toep_k2, vec_size, vec_size);
+
+	/* Building Qxx = Toep_k2*Toep_Nz2 + invToep_invk2*Toep_Nx2 */
+	M_x_M(M_tmp1, Toep_k2, Toep_Nz2, vec_size, vec_size);
+	M_x_M(M_tmp2, invToep_invk2, Toep_Nx2, vec_size, vec_size);
+	add_M(Qxx, M_tmp1, M_tmp2, vec_size, vec_size);
+
+	/* Building Qzz = Toep_k2*Toep_Nx2 + invToep_invk2*Toep_Nz2 */
+	M_x_M(M_tmp1, Toep_k2, Toep_Nx2, vec_size, vec_size);
+	M_x_M(M_tmp2, invToep_invk2, Toep_Nz2, vec_size, vec_size);
+	add_M(Qzz, M_tmp1, M_tmp2, vec_size, vec_size);
+
+	/* Building Qxz = (invToep_invk2 - Toep_k2)*Toep_NxNz */
+	sub_M(M_tmp1, invToep_invk2, Toep_k2, vec_size, vec_size);
+	M_x_M(Qxz, M_tmp1, Toep_NxNz, vec_size, vec_size);
+
+	/* Calcultating Qzz_1 from Qzz */
+	invM(Qzz_1, Qzz, vec_size);
+		
+	return 0;
+}
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_zinvarQMatrix(double z, struct Param_struct *par)
+ *
+ *		\brief	Q matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_zinvarQMatrix(double z, complex **Toep_k2, complex **invToep_invk2, struct Param_struct *par)
+{
+	int i,j,var_tmp01;
+	fftw_plan plan_TFk2, plan_TFinvk2;
+	int N_x = par->N_x;
+	int N_tf = 2*par->N;
+	int vec_size = par->vec_size;
+	double coefnorm;
+	complex *tmp_k2, *tmp_invk2;
+	tmp_k2    = par->tmp_tf_k2;
+	tmp_invk2 = par->tmp_tf_invk2;
+
+	complex *TF_k2, *TF_invk2;
+	TF_k2    = par->TF_k2;
+	TF_invk2 = par->TF_invk2;
+	
+	complex **Toep_invk2;
+	Toep_invk2    = par->Toep_invk2;
+		
+	/*--- Calculations of the Fourier transforms of the necessary 'grandeurs' ---*/
+
+	/* Calculating the values in the direct space, using
+	function pointors to adapt to surface definition type */
+	(*par->k_2)(par, par->k2, z);
+	(*par->invk_2)(par, par->invk2, z);
+	
+	/* Creating the 'plans' for the FFTW */
+	plan_TFk2    = fftw_plan_dft_1d(N_x, (fftw_complex *)par->k2,    (fftw_complex *)tmp_k2,    FFTW_FORWARD, FFTW_ESTIMATE);	
+	plan_TFinvk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->invk2, (fftw_complex *)tmp_invk2, FFTW_FORWARD, FFTW_ESTIMATE);	
+
+	/* Calculating the FFT */
+	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code complexity) */	
+	fftw_execute(plan_TFk2); 
+	fftw_execute(plan_TFinvk2); 
+
+	/* Keeping only the components between -N_tf & +N_tf */ 
+	/* and normalizing by 1/N_x */
+	coefnorm = 1.0/N_x;
+	for (i=0;i<=N_tf-1;i++){
+		TF_k2   [i] = tmp_k2   [N_x-N_tf+i] * coefnorm;
+		TF_invk2[i] = tmp_invk2[N_x-N_tf+i] * coefnorm;
+		TF_k2   [i+N_tf] = tmp_k2   [i] * coefnorm;
+		TF_invk2[i+N_tf] = tmp_invk2[i] * coefnorm;
+	}
+	TF_k2   [2*N_tf] = tmp_k2   [N_tf] * coefnorm;
+	TF_invk2[2*N_tf] = tmp_invk2[N_tf] * coefnorm;
+
+	/* Freeing memory */
+	fftw_destroy_plan(plan_TFk2);
+	fftw_destroy_plan(plan_TFinvk2);
+	
+	/* Calculating the Toeplitz matrix for k2, 1/k2, Nx2, Nxz & Nz2 */
+	for(i=0;i<=vec_size-1;i++){
+		var_tmp01 = vec_size-1+i;
+		for(j=0;j<=vec_size-1;j++){
+			Toep_k2   [i][j] = TF_k2   [var_tmp01-j];
+			Toep_invk2[i][j] = TF_invk2[var_tmp01-j];
+		}
+	}
+	/* Inverting Toep_invk2 to obtain invToep_invk2*/
+	invM(invToep_invk2, Toep_invk2, vec_size);
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int PsiMatrixTE(complex **Psi, complex *kz, struct Param_struct *par)
+ *
+ *		\brief	Psi matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int PsiMatrixTE(complex **Psi, complex k, complex *kz, struct Param_struct *par)
+{
+	int i,j;
+	int vec_size = par->vec_size;
+
+	for(i=0;i<=2*vec_size-1;i++){
+		for(j=0;j<=2*vec_size-1;j++){
+			Psi[i][j] = 0;
+		}
+	}
+	for(i=0;i<=vec_size-1;i++){
+		Psi[i][i]            =  1;
+		Psi[i][i+  vec_size] =  1;
+		Psi[i+vec_size][i]          = kz[i];
+		Psi[i+vec_size][i+vec_size] = -kz[i];
+	}
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int PsiMatrixTE(complex **Psi, complex *kz, struct Param_struct *par)
+ *
+ *		\brief	Psi matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int PsiMatrixTM(complex **Psi, complex k, complex *kz, struct Param_struct *par)
+{
+	int i,j;
+	int vec_size = par->vec_size;
+
+	for(i=0;i<=2*vec_size-1;i++){
+		for(j=0;j<=2*vec_size-1;j++){
+			Psi[i][j] = 0;
+		}
+	}
+	for(i=0;i<=vec_size-1;i++){
+		Psi[i][i]            =  -kz[i]/(k*k);
+		Psi[i][i+  vec_size] =  kz[i]/(k*k);
+		Psi[i+vec_size][i]          = 1;
+		Psi[i+vec_size][i+vec_size] = 1;
+	}
+
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int k2_H_X(struct Param_struct *par, complex *k2_1D, double z)
+ *
+ *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ *
+ */
+/*-------------------------------------------------------------------------------------*/
+int k2_H_X(struct Param_struct *par, complex *k2_1D, double z)
+{
+	int i;
+	
+	for (i=0;i<=par->N_x-1;i++){
+		if (z > par->profil[0][i]) 
+			k2_1D[i] = par->k2_layer[0]; /* Superstrat */
+		else
+			k2_1D[i] = par->k2_layer[1]; /* Substrat */
+	}
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn			
+ *
+ *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné, pour un multicouches
+ */
+/*-------------------------------------------------------------------------------------*/
+int k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
+{
+	
+	int nx, n_layer=0;
+	
+	for (nx=0; nx<=par->N_x-1; nx++){
+		do{
+			if (z >= par->profil[n_layer][nx]){
+				if (z <= par->profil[n_layer+1][nx]){
+					k2_1D[nx] = par->k2_layer[n_layer];
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+	
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)	
+ *
+ *		\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ */
+/*-------------------------------------------------------------------------------------*/
+int k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)
+{
+	int i, nz;
+	double DeuxPisurLambda2 = (2*PI/par->lambda)*(2*PI/par->lambda);
+	double z_inv = par->h - z;
+	
+	nz = (int)((z_inv*par->N_z)/par->h);
+	if (nz > par->N_z-1) nz = par->N_z-1;
+	if (nz < 0)          nz = 0;
+	
+	for (i=0;i<=par->N_x-1;i++){
+		k2_1D[i] = par->n_xyz[nz][i]*par->n_xyz[nz][i]*DeuxPisurLambda2; 
+	}
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)	
+ *
+ *	\brief	Détermine le tableau de complexes invk^2(x) pour un z donné
+ */
+/*-------------------------------------------------------------------------------------*/
+int invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)
+{
+	int i, nz;
+	double invDeuxPisurLambda2 = 1/(2*PI/par->lambda*2*PI/par->lambda);
+	double z_inv = par->h - z;
+	
+	nz = (int)((z_inv*par->N_z)/par->h);
+	if (nz > par->N_z-1) nz = par->N_z-1;
+	if (nz < 0)          nz = 0;
+	
+	for (i=0;i<=par->N_x-1;i++){
+		invk2_1D[i] = invDeuxPisurLambda2/(par->n_xyz[nz][i]*par->n_xyz[nz][i]); 
+	}
+	
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int invk_2(complex *invk2_1D, double *profil, struct Param_struct *par, double z)
+ *
+ *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné
+ *
+ *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
+ *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
+ */
+/*-------------------------------------------------------------------------------------*/
+int invk2_H_X(struct Param_struct *par, complex *invk2_1D, double z)
+{
+	
+	int i;
+	
+	for (i=0;i<=par->N_x-1;i++){
+		if (z > par->profil[0][i]) 
+			invk2_1D[i] = par->invk2_layer[0]; /* Superstrat */
+		else
+			invk2_1D[i] = par->invk2_layer[1]; /* Substrat */
+	}
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn			
+ *
+ *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné, pour un multicouches
+ */
+/*-------------------------------------------------------------------------------------*/
+int invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
+{
+	
+	int nx, n_layer=0;
+	
+	for (nx=0; nx<=par->N_x-1; nx++){
+		do{
+			if (z >= par->profil[n_layer][nx]){
+				if (z <= par->profil[n_layer+1][nx]){
+					invk2_1D[nx] = par->invk2_layer[n_layer];
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+	
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int Normal_H_X(struct Param_struct *par, complex *k2_1D, double z)
+ *
+ *		\brief	Determine the Nx2, Nz2 and NxNz arrays, defined as \n
+ * 				Nx2  = norm_x^2,  											\n
+ * 				Nz2  = norm_z^2,  											\n
+ * 				NxNz = norm_x norm_z 										\n
+ * 				norm_x = -dhdx/(csqrt(1+dgdx^2)),      	   		\n
+ * 				norm_z = 1/(csqrt(1+dgdx^2)),         					\n
+ * 				dhdx being the h(x) derivative calculated as 		\n
+ * 				dhdx = [h(x+dx)-h(x-dx)]/2dx
+ *
+ * 	\todo 	The PRECISION can be IMPROVED with a HIGHER ORDER calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int Normal_H_X(struct Param_struct *par, complex *Nx2, complex *NxNz, complex *Nz2, double z)
+{
+	int i;
+	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
+								/* while 'Nx2', corresponds to the x component^2 of the normal to the surface */
+	double dhdx, norm_x, norm_z;
+	double two_dx = 2*par->L/Nx;
+
+	double *profil = par->profil[0];
+
+	if (par->HX_Normal_CALCULATED == 1){
+		Nx2  = par->Nx2;
+		NxNz = par->NxNz;
+		Nz2  = par->Nz2;
+		return 0;
+	}else{		
+		dhdx = (profil[1] - profil[Nx-1])/two_dx;
+		norm_x = -dhdx/(csqrt(1+dhdx*dhdx));
+		norm_z = 1.0/(csqrt(1+dhdx*dhdx));
+		Nx2[0] = norm_x*norm_x;
+		NxNz[0]= norm_x*norm_z;
+		Nz2[0] = norm_z*norm_z;
+		for (i=1;i<=Nx-2;i++){
+			dhdx = (profil[i+1] - profil[i-1])/two_dx;
+			norm_x = -dhdx/(csqrt(1+dhdx*dhdx));
+			norm_z = 1.0/(csqrt(1+dhdx*dhdx));
+			Nx2[i] = norm_x*norm_x;
+			NxNz[i]= norm_x*norm_z;
+			Nz2[i] = norm_z*norm_z;
+		}
+		dhdx = (profil[0] - profil[Nx-2])/two_dx;
+		norm_x = -dhdx/(csqrt(1+dhdx*dhdx));
+		norm_z = 1.0/(csqrt(1+dhdx*dhdx));
+		Nx2[Nx-1] = norm_x*norm_x;
+		NxNz[Nx-1]= norm_x*norm_z;
+		Nz2[Nx-1] = norm_z*norm_z;
+
+		par->HX_Normal_CALCULATED = 1;
+	}
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
+ *
+ *		\brief	
+ */
+/*-------------------------------------------------------------------------------------*/
+complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
+{
+
+	int i;
+	complex *tmp;
+	fftw_plan plan_TFk2;
+
+	int N_x = par->N_x;
+	int N_tf = 2*par->N;
+	double coefnorm = 1.0/N_x;
+
+	/* Calcul de k^2(x) à z fixé, à partir du profil */
+	(*par->k_2)(par, par->k2, z);
+
+	/* Calcul de la TF de k2, avec N_x points */
+	
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+/*!!!!!!!!!!!!!!!!!!!!!!!   ALLOUER A L'EXTERIEUR   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+	tmp = (complex *) malloc(sizeof(complex) * N_x);
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
+	plan_TFk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->k2, (fftw_complex *)tmp, FFTW_FORWARD, FFTW_ESTIMATE);	
+	fftw_execute(plan_TFk2); 
+
+	/* On ne garde que les composantes entre -N_tf et +N_tf */ 
+	/* et on normalise par 1/N_x */
+	for (i=0;i<=N_tf-1;i++){
+		TF_k2[i]   = tmp[N_x-N_tf+i] * coefnorm;
+		TF_k2[i+N_tf] = tmp[i] * coefnorm;
+	}
+	TF_k2[2*N_tf] = tmp[N_tf] * coefnorm;
+
+	fftw_destroy_plan(plan_TFk2);
+	free(tmp);
+	
+	return TF_k2;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par)
+ *
+ *	\brief	Calcule la TF de 1/k^2(x) pour un z donné et la tronque entre -N et +N
+ */
+/*-------------------------------------------------------------------------------------*/
+complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par)
+{
+
+	int i;
+	complex *tmp;
+	fftw_plan plan_TFk2;
+
+	int N_x = par->N_x;
+	int N_tf = 2*par->N;
+	double coefnorm = 1.0/N_x;
+
+	/* Calcul de 1 / k^2(x) à z fixé, à partir du profil */
+	(*par->invk_2)(par, par->invk2, z);
+
+	/* Calcul de la TF de invk2, avec N_x points */
+	tmp = (complex *) malloc(sizeof(complex) * N_x); /*TODO : ALLOUER A L'EXTERIEUR */
+	plan_TFk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->invk2, (fftw_complex *)tmp, FFTW_FORWARD, FFTW_ESTIMATE);	
+	fftw_execute(plan_TFk2); 
+
+	/* On ne garde que les composantes entre -N_tf et +N_tf */ 
+	/* et on normalise par 1/N_x */
+	for (i=0;i<=N_tf-1;i++){
+		TF_invk2[i]   = tmp[N_x-N_tf+i] * coefnorm;
+		TF_invk2[i+N_tf] = tmp[i] * coefnorm;
+	}
+	TF_invk2[2*N_tf] = tmp[N_tf] * coefnorm;
+
+	fftw_destroy_plan(plan_TFk2);
+	free(tmp);
+	
+	return TF_invk2;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
+ *
+ *	\brief	Affichage du temps restant estimé en cours de calculs
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_affichTemps(int n, int N, int nS, int NS, int ni, int Ni, struct Param_struct *par)
+{
+
+	/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
+	if (CHRONO(clock(), par->last_clock) < 5){
+		return 0;
+	/* Sinon, estimation et affichage de la durée restante */
+	}else /*if (par->VERBOSE >= 1)*/{
+		int i, n_total;
+		time(&par->last_time);
+		par->last_clock = clock();
+		float t_ecoule = difftime(par->last_time,par->time0);
+		float t_total; 
+
+		n_total = 4*(2*N+1);
+/*		if (!strcmp(par->calcul_method,"DM")){
+			t_total = t_ecoule*( Ni*NS*n_total)/(ni*NS*n_total+nS*n_total+n);
+		}else if (!strcmp(par->calcul_method,"RCWA") || !strcmp(par->calcul_method,"IMPROVED_RCWA")){
+			t_total = t_ecoule*NS/(nS+1);
+		}else{
+			fprintf(stderr, "%s, line %d : ERROR, unknown calculation method (\"%s\")\n",__FILE__,__LINE__,par->calcul_method);
+		}*/
+		t_total = t_ecoule*NS/(nS+1);
+		
+		float t_restant = t_total - t_ecoule;
+		int pourcent = ROUND(100.0*t_ecoule/t_total);
+				
+		fprintf(stdout,"\r");
+		if (par->Ni > 1){
+			 fprintf(stdout,"%3d %%, i = %d° [%ds ", pourcent,ROUND(par->theta_i*180/PI),ROUND(t_ecoule));
+		}else{
+			fprintf(stdout,"%3d %% [%ds ", pourcent,ROUND(t_ecoule));
+		}
+		for (i=0;i<pourcent/5;i++) {fprintf(stdout,">");}
+		for (i=pourcent/5;i<20;i++) {fprintf(stdout," ");}
+		fprintf(stdout," %ds] %ds     ",ROUND(t_restant), ROUND(t_total));
+		fflush(stdout);
+	}
+	
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_save_S_matrix(double h_partial, struct Param_struct *par)
+ *
+ *	\brief	Sauvegarde la matrice S dans un fichier
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_save_S_matrix(double h_partial, struct Param_struct *par)
+{
+	int i,j,Nlign,Ncol;
+	FILE *fp;
+	char filename[SIZE_STR_BUFFER];
+	Nlign = 2*par->N+1;
+	Ncol  = 2*par->N+1;
+	
+	/* Nom de fichier */
+	if (par->pola == TM){
+		sprintf(filename,"S_TM_%s_h%f.txt",par->nom_profil,h_partial);
+	}else{
+		sprintf(filename,"S_TE_%s_h%f.txt",par->nom_profil,h_partial);
+	}	
+	fp = fopen(filename, "w");
+
+	/* Ecriture de certains parametres */
+	fprintf(fp,"mat_S_name = %s_h%f\n",par->nom_profil,h_partial);
+	fprintf(fp,"N = %d\n",par->N);
+	fprintf(fp,"h_partial = %1.6e\n",h_partial);
+	fprintf(fp,"Re_k_super = %1.6e\n",creal(par->k_super));
+	fprintf(fp,"Im_k_super = %1.6e\n",cimag(par->k_super));
+	fprintf(fp,"Re_k_sub = %1.6e\n",creal(par->k_sub));
+	fprintf(fp,"Im_k_sub = %1.6e\n",cimag(par->k_sub));
+	fprintf(fp,"L = %1.6e\n",par->L);
+	fprintf(fp,"Delta_sigma = %1.6e\n",par->Delta_sigma);
+	fprintf(fp,"sigma0 = %1.6e\n",creal(par->sigma0));
+	/* Re(S12)*/
+	fprintf(fp,"Re_S12 = ");
+	for (j=0;j<=Nlign-1;j++){/* Remarque : lignes et colonnes sont permutees, permet un lecture plus facile acev lire_tab */
+		for (i=0;i<=Ncol-1;i++){
+			fprintf(fp,"% 1.12e  ",creal(par->S12[j][i]));
+		}
+		fprintf(fp,"\n");
+	}
+	/* Ima(S12) */
+	fprintf(fp,"Im_S12 = ");
+	for (j=0;j<=Nlign-1;j++){
+		for (i=0;i<=Ncol-1;i++){
+			fprintf(fp,"% 1.12e  ",cimag(par->S12[j][i]));
+		}
+		fprintf(fp,"\n");
+	}
+	/* Re(S22)*/
+	fprintf(fp,"Re_S22 =");
+	for (j=0;j<=Nlign-1;j++){
+		for (i=0;i<=Ncol-1;i++){
+			fprintf(fp,"% 1.12e  ",creal(par->S22[j][i]));
+		}
+		fprintf(fp,"\n");
+	}
+	/* Im(S22) */
+	fprintf(fp,"Im_S22 = ");
+	for (j=0;j<=Nlign-1;j++){
+		for (i=0;i<=Ncol-1;i++){
+			fprintf(fp,"% 1.12e  ",cimag(par->S22[j][i]));
+		}
+		fprintf(fp,"\n");
+	}
+
+	fclose(fp);
+
+	return 0;	
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!   \fn     int md2D_make_tab_S_steps(struct Param_struct* par)
+ *
+ *    \brief  N steps tab making, when some S steps are imposed
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_make_tab_S_steps(struct Param_struct *par){
+
+	int NSmin, num, ns, ms;
+	double eps = 1e-10;
+	/* read imposed_S_steps */
+
+	/**/
+	NSmin = CEIL(10*par->h/par->lambda);
+
+	num=0;
+	for (ns=0;ns<=NSmin;ns++){
+		par->tab_NS[num] = ns*(par->h/NSmin);
+		num++;
+		for (ms=0;ms<=par->N_imposed_S_steps-1;ms++){
+			if((par->tab_imposed_S_steps[ms] > ns*(par->h/NSmin)+eps) && (par->tab_imposed_S_steps[ms] < (ns+1)*(par->h/NSmin)-eps)){
+					par->tab_NS[num] = par->tab_imposed_S_steps[ms];
+                                       num++;
+                       }
+               }
+       }
+       par->NS=num-1;
+
+       return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_save_near_field(complex **S12, complex **Z, int vec_size, int nS)
+ *
+ *	\brief	Save Z and S12 matrices for near field reconstruction
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_save_near_field(complex **S12, complex **Z, int vec_size, int nS, struct Param_struct *par)
+{
+	int i, j;
+	
+	for (i=0;i<vec_size;i++){
+		for (j=0;j<vec_size;j++){
+			par->tab_Z[nS][i][j]   = Z[i][j];
+			par->tab_S12[nS][i][j] = S12[i][j];
+		}
+	}
+
+	return 0;	
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_near_field_map(par)
+ *
+ *	\brief	Map field reconstruction
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_near_field_map(complex ***tab_S12, complex ***tab_Z, struct Param_struct *par)
+{
+	int q,i,j,n,nx, NS, N_x, vec_size;
+	complex *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, **Z_prod, **Z_prod_tmp, **Psi, k_super2;
+	double x, **Hpx2, **Hpz2,**Ex2,**Ez2, Hpx, Hpz, Ex, Ez;
+
+	NS = par->NS;
+	N_x = par->N_x;
+	vec_size = par->vec_size;
+	sigma = par->sigma;
+	kz_super = par->kz_super;
+	k_super2 = par->k_super*par->k_super;
+	
+	Z_prod     = allocate_CplxMatrix(vec_size, vec_size);
+	Z_prod_tmp = allocate_CplxMatrix(vec_size, vec_size);
+	
+	if (par->pola == TE){
+		Ex2 = NULL;
+		Ez2 = NULL;
+		Hpx2 = allocate_DbleMatrix(NS,N_x);
+		Hpz2 = allocate_DbleMatrix(NS,N_x);
+	}else{ /* TM */
+		Ex2 = allocate_DbleMatrix(NS,N_x);
+		Ez2 = allocate_DbleMatrix(NS,N_x);
+		Hpx2 = NULL;
+		Hpz2 = NULL;
+	}
+	
+	Vi = (complex *) malloc(sizeof(complex)*vec_size);
+	Vq = (complex *) malloc(sizeof(complex)*2*vec_size);
+	Fq = (complex *) malloc(sizeof(complex)*2*vec_size);
+	Vq_m = Vq;
+	Vq_p = Vq + vec_size;
+	Eq = Fq;
+	Hq = Fq + vec_size;
+
+	/* Incident field */
+	for (i=0;i<vec_size;i++){
+		Vi[i]=0;
+	}
+	Vi[par->vec_middle] = 1.0;
+
+	/* Z_prod = Id */
+	for (i=0;i<vec_size;i++){
+		for (j=0;j<vec_size;j++){
+			Z_prod[i][j] = 0.0;
+		}
+		Z_prod[i][i] = 1.0;
+	}
+	
+	for (q=NS-1;q>=0;q--){
+		/* Z_prod_tmp = Zprod */
+		M_equals(Z_prod_tmp, Z_prod, vec_size, vec_size);
+		
+		/* Z_prod = Zq*Z_prod_tmp */
+		M_x_M(Z_prod, tab_Z[q], Z_prod_tmp, vec_size, vec_size);
+		
+		/* Vq_m = Z_prod*Vi */
+		M_x_V(Vq_m, Z_prod, Vi, vec_size, vec_size);
+		
+		/* Vq_p = S12q*Vq_m */
+		M_x_V(Vq_p, tab_S12[q], Vq_m, vec_size, vec_size);
+
+		/* Fq = Psi*Vq */
+		if (par->pola == TE){
+			Psi = par->Psi_super_TE;
+		}else{
+			Psi = par->Psi_super_TM;
+		}
+		M_x_V(Fq, Psi, Vq, 2*vec_size, 2*vec_size);
+
+		/* Near field in the real space */
+		if (par->pola == TE){
+			for (nx=0;nx<=N_x-1;nx++){
+				x = nx*par->L/N_x;
+				Hpx = 0;
+				Hpz = 0;
+				for (n=0;n<vec_size;n++){
+					Hpz += kz_super[n]*Eq[n]*cexp(I*sigma[n]*x);
+					Hpx += I*Hq[n]*cexp(I*sigma[n]*x);
+				}
+				Hpx2[q][nx] = cabs(Hpx)*cabs(Hpx);
+				Hpz2[q][nx] = cabs(Hpz)*cabs(Hpz);
+			}
+		}else{ /* TM */
+			for (nx=0;nx<=N_x-1;nx++){
+				x = nx*par->L/N_x;
+				Ex = 0;
+				Ez = 0;
+				for (n=0;n<vec_size;n++){
+					Ex += Eq[n]*cexp(I*sigma[n]*x);
+				/*	Ez -= sigma[n]*Hq[n]*cexp(I*sigma[n]*x)/k_super2;*/
+					/* !!! Hy not Ez !!! */
+					/* !!! Hy not Ez !!! */
+					/* !!! Hy not Ez !!! */
+					Ez += Hq[n]*cexp(I*sigma[n]*x); 
+					/* !!! Hy not Ez !!! */
+					/* !!! Hy not Ez !!! */
+					/* !!! Hy not Ez !!! */
+				}
+				Ex2[q][nx] = cabs(Ex)*cabs(Ex);
+				/*  !!!!!!!!!!!!!!!!!!!!!!!! */
+				Ez2[q][nx] = Ex*conj(Ex); 
+				/*  !!!!!!!!!!!!!!!!!!!!!!!! */
+/*				Ez2[q][nx] = cabs(Ez)*cabs(Ez);*/
+			}
+		}
+	}
+
+	/* Writing results */
+	if (par->pola == TE){
+		fprintf(stdout,"Hpx2 = \n");
+		SaveDbleTab2file (Hpx2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"Hpz2 = \n");
+		SaveDbleTab2file (Hpz2[0], NS*N_x, "stdout", " ", N_x, "\n");
+	}else{ /* TM */
+		fprintf(stdout,"Ex2 = \n");
+		SaveDbleTab2file (Ex2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"Ez2 = \n");
+		SaveDbleTab2file (Ez2[0], NS*N_x, "stdout", " ", N_x, "\n");
+	}
+
+	/* freeing memory... */
+	if (par->pola == TE){
+		free(Hpx2[0]);
+		free(Hpx2);
+		free(Hpz2[0]);
+		free(Hpz2);
+	}else{ /* TM */
+		free(Ex2[0]);
+		free(Ex2);
+		free(Ez2[0]);
+		free(Ez2);
+	}
+
+	free(Z_prod[0]);
+	free(Z_prod);
+	free(Z_prod_tmp[0]);
+	free(Z_prod_tmp);
+	free(Vi);
+	free(Vq);
+	free(Fq);
+
+	return 0;
+}

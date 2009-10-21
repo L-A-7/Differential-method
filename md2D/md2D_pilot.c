@@ -1,0 +1,844 @@
+/*---------------------------------------------------------------------------------------------*/
+/*!	\file		md2D_pilot.c
+ *
+ * 	\brief		Pilotage de md2D 
+ */
+/*---------------------------------------------------------------------------------------------*/
+#include "md2D_pilot.h"
+/*---------------------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------------------*/
+int main(int argc, char *argv[]){
+
+	struct Noms_fichiers nomfichier;
+	struct Param_struct param;
+	struct Efficacites_struct effic;
+
+	/*param.verbosity =1;*/
+	
+	/* Copie des arguments de la ligne de commande */
+	int i;
+	char **argvcp; 
+	argvcp = (char **) malloc(sizeof(char*)*argc);
+	argvcp[0] = (char*) malloc(sizeof(char)*SIZE_STR_BUFFER*argc);
+	for(i=1;i<=argc-1;i++){
+		argvcp[i] = argvcp[i-1] + SIZE_STR_BUFFER;
+		strncpy(argvcp[i], argv[i],SIZE_STR_BUFFER);
+	}
+	param.argc = argc;
+	param.argvcp = argvcp;
+
+	/* Initialisation du programme : lecture des données, allocation de mémoire, etc. */
+	md2D_init(&param, &effic, &nomfichier);
+
+/*********************************** DEBUG *************************************************************/
+/*int M_Matrix_TM(complex **M, double z, struct Param_struct *par);
+*par);M_Matrix_TM(param.M, param.h/2.0, &param);
+printf("\n");SaveMatrix2file (param.M, 2*param.vec_size, 2*param.vec_size, "Im", "stdout");
+*/
+/*int md2D_QMatrix(double z, complex **Qxx, complex **Qyy, complex **Qxz, complex **Qzz, complex **Qzz_1, struct
+Param_struct *par);
+
+md2D_QMatrix(param.h/2, param.Qxx, param.Qyy, param.Qxz, param.Qzz, param.Qzz_1, &param);
+SaveCplxTab2file (param.TF_k2, 4*param.N+1, "Re", "stdout", " ");
+
+
+
+return 0;*/
+/*******************************************************************************************************/
+
+	/* Choix du type de calcul */
+	if (!strcmp(param.calcul_type,"STD")){
+		md2D_classical_FFF (&param, &effic, &nomfichier);
+	}else if (!strcmp(param.calcul_type,"NEAR_FIELD")){
+		md2D_near_field (&param, &effic, &nomfichier);
+	}else if (!strcmp(param.calcul_type,"ELLIPSO")){
+		md2D_conical_FFF_ellipso (&param, &effic, &nomfichier);
+	}else if (!strcmp(param.calcul_type,"VAR_LAMBDA_ELLIPSO")){
+		md2D_var_lambda_ellipso (&param, &effic, &nomfichier);
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, unknown calculation type (\"%s\")\n",__FILE__,__LINE__,param.calcul_type);
+		exit(EXIT_FAILURE);
+	}
+
+
+/*************************************** TESTS *********************************************************/
+/*fprintf(stdout,"\nReS12 :\n");SaveMatrix2file (param.S12, param.vec_size, param.vec_size, "Re", "stdout");
+fprintf(stdout,"\nReS22 :\n");SaveMatrix2file (param.S22, param.vec_size, param.vec_size, "Re", "stdout");
+fprintf(stdout,"\nRePsisuper_TE :\n");SaveMatrix2file (param.Psi_super_TE, 2*param.vec_size, 2*param.vec_size, "Re", "stdout");
+fprintf(stdout,"\nRePsisuper_TM :\n");SaveMatrix2file (param.Psi_super_TM, 2*param.vec_size, 2*param.vec_size, "Re", "stdout");*/
+
+
+/************************************* FIN TESTS *******************************************************/
+
+	/* Freeing memory */
+	md2D_free(&param, &effic);
+	
+	/* Showing used time & efficiencies sum */
+	if (param.verbosity >= 1){
+		printf("Efficiencies summ   : %1.10f\n",effic.sum_eff);
+		printf("1-Efficiencies summ : %e\n",1-effic.sum_eff);
+		fprintf(stdout,"Temps écoulé : %f s \n", md2D_chrono(&param));
+	}
+	
+	return 0;		
+}
+
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		md2D_classical_FFF (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+ *
+ *		\brief	Complex field calculation, in the case of a 1D structure with conical incidence.
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_classical_FFF (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+{
+
+	/* Calcul des limites des modes propagatifs */
+	md2D_propagativ_limits(par, eff);
+		
+	/* Amplitude du champ incident */
+	md2D_incident_field(par,eff);
+
+	S_matrix(par);
+
+	/* Calcul des amplitudes */
+	md2D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
+
+	/* Calcul des efficacités */
+	md2D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
+
+	/* Ecriture des résultats dans fichier_results */
+	md2D_genere_nom_fichier_results(nomfichier->fichier_results, par);
+
+	md2D_ecrire_results(nomfichier->fichier_results, par, eff);
+
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+ *
+ *		\brief	Complex field calculation, in the case of a 1D structure with conical incidence.
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+{
+	par->tab_Z   = allocate_CplxMatrix_3(par->NS, par->vec_size, par->vec_size);
+	par->tab_S12 = allocate_CplxMatrix_3(par->NS, par->vec_size, par->vec_size);
+
+	/* Calcul des limites des modes propagatifs */
+	md2D_propagativ_limits(par, eff);
+
+	/* Amplitude du champ incident */
+	md2D_incident_field(par,eff);
+
+	S_matrix(par);
+
+	/* Calcul des amplitudes */
+	md2D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
+
+	/* Calcul des efficacités */
+	md2D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
+
+	/* Ecriture des résultats dans fichier_results */
+	md2D_genere_nom_fichier_results(nomfichier->fichier_results, par);
+
+	md2D_ecrire_results(nomfichier->fichier_results, par, eff);
+
+	md2D_near_field_map(par->tab_S12, par->tab_Z, par);
+
+	free(par->tab_Z[0][0]);
+	free(par->tab_Z[0]);
+	free(par->tab_Z);
+	free(par->tab_S12[0][0]);
+	free(par->tab_S12[0]);
+	free(par->tab_S12);
+	
+
+	return 0;
+}
+
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		md2D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+ *
+ *		\brief	Calcule efficacité TE, TM et déphasage (la valeur initiale de psi n'a pas d'influence).
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+{
+	fprintf(stderr, "%s line %d : Nothing... EXITING\n",__FILE__,__LINE__);
+	exit(EXIT_FAILURE);
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_var_lambda_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+ *
+ *	\brief	Calcul des amplitudes, efficacités, déphasages en TE et TM, et du dephasage polarimetrique
+ *
+ *	\todo	A améliorer, faire plus clean !
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_var_lambda_ellipso (struct Param_struct *par, struct Efficacites_struct *eff, struct Noms_fichiers *nomfichier)
+{
+	fprintf(stderr, "%s line %d : Nothing... EXITING\n",__FILE__,__LINE__);
+	exit(EXIT_FAILURE);
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
+ *
+ *	\brief	Initialisation du programme
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
+{
+
+	/* Lecture des paramètres par defaut dans fichier_param */
+	md2D_lire_param(nomfichier, par);
+
+	/* Allocation de mémoire pour le profil */
+	md2D_alloc_init_profil(par);
+
+	/* Lecture du profil h(x) décrivant la surface */
+	(*par->md2D_lire_profil)(nomfichier->fichier_profil, par);
+
+	/* Initialisations de certaines variables */
+	md2D_variables_init(par, eff);
+
+	/* Allocation de mémoire pour les tableaux */
+	md2D_alloc(par, eff);
+
+	/* Initialising some arrays */
+	md2D_arrays_init(par, eff);
+	
+	/* Affichage des paramètres lus et calculés */
+	md2D_affiche_valeurs_param(par, nomfichier);
+
+	return 0;
+}
+
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_alloc_init_profil(struct Param_struct *par)
+ *
+ *	\brief	Memory allocation for profil
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_alloc_init_profil(struct Param_struct *par)
+{
+	/* Initilisation de variables */
+	par->k_super = 2*PI*par->n_super/par->lambda;
+	par->k_sub = 2*PI*par->n_sub/par->lambda;
+	par->Delta_sigma = 2*PI/par->L;
+	par->sigma0 = par->k_super*sin(par->theta_i)*cos(par->phi_i);
+	par->ky_0   = par->k_super*sin(par->theta_i)*sin(par->phi_i);
+			
+	/* Allocations */	
+	if (par->type_profil == N_XYZ) {
+		par->n_xyz = allocate_CplxMatrix(par->N_z,par->N_x);
+	}else{
+		par->profil = allocate_DbleMatrix(par->N_layers+3,par->N_x);
+		par->k2_layer    = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
+		par->invk2_layer = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
+	}
+
+
+	/* Alignement des pointeurs de fonction */
+/*	par->matrice_T = (par->pola == TE ? matrice_T_TE : matrice_T_TM);
+*/	switch (par->type_profil) {
+		case H_X          : 
+			par->md2D_lire_profil = md2D_lire_profil_H_X;
+			par->k_2 = k2_H_X;
+			par->invk_2 = invk2_H_X;
+			par->Normal_function = Normal_H_X;
+			break;
+		case MULTICOUCHES : 
+			par->md2D_lire_profil = md2D_lire_profil_MULTI;
+			par->k_2 = k2_MULTI;
+			par->invk_2 = invk2_MULTI;
+			break;
+		case N_XYZ        : 
+			par->md2D_lire_profil = md2D_lire_profil_N_XYZ;
+			par->k_2 = k2_N_XYZ;
+			par->invk_2 = invk2_N_XYZ;
+			break;
+	}
+	
+	return 0;
+}
+
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *	\brief	Initialisations des variables
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	double K,sig0;
+	par->clock0 = clock(); /* Initialisation des chronomètres                  */
+	time(&(par->time0));   /* clock0 (courte durées) et time0 (longues durées) */
+	par->last_clock = clock();
+	time(&(par->last_time)); 
+
+	/* Initialisation des variables en mode "AUTO" */
+	/* delta_h = lambda x (n_re + n_im) / 1000 */
+	if (par->delta_h == AUTO) {
+		par->delta_h = par->lambda/(cabs(par->n_sub)*1000);
+	}
+	/* NS = (h/lambda) x (n_re + n_im) x 5 */
+	if (par->NS == AUTO) {
+		par->NS = CEIL( (par->h / par->lambda)*cabs(par->n_sub)*5 );
+	}
+	/* N : on ajoute 10% de modes evanescents (3 au minimum) */
+	if (par->N == AUTO) {
+		K = 2.0*PI/par->L;
+		fprintf(stderr, "WARNING, Automatic N determination");
+		if (par->phi_i != 0){fprintf(stderr, "WARNING phi_i = %f deg, not taken into account for automatic N determination\n",par->phi_i*180/PI);}
+		if (!strcmp(par->calcul_type,"STD") || !strcmp(par->calcul_type,"ELLIPSO") ){
+			sig0 = par->sigma0;
+		}else if (!strcmp(par->calcul_type,"VAR_I") || !strcmp(par->calcul_type,"VAR_I_BIS") || \
+			!strcmp(par->calcul_type,"VAR_I_ELLIPSO")){
+			sig0 = par->k_super; /* correspond à sigma0 pour theta_i = 90° => N constant et suffisant de 0 à 90°*/
+		}else{
+			fprintf(stderr, "%s ligne %d, Calcul AUTO de N : %s, type calcul inconnu\n",__FILE__, __LINE__,par->calcul_type);
+			exit(EXIT_FAILURE);
+		}
+		int N_limit =  FLOOR(( MAX(creal(par->k_super),creal(par->k_sub)) + fabs(sig0))/par->Delta_sigma);
+		/* On ajoute 10% de modes evanescents (3 au minimum) */
+		int N_evanesc = ROUND(MAX(3,0.1*N_limit));
+		par->N = N_limit + N_evanesc; 
+	}
+
+	/* vec_size : size of most matrices and vetcors */	
+	par->vec_size = 2*par->N+1; /* For classical 2D case (not for 3D) */
+
+	/* vec_middle, ex.: sigma[vec_middle] = sigma0 ...*/
+	par->vec_middle = par->N;
+	/* for H_X profile the normal components need to be calculated only once */
+	par->HX_Normal_CALCULATED = 0;
+		
+	/* ni et Ni, pour compteurs en angle_i */
+	par->ni = 0;
+	par->Ni = 1; /* Pour compatibilité (une autre valeur sera affectée par les fonctions var_i_... )*/
+	
+	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier à chaque étape Matrice-S*/
+	par->N_steps = 0; /* Counter initialisation */
+/*	par->Nstep_S = ROUND(ceil((par->h/par->NS)/par->delta_h));
+	par->delta_h = (par->h/par->NS)/par->Nstep_S;
+	par->Nstep = ROUND(par->h/par->delta_h);*/
+
+	/* tab_NS_ENABLED */
+	if (par->READ_tab_NS || par->imposed_S_steps){
+		par->tab_NS_ENABLED = 1;
+	}else{
+		par->tab_NS_ENABLED = 0;
+	}
+	
+	/* imposed_S_steps, NS estimation for malloc */
+	if (par->imposed_S_steps){
+		par->NS = CEIL(10*par->h/par->lambda)+par->N_imposed_S_steps;
+	}
+	
+	/*par->verbosity = 2;*/ /* Si verbosity > 0 : affiche plus d'infos sur le terminal */
+	
+	/* functions pointers alignements */
+	if (par->pola == TE){
+			par->M_matrix = M_matrix_TE;
+	}else if (!strcmp(par->calcul_method,"Z_INVAR") && par->pola == TM){
+			par->M_matrix = zinvar_M_matrix_TM;
+	}else{
+			par->M_matrix = M_matrix_TM;
+	}
+
+	if (!strcmp(par->calcul_method,"RK4")){
+			par->P_matrix = rk4_P_matrix;
+	}else if (!strcmp(par->calcul_method,"SHOOTING_METHOD")){
+			par->P_matrix = shooting_P_matrix;
+	}else if (!strcmp(par->calcul_method,"Z_INVAR")){
+			par->P_matrix = zinvar_P_matrix;
+	}else if (!strcmp(par->calcul_method,"IMPROVED_RCWA")){
+			par->P_matrix = zinvar_P_matrix;
+	}else if (!strcmp(par->calcul_method,"EULER")){
+			par->P_matrix = euler_P_matrix;
+	}else if (!strcmp(par->calcul_method,"EULER2")){
+			par->P_matrix = euler2_P_matrix;
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, unknown calculation method (\"%s\")\n",__FILE__,__LINE__,par->calcul_method);
+		exit(EXIT_FAILURE);
+	}
+
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_arrays_init(struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *		\brief	Some arrays initialisations
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_arrays_init(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	int j;
+	
+	complex k_super2 = par->k_super*par->k_super;
+	complex k_sub2 = par->k_sub*par->k_sub;
+	complex ky_02 = par->ky_0*par->ky_0;
+	
+	for(j=0;j<=par->vec_size-1;j++){
+		par->sigma[j] = (j-par->vec_middle)*par->Delta_sigma + par->sigma0;
+		par->kz_super[j] = csqrt(k_super2 - par->sigma[j]*par->sigma[j] - ky_02);
+		par->kz_sub[j]   = csqrt(k_sub2   - par->sigma[j]*par->sigma[j] - ky_02);
+	}
+	PsiMatrixTE(par->Psi_super_TE, par->k_super, par->kz_super, par);
+	PsiMatrixTE(par->Psi_sub_TE, par->k_sub, par->kz_sub, par);
+	invM(par->invPsi_super_TE, par->Psi_super_TE, 2*par->vec_size);
+	PsiMatrixTM(par->Psi_super_TM, par->k_super, par->kz_super, par);
+	PsiMatrixTM(par->Psi_sub_TM, par->k_sub, par->kz_sub, par);
+	invM(par->invPsi_super_TM, par->Psi_super_TM, 2*par->vec_size);
+
+	if (par->READ_tab_NS){
+		if (lire_tab(par->tab_NS_filename, "tab_NS", par->tab_NS, par->NS+1) != 0) {
+			fprintf(stderr,"tab_NS reading ERROR\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+	if (par->imposed_S_steps){
+		if (lire_tab(par->imposed_S_steps_filename, "", par->tab_imposed_S_steps, par->N_imposed_S_steps) != 0) {
+			fprintf(stderr,"tab_imposed_S_steps reading ERROR\n");
+			exit(EXIT_FAILURE);
+		}
+		md2D_make_tab_S_steps(par);
+	}
+/*SaveDbleTab2file(par->tab_NS, par->NS+1, "stdout", " ");*/
+/*printf("\nRe(par->Psi_super) :\n");
+SaveMatrix2file (par->Psi_super, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
+printf("\nRe(par->Psi_sub) :\n");
+SaveMatrix2file (par->Psi_sub, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
+printf("\nRe(par->invPsi_super) :\n");
+SaveMatrix2file (par->invPsi_super, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
+*/		
+	return 0;
+}
+
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *	\brief	Memory allocation
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	int i;
+	
+	par->k2        = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->invk2     = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->Nx2       = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->Nz2       = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->NxNz      = (complex *) malloc(sizeof(complex)*par->N_x);
+
+	par->sigma    = (complex *) malloc(sizeof(complex)*par->vec_size);
+	par->kz_super = (complex *) malloc(sizeof(complex)*par->vec_size);
+	par->kz_sub   = (complex *) malloc(sizeof(complex)*par->vec_size);
+
+	par->TF_k2     = (complex *) malloc(sizeof(complex)*(4*par->N+1));
+	par->TF_invk2  = (complex *) malloc(sizeof(complex)*(4*par->N+1));
+	par->TF_Nx2    = (complex *) malloc(sizeof(complex)*(4*par->N+1));
+	par->TF_Nz2    = (complex *) malloc(sizeof(complex)*(4*par->N+1));
+	par->TF_NxNz   = (complex *) malloc(sizeof(complex)*(4*par->N+1));
+
+	par->tmp_tf_k2    = (complex *) malloc(sizeof(complex)*par->N_x);   
+	par->tmp_tf_invk2 = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->tmp_tf_Nx2   = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->tmp_tf_Nz2   = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->tmp_tf_NxNz  = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->M_tmp1        = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->M_tmp2        = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->M_tmp3        = allocate_CplxMatrix(par->vec_size,par->vec_size);
+
+	par->Toep_k2       = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Toep_invk2    = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Toep_Nx2      = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Toep_NxNz     = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Toep_Nz2      = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->invToep_k2    = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->invToep_invk2 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+
+	par->S12 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->S22 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->S21 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->S11 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+
+	par->Qxx = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Qyy = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Qzz = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Qxz = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->Qzz_1 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+
+	par->QxzEx         = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->Qzz_1QxzEx    = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->Qzz_1Hpx      = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->sigmaHpy      = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size); 
+	par->ky0Qzz_1Hpx   = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->Qzz_1sigmaHpy = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->QxxEx         = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->QyyEy         = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+
+	par->QxzVtmp1      = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->V_tmp1        = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+
+	par->T         = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+
+	par->T11 = (complex **) malloc(sizeof(complex *)*par->vec_size);
+	par->T12 = (complex **) malloc(sizeof(complex *)*par->vec_size);
+	par->T21 = (complex **) malloc(sizeof(complex *)*par->vec_size);
+	par->T22 = (complex **) malloc(sizeof(complex *)*par->vec_size);
+	for (i=0;i<=par->vec_size-1;i++){
+			par->T11[i] = &par->T[i][0];
+			par->T12[i] = &par->T[i][par->vec_size];
+			par->T21[i] = &par->T[i+par->vec_size][0];
+			par->T22[i] = &par->T[i+par->vec_size][par->vec_size];
+	}
+
+	par->P         = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->M         = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+
+	par->M_tmp11 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->M_tmp12 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->M_tmp21 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	par->M_tmp22 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	
+	par->eig_values = (complex *) malloc(sizeof(complex)*2*par->vec_size);
+	par->EigVectors = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->eig_buffer = (complex *) malloc(sizeof(complex)*50*2*par->vec_size);
+	
+	par->invEigVec         = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->invVec_Psi        = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->M_invVec_Psi      = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->M_buffer_2vecsize = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->M_sol = (complex *) malloc(sizeof(complex)*2*par->vec_size);
+
+	par->rkMz    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkMzd   = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkMzdd  = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkM1    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkM2    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkM3    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkM4    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->rkMtmp1 = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+
+
+	par->Psi_sub_TE      = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->Psi_super_TE    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->invPsi_super_TE = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->Psi_sub_TM      = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->Psi_super_TM    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->invPsi_super_TM = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+
+	par->Ai = (complex *) malloc(sizeof(complex)*(par->vec_size));
+	par->Ar = (complex *) malloc(sizeof(complex)*(par->vec_size));
+	par->At = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Vi = (complex *) malloc(sizeof(complex)*(par->vec_size));
+	par->Vr = (complex *) malloc(sizeof(complex)*(par->vec_size));
+	par->Vt = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+
+	par->Exi  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Exr  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Ext  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Hpxi = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Hpxr = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Hpxt = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+
+	eff->eff_r   = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->eff_t   = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->N_eff_r = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->N_eff_t = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->theta_r = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->theta_t = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->phi_r   = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->phi_t   = (double *) malloc(sizeof(double)*(par->vec_size));
+
+	par->var_i  = (double *) malloc(sizeof(double)*1000); /* A REVOIR */
+	par->var_i2 = (double *) malloc(sizeof(double)*1000); /* A REVOIR */
+
+	if (par->tab_NS_ENABLED){
+		par->tab_NS = (double *) malloc(sizeof(double)*(par->NS+1));
+	}
+	if (par->imposed_S_steps){
+		par->tab_imposed_S_steps = (double *) malloc(sizeof(double)*(par->N_imposed_S_steps));
+	}
+	
+	return 0;
+}
+
+
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *	\brief	Libération de la mémoire
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	if (par->verbosity>=3) fprintf(stdout,"Libération de la mémoire : "); fflush(stdout);
+
+	
+	if (par->type_profil == N_XYZ) {
+		free(par->n_xyz[0]);
+		free(par->n_xyz);
+	}else{
+		free(par->profil[0]);
+		free(par->profil);
+		free(par->k2_layer);
+		free(par->invk2_layer);
+	}
+	if (par->tab_NS_ENABLED){
+		free(par->tab_NS);
+	}
+	if (par->imposed_S_steps){
+		free(par->tab_imposed_S_steps);
+	}
+
+	free(par->k2);
+	free(par->invk2);
+	free(par->Nx2);
+	free(par->Nz2);
+	free(par->NxNz);
+
+	free(par->sigma);
+	free(par->kz_super);
+	free(par->kz_sub);
+		
+	free(par->TF_k2);
+	free(par->TF_invk2);
+	free(par->TF_Nx2);
+	free(par->TF_Nz2);
+	free(par->TF_NxNz);
+	
+	free(par->tmp_tf_k2);
+	free(par->tmp_tf_invk2);
+	free(par->tmp_tf_Nx2);
+	free(par->tmp_tf_Nz2);
+	free(par->tmp_tf_NxNz);
+
+	free(par->Toep_k2[0]);
+	free(par->Toep_k2);
+	free(par->Toep_invk2[0]);
+	free(par->Toep_invk2);
+	free(par->invToep_k2[0]);
+	free(par->invToep_k2);
+	free(par->invToep_invk2[0]);
+	free(par->invToep_invk2);
+	free(par->Toep_Nx2[0]);
+	free(par->Toep_Nx2);
+	free(par->Toep_NxNz[0]);
+	free(par->Toep_NxNz);
+	free(par->Toep_Nz2[0]);
+	free(par->Toep_Nz2);
+	free(par->M_tmp1[0]);
+	free(par->M_tmp1);
+	free(par->M_tmp2[0]);
+	free(par->M_tmp2);
+	free(par->M_tmp3[0]);
+	free(par->M_tmp3);
+
+	free(par->S12[0]);
+	free(par->S12);
+	free(par->S22[0]);
+	free(par->S22);
+	free(par->S11[0]);
+	free(par->S11);
+	free(par->S21[0]);
+	free(par->S21);
+
+	free(par->T11);
+	free(par->T12);
+	free(par->T21);
+	free(par->T22);
+	
+	free(par->P[0]);
+	free(par->P);
+	free(par->M[0]);
+	free(par->M);
+
+	free(par->T[0]);
+	free(par->T);
+	free(par->EigVectors[0]);
+	free(par->EigVectors);
+	free(par->invEigVec[0]);
+	free(par->invEigVec);
+	free(par->invVec_Psi[0]);
+	free(par->invVec_Psi);
+	free(par->M_invVec_Psi[0]);
+	free(par->M_invVec_Psi);
+	free(par->M_buffer_2vecsize[0]);
+	free(par->M_buffer_2vecsize);
+	free(par->eig_values);
+	free(par->eig_buffer);
+	free(par->M_sol);
+	free(par->Qxx[0]);
+	free(par->Qyy[0]);
+	free(par->Qzz[0]);
+	free(par->Qxz[0]);
+	free(par->Qzz_1[0]);
+	free(par->Qxx);
+	free(par->Qyy);
+	free(par->Qzz);
+	free(par->Qxz);
+	free(par->Qzz_1);
+
+	free(par->QxzEx);
+	free(par->Qzz_1QxzEx);
+	free(par->Qzz_1Hpx);
+	free(par->V_tmp1);
+	free(par->sigmaHpy); 
+	free(par->ky0Qzz_1Hpx);
+	free(par->Qzz_1sigmaHpy);
+	free(par->QxxEx);
+	free(par->QyyEy);
+	free(par->QxzVtmp1);
+
+	free(par->M_tmp11[0]);
+	free(par->M_tmp12[0]);
+	free(par->M_tmp21[0]);
+	free(par->M_tmp22[0]);
+	free(par->M_tmp11);
+	free(par->M_tmp12);
+	free(par->M_tmp21);
+	free(par->M_tmp22);
+	
+	free(par->rkMz[0]);
+	free(par->rkMzd[0]);
+	free(par->rkMzdd[0]);
+	free(par->rkM1[0]);
+	free(par->rkM2[0]);
+	free(par->rkM3[0]);
+	free(par->rkM4[0]);
+	free(par->rkMtmp1[0]);
+	free(par->rkMz);
+	free(par->rkMzd);
+	free(par->rkMzdd);
+	free(par->rkM1);
+	free(par->rkM2);
+	free(par->rkM3);
+	free(par->rkM4);
+	free(par->rkMtmp1);
+
+	
+	free(par->invPsi_super_TE[0]);
+	free(par->invPsi_super_TE);
+	free(par->Psi_sub_TE[0]);
+	free(par->Psi_sub_TE);
+	free(par->Psi_super_TE[0]);
+	free(par->Psi_super_TE);
+	free(par->invPsi_super_TM[0]);
+	free(par->invPsi_super_TM);
+	free(par->Psi_sub_TM[0]);
+	free(par->Psi_sub_TM);
+	free(par->Psi_super_TM[0]);
+	free(par->Psi_super_TM);
+	
+	free(par->Ai);
+	free(par->Ar);
+	free(par->At);
+	free(par->Vi);
+	free(par->Vr);
+	free(par->Vt);
+	free(par->Exi);
+	free(par->Exr);
+	free(par->Ext);
+	free(par->Hpxi);
+	free(par->Hpxr);
+	free(par->Hpxt);
+
+	free(eff->eff_r);
+	free(eff->eff_t);
+	free(eff->N_eff_r);
+	free(eff->N_eff_t);
+	free(eff->theta_r);
+	free(eff->theta_t);
+	free(eff->phi_r);
+	free(eff->phi_t);
+	
+	if (par->verbosity>=3) fprintf(stdout,"OK\n"); fflush(stdout);
+
+	
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_read_mat_S(struct Param_struct *par)
+ *
+ *	\brief	Lecture de matrices S
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_read_mat_S(struct Param_struct *par)
+{
+	double **re_tmp, **im_tmp;
+	int i,j;
+	char *nom_fichier = par->mat_S_file;
+	char *erreur="NO_ERROR                     ";
+	FILE *fp;
+	
+	/* Ouverture du fichier */
+	if (!(fp = fopen(nom_fichier,"r"))){
+		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
+		return 1;
+	}
+	/* Lecture des paramètres */
+	if (lire_string (fp, "mat_S_name", par->mat_S_name)) erreur="mat_S_name";
+	if (lire_double (fp, "h_partial", &(par->h) )) erreur="h_partial";
+/*	if (lire_double (fp, "L", &(par->L) )) erreur="L";
+	if (lire_double (fp, "Re_k0", &Re_k0 )) erreur="Re_k0";
+	if (lire_double (fp, "Re_kh", &Re_kh )) erreur="Re_kh";
+	if (lire_double (fp, "Im_k0", &Re_kh )) erreur="Im_k0";
+	if (lire_double (fp, "Im_kh", &Re_kh )) erreur="Im_kh";
+	if (lire_double (fp, "delta_sigma", &(par->delta_sigma) )) erreur="delta_sigma";
+	if (lire_double (fp, "sigma0", &(par->sigma0) )) erreur="sigma0";
+	if (lire_int (fp, "N", &(par->N) )) erreur="N";
+*/	fclose(fp);
+	/* Vérification de l'absence d'erreurs de lecture */
+	if (strcmp(erreur,"NO_ERROR                     ")){
+		fprintf(stderr, "%s : Erreur, probleme de lecture de \"%s\"\n",__FILE__,erreur);
+		exit(EXIT_FAILURE);
+	}
+	
+	/* Lecture des éléments de matrice S */	
+	re_tmp = allocate_DbleMatrix(2*par->N+1,2*par->N+1);
+	im_tmp = allocate_DbleMatrix(2*par->N+1,2*par->N+1);
+	/* S12 */
+	lire_tab(nom_fichier, "Re_S12", re_tmp[0], (2*par->N+1)*(2*par->N+1));
+	lire_tab(nom_fichier, "Im_S12", im_tmp[0], (2*par->N+1)*(2*par->N+1));
+	for (j=0;j<=2*par->N;j++){
+		for (i=0;i<=2*par->N;i++){
+			par->S12[i][j] = c_omplex(re_tmp[i][j],im_tmp[i][j]);
+		}
+	}
+	/* S22 */
+	lire_tab(nom_fichier, "Re_S22", re_tmp[0], (2*par->N+1)*(2*par->N+1));
+	lire_tab(nom_fichier, "Im_S22", im_tmp[0], (2*par->N+1)*(2*par->N+1));
+	for (j=0;j<=2*par->N;j++){
+		for (i=0;i<=2*par->N;i++){
+			par->S22[i][j] = c_omplex(re_tmp[i][j],im_tmp[i][j]);
+		}
+	}
+
+	free(re_tmp[0]);free(re_tmp);
+	free(im_tmp[0]);free(im_tmp);
+	
+	return 0;		
+}
+
+
+
+
