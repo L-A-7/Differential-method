@@ -1060,8 +1060,8 @@ int k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
 	
 	for (nx=0; nx<=par->N_x-1; nx++){
 		do{
-			if (z >= par->profil[n_layer][nx]){
-				if (z <= par->profil[n_layer+1][nx]){
+			if (z <= par->profil[n_layer][nx]){
+				if (z >= par->profil[n_layer+1][nx]){
 					k2_1D[nx] = par->k2_layer[n_layer];
 					break;
 				}else{
@@ -1076,6 +1076,34 @@ int k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
 	return 0;
 }
 
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn			
+ *
+ *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné, pour un multicouches
+ */
+/*-------------------------------------------------------------------------------------*/
+int invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
+{
+	int nx, n_layer=0;
+	
+	for (nx=0; nx<=par->N_x-1; nx++){
+		do{
+			if (z <= par->profil[n_layer][nx]){
+				if (z >= par->profil[n_layer+1][nx]){
+					invk2_1D[nx] = par->invk2_layer[n_layer];
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+	
+	return 0;
+}
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)	
@@ -1151,35 +1179,6 @@ int invk2_H_X(struct Param_struct *par, complex *invk2_1D, double z)
 }
 
 
-
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn			
- *
- *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné, pour un multicouches
- */
-/*-------------------------------------------------------------------------------------*/
-int invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
-{
-	
-	int nx, n_layer=0;
-	
-	for (nx=0; nx<=par->N_x-1; nx++){
-		do{
-			if (z >= par->profil[n_layer][nx]){
-				if (z <= par->profil[n_layer+1][nx]){
-					invk2_1D[nx] = par->invk2_layer[n_layer];
-					break;
-				}else{
-					n_layer++;
-				}
-			}else{
-				n_layer--;
-			}	
-		}while (1);
-	}
-	
-	return 0;
-}
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int Normal_H_X(struct Param_struct *par, complex *k2_1D, double z)
