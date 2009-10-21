@@ -471,14 +471,14 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* Réarrangement en plusieurs tableaux */
 	double eps2 = par->h*1e-10;
 	for (nx=0; nx<=N_x-1;nx++){
-		/* "haut du superstrat", z=h */
-		profil[0][nx] = par->h+eps2;
+		/* substrat, z=0 */
+		profil[0][nx] = 0-eps2;
 		/* Couches */
 		for (n_layer=1; n_layer<=N_layers+1; n_layer++){
 			profil[n_layer][nx] = profil_tmp[nx*(N_layers+1)+n_layer-1];
 		}
-		/* "Bas du substrat", z=h */
-		profil[N_layers+2][nx] = 0-eps2;
+		/* superstrat, z=h */
+		profil[N_layers+2][nx] = par->h+eps2;
 	}
 			
 	free(profil_tmp);
