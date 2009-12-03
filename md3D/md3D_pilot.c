@@ -95,11 +95,15 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 	/* Amplitude du champ incident */
 	md3D_incident_field(par,eff);
 
+#if 0
 	if (par->type_profil == H_XY_plus_STACK){
 		S_matrix_stack(par); /* Case of multilayer structure with one structured stack situated at n_patterned_layer */
 	}else{
 		S_matrix(par);
 	}
+#endif
+	
+	S_matrix(par);
 
 	/* Calcul des amplitudes */
 	md3D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
@@ -126,14 +130,14 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 int md3D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
 {
 
-	/* Lecture des paramètres par defaut dans fichier_param */
+	/* Lecture des paramètres par defaut dans param_file */
 	md3D_lire_param(nomfichier, par);
 
 	/* Allocation de mémoire pour le profil */
 	md3D_alloc_init_profil(par);
 
 	/* Lecture du profil h(x) décrivant la surface */
-	(*par->md3D_lire_profil)(nomfichier->fichier_profil, par);
+	(*par->md3D_lire_profil)(nomfichier->profile_file, par);
 
 	/* Initialisations de certaines variables */
 	md3D_variables_init(par, eff);
@@ -192,12 +196,12 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 			par->invk_2 = invk2_H_XY;
 			par->Normal_function = Normal_H_XY;
 			break;
-		case H_XY_plus_STACK : 
+/*		case H_XY_plus_STACK : 
 			par->md3D_lire_profil = md3D_lire_profil_H_XY;
 			par->k_2 = k2_H_XY;
 			par->invk_2 = invk2_H_XY;
 			par->Normal_function = Normal_H_XY;
-			break;
+			break;*/
 		case MULTICOUCHES : 
 			par->md3D_lire_profil = md3D_lire_profil_MULTI;
 			par->k_2 = k2_MULTI;

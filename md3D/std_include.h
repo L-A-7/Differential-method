@@ -116,7 +116,7 @@ struct Param_struct {
 	int Nprz;
 	int vec_size;
 	int vec_middle;
-	char nom_profil[SIZE_STR_BUFFER];
+	char profile_name[SIZE_STR_BUFFER];
 
 	int HXY_Normal_CALCULATED;
 	int toepNorm_CALCULATED;
@@ -193,6 +193,7 @@ struct Param_struct {
 	complex *nu_stack;
 	complex nu_this_layer;
 
+	char profile_file[SIZE_STR_BUFFER]; /* is present both in this structure and in fichiers structures ... */
 	};
 
 struct Efficacites_struct {
@@ -220,8 +221,8 @@ struct Efficacites_struct {
 
 struct Noms_fichiers {
 	char fichier_config[SIZE_STR_BUFFER];
-	char fichier_param[SIZE_STR_BUFFER];
-	char fichier_profil[SIZE_STR_BUFFER];
+	char param_file[SIZE_STR_BUFFER];
+	char profile_file[SIZE_STR_BUFFER];
 	char fichier_results[SIZE_STR_BUFFER];
 	};
 

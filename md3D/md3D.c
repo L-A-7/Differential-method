@@ -1,9 +1,9 @@
 /*!	\file		md3D.c
  *
  * 	\brief		Differential method \n
- *						3-Dimensions ! \n
- *						S-Matrices algorithm \n
- * 					FFF algorithm \n
+ *				3-Dimensions ! \n
+ *				S-Matrices algorithm \n
+ * 				FFF algorithm \n
  * 
  *
  *	\date		nov 2007
@@ -450,6 +450,7 @@ printf("\nS22");SaveMatrix2file (S22, 2*vec_size, 2*vec_size, "Re", "stdout");
  *		\brief	S matrix calculation in case of stack with some homogeneous layers
  */
 /*-------------------------------------------------------------------------------------*/
+#if 0
 int S_matrix_stack(struct Param_struct *par)
 {
 	if (par->verbosity) fprintf(stdout,"S-Matrix calculation. STACK case\n");
@@ -552,6 +553,7 @@ printf("\nT22");SaveMatrix2file (T22, 2*vec_size, 2*vec_size, "Im", "stdout");
 	
 	return 0;
 }
+#endif
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22,
@@ -659,6 +661,7 @@ SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
  *	\brief T-matrix of a homogeneous layer
  */
 /*-------------------------------------------------------------------------------------*/
+#if 0
 int T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size, struct Param_struct *par)
 {
 	int i,j;
@@ -751,7 +754,7 @@ SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
 
 	return 0;
 }
-
+#endif
 
 #if 0 /* Has never worked: Not finished */
 /*-------------------------------------------------------------------------------------*/
@@ -1388,7 +1391,7 @@ printf("\nIm(mM44) :\n");SaveMatrix2file (mM44, vec_size, vec_size, "Im", "stdou
 /*-------------------------------------------------------------------------------------*/
 int zinvar_M_matrix(complex **M, double z, struct Param_struct *par)
 {
-	printf("\n#*#*#*#*#*#*##*#*#*#*#*#*##*#*#*#*#*#*#\n#* zinvar_M_matrix : Not implemented...\n#* Calling normal M_matrix instead\n#*#*#*#*#*#*##*#*#*#*#*#*##*#*#*#*#*#*#");
+	printf("\n#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#\n#* zinvar_M_matrix : Not implemented...\n#* Calling normal M_matrix instead\n#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#");
 	return M_matrix(M, z, par);
 }
 
@@ -2037,6 +2040,7 @@ int Normal_N_XY_ZINVAR(complex **norm_x, complex **norm_y, complex **norm_z, dou
 	int i,j;
 	int Nprx = par->Nprx;
 	int Npry = par->Npry;
+
 	double x,y;
 printf("\nCAUTION, norm set to RADIAL, DEBUGGING and VALIDATION purpose only !\n\n");
 	for (i=0;i<=Npry-1;i++){
@@ -2049,26 +2053,40 @@ printf("\nCAUTION, norm set to RADIAL, DEBUGGING and VALIDATION purpose only !\n
 			norm_z[i][j] = 0.0;
 		}
 	}
+return 1;
+
+
 /*
-printf("\nnorm_x\n");SaveCplxTab2file (norm_x[0], par->Nprx*par->Npry,"Re", "stdout", " ",par->Nprx,"\n");
-printf("\nnorm_y\n");SaveCplxTab2file (norm_y[0], par->Nprx*par->Npry,"Re", "stdout", " ",par->Nprx,"\n");
-*/	
-
-
-/*	double dhdx, dhdy;
-	double two_dx = 2*par->Lx/Nprx;
-	double two_dy = 2*par->Ly/Npry;
-	double *profil = par->profil[0];
-	for (i=1;i<=Npry-2;i++){
-		for (j=1;j<=Nprx-2;j++){
-			dhdx = (profil[Nprx*i+j+1]-profil[Nprx*i+j-1])/two_dx;
-			dhdy = (profil[Nprx*(i+1)+j]-profil[Nprx*(i-1)+j])/two_dy;
-			norm_x[i][j] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
-			norm_y[i][j] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
-			norm_z[i][j] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
+printf("\nCAUTION, norm set norm_x = 1, DEBUGGING and VALIDATION purpose only !\n\n");
+	for (i=0;i<=Npry-1;i++){
+		for (j=0;j<=Nprx-1;j++){
+			norm_x[i][j] = 1.0;
+			norm_y[i][j] = 0.0;
+			norm_z[i][j] = 0.0;
 		}
 	}
 */
+	double *rnorm_x, *rnorm_y;
+	rnorm_x = (double *) malloc(sizeof(double)*Nprx*Npry); 
+	rnorm_y = (double *) malloc(sizeof(double)*Nprx*Npry); 
+	if (par->verbosity >= 2) fprintf(stdout,"Reading norm_x and norm_y in %s (norm_z = 0)\n",par->profile_file);
+	if (lire_tab(par->profile_file, "norm_x", rnorm_x, Nprx*Npry) == 0 && lire_tab(par->profile_file, "norm_y", rnorm_y, Nprx*Npry) == 0) {
+		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
+	}else{
+		fprintf(stderr,"norm reading ERROR\n");
+		exit(EXIT_FAILURE);
+	}
+	for (i=0;i<=Npry-1;i++){
+		for (j=0;j<=Nprx-1;j++){
+			norm_x[i][j] = rnorm_x[i*Nprx + j];
+			norm_y[i][j] = rnorm_y[i*Nprx + j];
+			norm_z[i][j] = 0.0;
+		}
+	}
+	free(rnorm_x);
+	free(rnorm_y);
+
+
 	return 0;
 }
 

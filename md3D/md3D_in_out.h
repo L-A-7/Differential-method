@@ -17,7 +17,7 @@ int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par);
 int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par);
 int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par);
 int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par);
-int md3D_lire_config(const char *nom_fichier, char *fichier_param);
+int md3D_lire_config(const char *nom_fichier, char *param_file);
 int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *nomfichier);
 int md3D_ecrire_results(char *filename, struct Param_struct *par, struct Efficacites_struct *eff);
 int md3D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struct *par);

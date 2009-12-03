@@ -61,8 +61,8 @@ LIB =$(LIB1) $(LIB2) -lm
 all : $(NAME)
 
 # Options de compilation :
-CFLAGS = -g -Wall -ansi $(OPTIM_FLAGS)
-#CFLAGS = -O3 -Wall -ansi $(OPTIM_FLAGS)
+#CFLAGS = -g -Wall -ansi $(OPTIM_FLAGS)
+CFLAGS = -O3 -Wall -ansi $(OPTIM_FLAGS)
 
 # Profiling
 #PG = -pg
