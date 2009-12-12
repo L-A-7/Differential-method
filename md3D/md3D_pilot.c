@@ -96,7 +96,7 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 	md3D_incident_field(par,eff);
 
 #if 0
-	if (par->type_profil == H_XY_plus_STACK){
+	if (par->profile_type == H_XY_plus_STACK){
 		S_matrix_stack(par); /* Case of multilayer structure with one structured stack situated at n_patterned_layer */
 	}else{
 		S_matrix(par);
@@ -175,9 +175,9 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 	par->sigma_y0 = par->k_super*sin(par->theta_i)*sin(par->phi_i);
 			
 	/* Allocations */	
-	if (par->type_profil == N_XYZ || par->type_profil == N_XY_ZINVAR) {
+	if (par->profile_type == N_XYZ || par->profile_type == N_XY_ZINVAR) {
 		par->n_xyz = allocate_CplxMatrix(par->Nprz,par->Nprx*par->Npry);
-	}else if(par->type_profil == H_XY){
+	}else if(par->profile_type == H_XY){
 		par->profil = allocate_DbleMatrix(par->N_layers+3,par->Nprx*par->Npry);
 		par->k2_layer    = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
 		par->invk2_layer = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
@@ -189,7 +189,7 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 
 	/* Alignement des pointeurs de fonction */
 /*	par->matrice_T = (par->pola == TE ? matrice_T_TE : matrice_T_TM);
-*/	switch (par->type_profil) {
+*/	switch (par->profile_type) {
 		case H_XY : 
 			par->md3D_lire_profil = md3D_lire_profil_H_XY;
 			par->k_2 = k2_H_XY;
@@ -225,7 +225,7 @@ printf("\n***************\nWARNING: Normal_N_XYZ not defined yet.\n*************
 			exit(EXIT_FAILURE);
 
 	}
-	if (par->type_profil == H_XY_plus_STACK){
+	if (par->profile_type == H_XY_plus_STACK){
 		printf("Alloc nu_stack et h_stack, N_stack = %d",par->N_stack);fflush(stdout);
 		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
 		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
@@ -467,15 +467,15 @@ int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	if (par->verbosity>=3) fprintf(stdout,"Freeing memory : "); fflush(stdout);
 
-	if (par->type_profil == H_XY_plus_STACK){
+	if (par->profile_type == H_XY_plus_STACK){
 		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
 		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
 	}	
 
-	if (par->type_profil == N_XYZ || par->type_profil == N_XY_ZINVAR) {
+	if (par->profile_type == N_XYZ || par->profile_type == N_XY_ZINVAR) {
 		free(par->n_xyz[0]);
 		free(par->n_xyz);
-	}else if(par->type_profil == H_XY){
+	}else if(par->profile_type == H_XY){
 		free(par->profil[0]);
 		free(par->profil);
 		free(par->k2_layer);

@@ -157,7 +157,7 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	/* Vérification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
-		fprintf(stderr, "%s: Error, cannot open \"%s\"\n",__FILE__,erreur);
+		fprintf(stderr, "%s: Error: can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
@@ -169,40 +169,40 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		exit(EXIT_FAILURE);
 	}
 	erreur="NO_ERROR                     ";
-	if (lire_string (fp, "type_profil", str_profil)) {
-		erreur="type_profil";
+	if (lire_string (fp, "profile_type", str_profil)) {
+		erreur="profile_type";
 	}else{
-		if       (!strcmp(str_profil,"H_XY"))         {par->type_profil = H_XY;
+		if       (!strcmp(str_profil,"H_XY"))         {par->profile_type = H_XY;
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			par->N_layers = 0;
-		}else if (!strcmp(str_profil,"MULTICOUCHES")){par->type_profil = MULTICOUCHES;
+		}else if (!strcmp(str_profil,"MULTICOUCHES")){par->profile_type = MULTICOUCHES;
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			if (lire_int (fp, "N_layers", &(par->N_layers) )) erreur="N_layers";
-		}else if (!strcmp(str_profil,"N_XYZ"))       {par->type_profil = N_XYZ;
+		}else if (!strcmp(str_profil,"N_XYZ"))       {par->profile_type = N_XYZ;
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			if (lire_int (fp, "Nprz", &(par->Nprz) )) erreur="Nprz";
 			par->N_layers = 0;
-		}else if (!strcmp(str_profil,"N_XY_ZINVAR"))       {par->type_profil = N_XY_ZINVAR;
+		}else if (!strcmp(str_profil,"N_XY_ZINVAR"))       {par->profile_type = N_XY_ZINVAR;
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			if (lire_int (fp, "Nprz", &(par->Nprz) )) erreur="Nprz";
 			par->N_layers = 0;
-		}else if (!strcmp(str_profil,"H_XY_plus_STACK")){par->type_profil = H_XY_plus_STACK;
+		}else if (!strcmp(str_profil,"H_XY_plus_STACK")){par->profile_type = H_XY_plus_STACK;
 			if (lire_int (fp, "Nprx", &(par->Nprx) )) erreur="Nprx";
 			if (lire_int (fp, "Npry", &(par->Npry) )) erreur="Npry";
 			par->N_layers = 0;
 			if (lire_int(fp, "N_stack", &(par->N_stack))) erreur="N_stack";
 			if (lire_int(fp, "n_patterned_layer", &(par->n_patterned_layer))) erreur="n_patterned_layer";
-		}else                                        {erreur = "type_profil_bis";}
+		}else                                        {erreur = "profile_type_bis";}
 	}
 	fclose(fp);
 	
 	/* Vérification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
-		fprintf(stderr, "%s: Error, cannot open \"%s\"\n",__FILE__,erreur);
+		fprintf(stderr, "%s: Error, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
@@ -241,12 +241,12 @@ int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 		fprintf(stdout,"i_field_mode   = %s\n",par->i_field_mode);
 		fprintf(stdout,"profile_name     = %s\n",par->profile_name);
 		fprintf(stdout,"profile_file = %s\n",nomfichier->profile_file);
-		if (par->type_profil==H_XY){
-			fprintf(stdout,"type_profil    = %s\n","H_XY");
-		}else if (par->type_profil==N_XY_ZINVAR){
-			fprintf(stdout,"type_profil    = %s\n","N_XY_ZINVAR");
+		if (par->profile_type==H_XY){
+			fprintf(stdout,"profile_type    = %s\n","H_XY");
+		}else if (par->profile_type==N_XY_ZINVAR){
+			fprintf(stdout,"profile_type    = %s\n","N_XY_ZINVAR");
 		}else{
-			fprintf(stdout,"*** WARNING ***:\ntype_profil    = %s\n***************\n","UNKNOWN");
+			fprintf(stdout,"*** WARNING ***:\nprofile_type    = %s\n***************\n","UNKNOWN");
 		}
 		fprintf(stdout,"N_couches      = %d\n",par->N_layers);
 		fflush(stdout);
@@ -282,7 +282,7 @@ int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par)
 	par->invk2_layer[0] = 1/((par->k_super)*(par->k_super));
 	par->invk2_layer[par->N_layers+1] = 1/((par->k_sub)*(par->k_sub));
 
-	if (par->type_profil == H_XY_plus_STACK) {
+	if (par->profile_type == H_XY_plus_STACK) {
 		if (!(fp = fopen(nom_fichier,"r"))){
 			fprintf(stderr, "%s line %d: Error, can't open %s\n",__FILE__, __LINE__,nom_fichier);
 			exit(EXIT_FAILURE);
@@ -395,7 +395,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	fclose(fp);	
 	/* Vérification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
-		fprintf(stderr, "%s: Error, cannot open \"%s\"\n",__FILE__,erreur);
+		fprintf(stderr, "%s: Error, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
@@ -518,8 +518,8 @@ int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 	char nu_name[SIZE_STR_BUFFER];
 	
 	/* Check Nprz for ZINVAR case */
-	if (par->type_profil == N_XY_ZINVAR && Nprz != 1){
-		fprintf(stderr, "%s line %d: ERROR, Nprz must = 1 for n_xy_zinvar. For not z-invariant profile, use type_profil = n_xyz (with uppercase).\n",__FILE__, __LINE__);
+	if (par->profile_type == N_XY_ZINVAR && Nprz != 1){
+		fprintf(stderr, "%s line %d: ERROR, Nprz must = 1 for n_xy_zinvar. For not z-invariant profile, use profile_type = n_xyz (with uppercase).\n",__FILE__, __LINE__);
 		exit(EXIT_FAILURE);
 	}
 

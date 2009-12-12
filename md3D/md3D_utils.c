@@ -611,7 +611,7 @@ int eigen_values(complex **A, complex *eig_values, complex **EigVectors, complex
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	lapack_int eigen_values(complex **A, complex *eig_values, complex **EigVectors, complex *eig_buffer, int N)	
+/*!	\fn	lapack_eigen_values(complex **A, complex *eig_values, complex **EigVectors, complex *eig_buffer, int N)	
  *
  *	\brief	Eigen values & eigen vector of a complex matrix A
  * 			uses LAPACK zgeev function

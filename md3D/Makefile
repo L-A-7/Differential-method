@@ -18,9 +18,6 @@ IO_UTILS = $(NAME)_io_utils
 PILOT = $(NAME)_pilot
 
 
-#INC1 = -I/home/lau/Programmes/md1D/fftw
-#LIB1 = -static -lfftw3 -lgsl 
-#LIB1 = -static -lfftw3 -lgsl -lgslcblas
 LIB1 = -lfftw3 -lgsl -lgslcblas
 
 ifeq ($(BUILD),Lapack)

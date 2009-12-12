@@ -18,7 +18,7 @@
 #include <cblas.h>
 #endif
 #ifdef _LAPACK
-#include <clapack.h>
+#include <lapack.h>
 #endif
 #ifdef _ACML
 #include <acml.h>
@@ -75,7 +75,7 @@ struct Param_struct {
 	double theta_i;
 	double phi_i;
 	double psi;
-	int type_profil;
+	int profile_type;
 	complex **n_xyz;
 	int N_layers;
 	complex *k2_layer;
