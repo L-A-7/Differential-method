@@ -22,8 +22,8 @@ int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 int md3D_ecrire_results(char *filename, struct Param_struct *par, struct Efficacites_struct *eff);
 int md3D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struct *par);
 int md3D_ecrire_config(struct Param_struct *par, struct Noms_fichiers *nomfichier);
-complex md3D_indice(char* name,double lambda, char* method);
-complex md3D_index(char* name,double lambda, char* method);
+COMPLEX md3D_indice(char* name,double lambda, char* method);
+COMPLEX md3D_index(char* name,double lambda, char* method);
 
 #endif /* _md3D_IN_OUT_H */
 

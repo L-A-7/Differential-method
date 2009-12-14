@@ -91,7 +91,8 @@ $(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o
 
 # Archivage du projet en .tar
 tar :  
-	tar -cvf $(NAME).tar ./*.c ./*.h  ./Makefile ./*.txt
+#	tar -cvf $(NAME).tar ./*.c ./*.h  ./Makefile ./*.txt
+	tar -cvf $(NAME).tar ./*.c ./*.h ./*.txt
 
 # Archivage et Compression du projet en .tar.bz2
 bz2 : tar

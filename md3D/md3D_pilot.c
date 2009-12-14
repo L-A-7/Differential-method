@@ -32,15 +32,15 @@ int main(int argc, char *argv[]){
 	md3D_init(&param, &effic, &nomfichier);
 
 /*********************************** DEBUG *************************************************************/
-/*int M_matrix(complex **M, double z, struct Param_struct *par);
+/*int M_matrix(COMPLEX **M, double z, struct Param_struct *par);
 double z = 0.5*param.h;
-int md3D_QMatrix(double z, complex **Qxx, complex **Qxy, complex **Qxz, complex **Qyy, complex **Qyz, complex **Qzz,complex **Qzz_1, struct Param_struct *par);
-int Normal_H_XY(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par);*/
+int md3D_QMatrix(double z, COMPLEX **Qxx, COMPLEX **Qxy, COMPLEX **Qxz, COMPLEX **Qyy, COMPLEX **Qyz, COMPLEX **Qzz,COMPLEX **Qzz_1, struct Param_struct *par);
+int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par);*/
 
 /*md3D_QMatrix(z, param.Qxx, param.Qxy, param.Qxz, param.Qyy, param.Qyz, param.Qzz,param.Qzz_1, &param);*/
 
 /*M_matrix(param.M, z, &param);
-complex *buffer_NprxNpry = malloc(sizeof(complex)*param.Npry*param.Nprx);*/
+COMPLEX *buffer_NprxNpry = malloc(sizeof(COMPLEX)*param.Npry*param.Nprx);*/
 
 /*(*param.k_2)(&param, buffer_NprxNpry, z);
 SaveCplxTab2file (buffer_NprxNpry, param.Nprx*param.Npry, "Re", "stdout", " ", param.Nprx, "\n");*/
@@ -179,8 +179,8 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 		par->n_xyz = allocate_CplxMatrix(par->Nprz,par->Nprx*par->Npry);
 	}else if(par->profile_type == H_XY){
 		par->profil = allocate_DbleMatrix(par->N_layers+3,par->Nprx*par->Npry);
-		par->k2_layer    = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
-		par->invk2_layer = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
+		par->k2_layer    = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));
+		par->invk2_layer = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));
 	}else{
 		fprintf(stderr, "%s, line %d : ERROR, unknown profile_type\n",__FILE__,__LINE__);
 		exit(EXIT_FAILURE);
@@ -227,7 +227,7 @@ printf("\n***************\nWARNING: Normal_N_XYZ not defined yet.\n*************
 	}
 	if (par->profile_type == H_XY_plus_STACK){
 		printf("Alloc nu_stack et h_stack, N_stack = %d",par->N_stack);fflush(stdout);
-		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
+		par->nu_stack =  (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_stack));
 		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
 	}	
 
@@ -326,8 +326,8 @@ int md3D_arrays_init(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	int i,j, Nx=par->Nx, Ny=par->Ny;
 	
-	complex k_super2 = par->k_super*par->k_super;
-	complex k_sub2 = par->k_sub*par->k_sub;
+	COMPLEX k_super2 = par->k_super*par->k_super;
+	COMPLEX k_sub2 = par->k_sub*par->k_sub;
 
 	for (i=-Ny;i<=Ny;i++){
 		for (j=-Nx;j<=Nx;j++){
@@ -388,10 +388,10 @@ int md3D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	
 	par->nx = (int *) malloc(sizeof(int)*par->vec_size);
 	par->ny = (int *) malloc(sizeof(int)*par->vec_size);
-	par->sigma_x  = (complex *) malloc(sizeof(complex)*par->vec_size);
-	par->sigma_y  = (complex *) malloc(sizeof(complex)*par->vec_size);
-	par->kz_super = (complex *) malloc(sizeof(complex)*par->vec_size);
-	par->kz_sub   = (complex *) malloc(sizeof(complex)*par->vec_size);
+	par->sigma_x  = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->sigma_y  = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->kz_super = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->kz_sub   = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
 
 	par->S12 = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->S22 = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
@@ -424,19 +424,19 @@ int md3D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->Psi_super    = allocate_CplxMatrix(4*par->vec_size,4*par->vec_size);
 	par->invPsi_super = allocate_CplxMatrix(4*par->vec_size,4*par->vec_size);
 
-	par->Ai = (complex *) malloc(sizeof(complex)*(2*par->vec_size));
-	par->Ar = (complex *) malloc(sizeof(complex)*(2*par->vec_size));
-	par->At = (complex *) malloc(sizeof(complex)*(2*par->vec_size));	
-	par->Vi = (complex *) malloc(sizeof(complex)*(2*par->vec_size));
-	par->Vr = (complex *) malloc(sizeof(complex)*(2*par->vec_size));
-	par->Vt = (complex *) malloc(sizeof(complex)*(2*par->vec_size));	
+	par->Ai = (COMPLEX *) malloc(sizeof(COMPLEX)*(2*par->vec_size));
+	par->Ar = (COMPLEX *) malloc(sizeof(COMPLEX)*(2*par->vec_size));
+	par->At = (COMPLEX *) malloc(sizeof(COMPLEX)*(2*par->vec_size));	
+	par->Vi = (COMPLEX *) malloc(sizeof(COMPLEX)*(2*par->vec_size));
+	par->Vr = (COMPLEX *) malloc(sizeof(COMPLEX)*(2*par->vec_size));
+	par->Vt = (COMPLEX *) malloc(sizeof(COMPLEX)*(2*par->vec_size));	
 
-	par->Exr  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Ext  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Hpxi = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Hpxr = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Hpxt = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Exi  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Exr  = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Ext  = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Hpxi = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Hpxr = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Hpxt = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Exi  = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
 
 	eff->eff_r    = allocate_DbleMatrix(eff->Nymax_super-eff->Nymin_super+1,eff->Nxmax_super-eff->Nxmin_super+1);
 	eff->nx_eff_r = allocate_DbleMatrix(eff->Nymax_super-eff->Nymin_super+1,eff->Nxmax_super-eff->Nxmin_super+1);
@@ -468,7 +468,7 @@ int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 	if (par->verbosity>=3) fprintf(stdout,"Freeing memory : "); fflush(stdout);
 
 	if (par->profile_type == H_XY_plus_STACK){
-		par->nu_stack =  (complex *) malloc(sizeof(complex)*(par->N_stack));
+		par->nu_stack =  (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_stack));
 		par->h_stack =  (double *) malloc(sizeof(double)*(par->N_stack));
 	}	
 

@@ -24,11 +24,11 @@
 int md3D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	int n;
-	complex Eyi, Hpyi;
+	COMPLEX Eyi, Hpyi;
 	double phi_i = par->phi_i;
 	double psi = par->psi;
 	double theta_i = par->theta_i;
-	complex k_super = par->k_super;
+	COMPLEX k_super = par->k_super;
 	int vec_size = par->vec_size;
 	int vec_mid = par->vec_middle;
 	/* Plane wave */
@@ -65,13 +65,13 @@ int md3D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 	int Ny = par->Ny;
 	double Delta_sigma_x = par->Delta_sigma_x;
 	double Delta_sigma_y = par->Delta_sigma_y;
-	complex k_super2 = par->k_super*par->k_super;
-	complex k_sub2 = par->k_sub*par->k_sub;
+	COMPLEX k_super2 = par->k_super*par->k_super;
+	COMPLEX k_sub2 = par->k_sub*par->k_sub;
 	
 	double sigma_x0 = par->sigma_x0;
 	double sigma_y0 = par->sigma_y0;
-	complex sigma_y02 = par->sigma_y0*par->sigma_y0;
-	complex sigma_x02 = par->sigma_x0*par->sigma_x0;
+	COMPLEX sigma_y02 = par->sigma_y0*par->sigma_y0;
+	COMPLEX sigma_x02 = par->sigma_x0*par->sigma_x0;
 	int Nxmin_super, Nxmax_super, Nxmin_sub, Nxmax_sub, Nymin_super, Nymax_super, Nymin_sub, Nymax_sub;
 
 	/* Propagativ modes limits */
@@ -117,31 +117,31 @@ int md3D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 
 	
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int md3D_efficiencies(complex *Ai, complex *A0, complex *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
+/*!	\fn		int md3D_efficiencies(COMPLEX *Ai, COMPLEX *A0, COMPLEX *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
  *
  *	\brief		Efficiencies calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int md3D_efficiencies(complex *Ai, complex *Ar, complex *At, struct Param_struct *par,  struct Efficacites_struct *eff)
+int md3D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct *par,  struct Efficacites_struct *eff)
 {
 	int n;
 	int vec_size = par->vec_size;
 	
-	complex k_super = par->k_super;
-	complex k_sub = par->k_sub;
-	complex k_super2 = k_super*k_super;
-	complex k_sub2 = k_sub*k_sub;
+	COMPLEX k_super = par->k_super;
+	COMPLEX k_sub = par->k_sub;
+	COMPLEX k_super2 = k_super*k_super;
+	COMPLEX k_sub2 = k_sub*k_sub;
 	int nx, ny;
 	
-	complex *kz_super, *kz_sub, *sigma_x, *sigma_y, C_super, C_sub, sigx, sigy, sigx2, sigy2;
+	COMPLEX *kz_super, *kz_sub, *sigma_x, *sigma_y, C_super, C_sub, sigx, sigy, sigx2, sigy2;
 	kz_super = par->kz_super;
 	kz_sub = par->kz_sub;
 	sigma_x = par->sigma_x;
 	sigma_y = par->sigma_y;
 
 	double Pz_i, Pz_r, Pz_t, sumPzi;
-	complex *Eyi, *Hpyi, *Eyr, *Hpyr, *Eyt, *Hpyt;
-	complex *Exi, *Hpxi, *Exr, *Hpxr, *Ext, *Hpxt;
+	COMPLEX *Eyi, *Hpyi, *Eyr, *Hpyr, *Eyt, *Hpyt;
+	COMPLEX *Exi, *Hpxi, *Exr, *Hpxr, *Ext, *Hpxt;
 	Exi = par->Exi;
 	Exr = par->Exr;
 	Ext = par->Ext;
@@ -300,17 +300,17 @@ SaveDbleTab2file (eff->eff_t, Nmax_sub-Nmin_sub+1, "stdout", " ");*/
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int md3D_amplitudes(complex *Ai, complex *Ar, complex *At, complex **S12, 
- *                               complex **S22, struct Param_struct *par)
+/*!	\fn		int md3D_amplitudes(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, COMPLEX **S12, 
+ *                               COMPLEX **S22, struct Param_struct *par)
  *
  *	\brief	Field amplitudes calculations
  */
 /*-------------------------------------------------------------------------------------*/
-int md3D_amplitudes(complex *Ai, complex *Ar, complex *At, complex **S12, complex **S22, struct Param_struct *par)
+int md3D_amplitudes(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, COMPLEX **S12, COMPLEX **S22, struct Param_struct *par)
 {
 	int n;
 	int vec_size = par->vec_size;
-	complex *kz_super;
+	COMPLEX *kz_super;
 	kz_super = par->kz_super;
 		
 	/* Vi = Ai*cexp(-I*kz_super*h) */
@@ -357,7 +357,7 @@ int S_matrix(struct Param_struct *par)
 	int i,j, nS;
 	int vec_size = par->vec_size;
 	int NS = par->NS;
-	complex **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3;
+	COMPLEX **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3;
 	S11 = par->S11;
 	S12 = par->S12;
 	S21 = par->S21;
@@ -457,7 +457,7 @@ int S_matrix_stack(struct Param_struct *par)
 	int i,j, nS, n_stack, N_stack, n_patterned_layer;
 	int vec_size = par->vec_size;
 	int NS = par->NS;
-	complex **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3, **Psi_sub_tmp, nu_subsuper;
+	COMPLEX **S11, **S12, **S21, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3, **Psi_sub_tmp, nu_subsuper;
 	S11 = par->S11;
 	S12 = par->S12;
 	S21 = par->S21;
@@ -556,18 +556,18 @@ printf("\nT22");SaveMatrix2file (T22, 2*vec_size, 2*vec_size, "Im", "stdout");
 #endif
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22,
+/*!	\fn		int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22,
 				int nS, struct Param_struct *par)
  *
  *	\brief Calcul de la matrice T
  */
 /*-------------------------------------------------------------------------------------*/
-int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22, int nS, struct Param_struct *par)
+int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS, struct Param_struct *par)
 {
 	int i,j,vec_size = par->vec_size;
 	
 	double hmin, hmax, z0, Delta_z;
-	complex **Psi, **invPsi_super, **M_buffer_4vecsize, **T;
+	COMPLEX **Psi, **invPsi_super, **M_buffer_4vecsize, **T;
 	M_buffer_4vecsize = allocate_CplxMatrix(4*vec_size,4*vec_size);
 	T   = allocate_CplxMatrix(4*vec_size,4*vec_size);
 
@@ -656,20 +656,20 @@ SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size, struct Param_struct *par)
+/*!	\fn		T_Matrix_homog_layer(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, COMPLEX nu_super, COMPLEX nu_sub, COMPLEX nu_layer, double h_layer, double lambda, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size, struct Param_struct *par)
  *
  *	\brief T-matrix of a homogeneous layer
  */
 /*-------------------------------------------------------------------------------------*/
 #if 0
-int T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size, struct Param_struct *par)
+int T_Matrix_homog_layer(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, COMPLEX nu_super, COMPLEX nu_sub, COMPLEX nu_layer, double h_layer, double lambda, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size, struct Param_struct *par)
 {
 	int i,j;
 	
 	double z0;
-	complex **Psi, **invPsi_super, **M_buffer_4vecsize, **T;
-	complex **k2_ptr_tmp;
-	complex **invk2_ptr_tmp;
+	COMPLEX **Psi, **invPsi_super, **M_buffer_4vecsize, **T;
+	COMPLEX **k2_ptr_tmp;
+	COMPLEX **invk2_ptr_tmp;
 	M_buffer_4vecsize = allocate_CplxMatrix(4*vec_size,4*vec_size);
 	T   = allocate_CplxMatrix(4*vec_size,4*vec_size);
 
@@ -758,17 +758,17 @@ SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
 
 #if 0 /* Has never worked: Not finished */
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size)
+/*!	\fn		T_Matrix_homog_layer(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, COMPLEX nu_super, COMPLEX nu_sub, COMPLEX nu_layer, double h_layer, double lambda, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size)
  *
  *	\brief T-matrix of a homogeneous layer
  */
 /*-------------------------------------------------------------------------------------*/
-int T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **T22, complex nu_super, complex nu_sub, complex nu_layer, double h_layer, double lambda, complex *sigma_x, complex *sigma_y, int vec_size)
+int T_Matrix_homog_layer(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, COMPLEX nu_super, COMPLEX nu_sub, COMPLEX nu_layer, double h_layer, double lambda, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size)
 {
 	int n,m;
-	complex mu_r0 = 1, mu_r1 = 1, mu_r2 = 1; /* nonmagnetic materials */
-	complex eps_r0, eps_r1, eps_r2, k, *gamma0, *gamma1, *gamma2, C1, C0, C;
-	complex *T11s, *T12s, *T21s, *T22s, *T11p, *T12p, *T21p, *T22p, **T_buffer;
+	COMPLEX mu_r0 = 1, mu_r1 = 1, mu_r2 = 1; /* nonmagnetic materials */
+	COMPLEX eps_r0, eps_r1, eps_r2, k, *gamma0, *gamma1, *gamma2, C1, C0, C;
+	COMPLEX *T11s, *T12s, *T21s, *T22s, *T11p, *T12p, *T21p, *T22p, **T_buffer;
 	T_buffer= allocate_CplxMatrix(11,vec_size);
 	T11s=T_buffer[1]; T12s=T_buffer[2]; T21s=T_buffer[3]; T22s=T_buffer[4];
 	T11p=T_buffer[5]; T12p=T_buffer[6]; T21p=T_buffer[7]; T22p=T_buffer[0];
@@ -859,21 +859,21 @@ int T_Matrix_homog_layer(complex **T11, complex **T12, complex **T21, complex **
 #endif
 
 /*-------------------------------------------------------------------------------------*/
-/*!	int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+/*!	int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation in the case of z invariance
  */
 /*-------------------------------------------------------------------------------------*/
-int zinvar_P_matrix(complex **P, double z0, double Delta_z, struct Param_struct *par)
+int zinvar_P_matrix(COMPLEX **P, double z0, double Delta_z, struct Param_struct *par)
 {
 	int i,j, P_size = 4*par->vec_size;
 	double z = z0 + 0.5*Delta_z;
 	
-	complex *eig_values, *eig_buffer, *M_sol, **EigVectors, **invEigVec, **invVec_Psi, **M_invVec_Psi, **M_buffer_4vecsize;
+	COMPLEX *eig_values, *eig_buffer, *M_sol, **EigVectors, **invEigVec, **invVec_Psi, **M_invVec_Psi, **M_buffer_4vecsize;
 
-	eig_values = (complex *) malloc(sizeof(complex)*P_size);
-	eig_buffer = (complex *) malloc(sizeof(complex)*50*P_size);
-	M_sol =      (complex *) malloc(sizeof(complex)*P_size);
+	eig_values = (COMPLEX *) malloc(sizeof(COMPLEX)*P_size);
+	eig_buffer = (COMPLEX *) malloc(sizeof(COMPLEX)*50*P_size);
+	M_sol =      (COMPLEX *) malloc(sizeof(COMPLEX)*P_size);
 	EigVectors        = allocate_CplxMatrix(P_size,P_size);
 	invEigVec         = allocate_CplxMatrix(P_size,P_size);
 	invVec_Psi        = allocate_CplxMatrix(P_size,P_size);
@@ -924,15 +924,15 @@ int zinvar_P_matrix(complex **P, double z0, double Delta_z, struct Param_struct 
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	int rk4_P_matrix(complex **P, double z0, double Delta_z, struct Param_struct *par)
+/*!	int rk4_P_matrix(COMPLEX **P, double z0, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation with 4th order Runge Kutta vectorized method
  */
 /*-------------------------------------------------------------------------------------*/
-int rk4_P_matrix(complex **P, double z0, double dz, struct Param_struct *par)
+int rk4_P_matrix(COMPLEX **P, double z0, double dz, struct Param_struct *par)
 {
 	int i,j, P_size = 4*par->vec_size;
-	complex **Mz, **Mzd, **Mzdd, **M1, **M2, **M3, **M4, **M_tmp1, **M_tmp2, **M_tmp3;
+	COMPLEX **Mz, **Mzd, **Mzdd, **M1, **M2, **M3, **M4, **M_tmp1, **M_tmp2, **M_tmp3;
 	double dz_2 = 0.5*dz;
 	double dz_3 = dz/3.0;
 	double dz_6 = dz/6.0;
@@ -1022,10 +1022,10 @@ int rk4_P_matrix(complex **P, double z0, double dz, struct Param_struct *par)
 
 #if 0
 /* Version of rk4_P_matrix with greater memory allocations */
-int rk4_P_matrix(complex **P, double z0, double dz, struct Param_struct *par)
+int rk4_P_matrix(COMPLEX **P, double z0, double dz, struct Param_struct *par)
 {
 	int i,j, P_size = 4*par->vec_size;
-	complex **Mz, **Mzd, **Mzdd, **M2, **M3, **M4,**M_tmp;
+	COMPLEX **Mz, **Mzd, **Mzdd, **M2, **M3, **M4,**M_tmp;
 
 	Mz    = allocate_CplxMatrix(P_size,P_size);
 	Mzd   = allocate_CplxMatrix(P_size,P_size);
@@ -1113,21 +1113,21 @@ SaveMatrix2file (P, P_size, P_size, "Im", "stdout");
 #endif
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int M_matrix(complex **M, double z, struct Param_struct *par)
+/*!	\fn		int M_matrix(COMPLEX **M, double z, struct Param_struct *par)
  *
  *		\brief	M matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int M_matrix(complex **M, double z, struct Param_struct *par)
+int M_matrix(COMPLEX **M, double z, struct Param_struct *par)
 {
 	int i,j;
 	int vec_size = par->vec_size;
 
-	complex *sigma_x = par->sigma_x;
-	complex *sigma_y = par->sigma_y;
-	complex **M11,**M12,**M13,**M14, **M21,**M22,**M23,**M24, **M31,**M32,**mM33,**M34, **M41,**M42,**M43,**mM44;
-	complex **invQzzQzx, **invQzzQzy, **invQzzSigmax, **invQzzSigmay, **Qtmp;
-	complex **Qxx, **Qxy, **Qxz, **Qyx, **Qyy, **Qyz, **Qzx, **Qzy, **Qzz, **invQzz;
+	COMPLEX *sigma_x = par->sigma_x;
+	COMPLEX *sigma_y = par->sigma_y;
+	COMPLEX **M11,**M12,**M13,**M14, **M21,**M22,**M23,**M24, **M31,**M32,**mM33,**M34, **M41,**M42,**M43,**mM44;
+	COMPLEX **invQzzQzx, **invQzzQzy, **invQzzSigmax, **invQzzSigmay, **Qtmp;
+	COMPLEX **Qxx, **Qxy, **Qxz, **Qyx, **Qyy, **Qyz, **Qzx, **Qzy, **Qzz, **invQzz;
 	Qxx = par->Qxx;
 	Qxy = par->Qxy;
 	Qxz = par->Qxz;
@@ -1384,27 +1384,27 @@ printf("\nIm(mM44) :\n");SaveMatrix2file (mM44, vec_size, vec_size, "Im", "stdou
 	return 0;
 }
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int zinvar_M_Matrix(complex **M, double z, struct Param_struct *par)
+/*!	\fn		int zinvar_M_Matrix(COMPLEX **M, double z, struct Param_struct *par)
  *
  *		\brief	M matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int zinvar_M_matrix(complex **M, double z, struct Param_struct *par)
+int zinvar_M_matrix(COMPLEX **M, double z, struct Param_struct *par)
 {
 	printf("\n#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#\n#* zinvar_M_matrix : Not implemented...\n#* Calling normal M_matrix instead\n#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#");
 	return M_matrix(M, z, par);
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int md3D_QMatrix(double z, complex **Qxx, complex **Qxy, complex **Qxz, complex **Qyy, complex **Qyz, complex **Qzz, complex **Qzz_1, struct Param_struct *par)
+/*!	\fn		int md3D_QMatrix(double z, COMPLEX **Qxx, COMPLEX **Qxy, COMPLEX **Qxz, COMPLEX **Qyy, COMPLEX **Qyz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct Param_struct *par)
  *
  *		\brief	Q matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int md3D_QMatrix(double z, complex **Qxx, complex **Qxy, complex **Qxz, complex **Qyy, complex **Qyz, complex **Qzz, complex **Qzz_1, struct Param_struct *par)
+int md3D_QMatrix(double z, COMPLEX **Qxx, COMPLEX **Qxy, COMPLEX **Qxz, COMPLEX **Qyy, COMPLEX **Qyz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct Param_struct *par)
 {
 	int vec_size=par->vec_size, Nprx=par->Nprx, Npry=par->Npry, Nx=par->Nx, Ny=par->Ny;
-	complex **M_buff1, **toepk2, **invtoepk2, **moinsDelta, *buffer_NprxNpry;
+	COMPLEX **M_buff1, **toepk2, **invtoepk2, **moinsDelta, *buffer_NprxNpry;
 
 	M_buff1 = allocate_CplxMatrix(vec_size,vec_size);
 	toepk2 = allocate_CplxMatrix(vec_size,vec_size);
@@ -1413,7 +1413,7 @@ int md3D_QMatrix(double z, complex **Qxx, complex **Qxy, complex **Qxz, complex 
 
 	md3D_toepNorm(z, par);
 
-	buffer_NprxNpry = (complex *) malloc(sizeof(complex)*Nprx*Npry);
+	buffer_NprxNpry = (COMPLEX *) malloc(sizeof(COMPLEX)*Nprx*Npry);
 
 	/* toepk2 = [[k2]] */
 	toeplitz_2D(toepk2, Nx, Ny, (*par->k_2)(par, buffer_NprxNpry, z), Nprx, Npry);
@@ -1481,7 +1481,7 @@ printf("\n Qzz\n");SaveMatrix2file (Qzz, vec_size, vec_size, "Re", "stdout");
 int md3D_toepNorm(double z, struct Param_struct *par)
 {
 	int i, j, Nprx=par->Nprx, Npry=par->Npry, Nx=par->Nx, Ny=par->Ny;
-	complex **normx, **normy, **normz, **normxx, **normxy, **normxz, **normyy, **normyz, **normzz;
+	COMPLEX **normx, **normy, **normz, **normxx, **normxy, **normxz, **normyy, **normyz, **normzz;
 
 	if (par->toepNorm_CALCULATED == 1){
 		return 0;
@@ -1542,17 +1542,17 @@ int md3D_toepNorm(double z, struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex **PsiMatrix(complex **Psi, complex k, complex *kz, complex *sigma_x, complex *sigma_y, int vec_size)
+/*!	\fn		COMPLEX **PsiMatrix(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size)
  *
  *		\brief	Psi matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-complex **PsiMatrix(complex **Psi, complex k, complex *kz, complex *sigma_x, complex *sigma_y, int vec_size)
+COMPLEX **PsiMatrix(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size)
 {
 	int i,j;
-	complex p, qe, qh;
-	complex k2 = k*k;
-	complex sigma_y2;
+	COMPLEX p, qe, qh;
+	COMPLEX k2 = k*k;
+	COMPLEX sigma_y2;
 
 	for(i=0;i<=4*vec_size-1;i++){
 		for(j=0;j<=4*vec_size-1;j++){
@@ -1592,15 +1592,15 @@ complex **PsiMatrix(complex **Psi, complex k, complex *kz, complex *sigma_x, com
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	complex **toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, int Nyin)
+/*!	\fn	COMPLEX **toeplitz_2D(COMPLEX **toep, int Nx, int Ny, COMPLEX *M_in, int Nxin, int Nyin)
  *
  *	\brief	Toeplitz matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-complex **toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, int Nyin)
+COMPLEX **toeplitz_2D(COMPLEX **toep, int Nx, int Ny, COMPLEX *M_in, int Nxin, int Nyin)
 {
 	int i,j;
-	complex **tmp, **TF_2D;
+	COMPLEX **tmp, **TF_2D;
 	fftw_plan plan_TF2D;
 	
 	tmp = allocate_CplxMatrix(Nyin,Nxin);
@@ -1661,15 +1661,15 @@ complex **toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, i
 }
 #if 0 /* Error in this function. Replaced by toeplitz_2D */
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	complex **toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, int Nyin)
+/*!	\fn	COMPLEX **toeplitz_2D(COMPLEX **toep, int Nx, int Ny, COMPLEX *M_in, int Nxin, int Nyin)
  *
  *	\brief	Toeplitz matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-complex **old_toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxin, int Nyin)
+COMPLEX **old_toeplitz_2D(COMPLEX **toep, int Nx, int Ny, COMPLEX *M_in, int Nxin, int Nyin)
 {
 	int i,j;
-	complex **tmp, **TF_2D, *coef2;
+	COMPLEX **tmp, **TF_2D, *coef2;
 	fftw_plan plan_TF2D;
 	
 	tmp = allocate_CplxMatrix(Nyin,Nxin);
@@ -1719,13 +1719,13 @@ complex **old_toeplitz_2D(complex **toep, int Nx, int Ny, complex *M_in, int Nxi
 #endif
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *k2_H_XY(struct Param_struct *par, complex *k2_2D, double z)
+/*!	\fn		COMPLEX *k2_H_XY(struct Param_struct *par, COMPLEX *k2_2D, double z)
  *
- *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
  *
  */
 /*-------------------------------------------------------------------------------------*/
-complex *k2_H_XY(struct Param_struct *par, complex *k2_2D, double z)
+COMPLEX *k2_H_XY(struct Param_struct *par, COMPLEX *k2_2D, double z)
 {
 	int i;
 	
@@ -1741,17 +1741,17 @@ complex *k2_H_XY(struct Param_struct *par, complex *k2_2D, double z)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *k2_homog(struct Param_struct *par, complex *k2_2D, double z)
+/*!	\fn		COMPLEX *k2_homog(struct Param_struct *par, COMPLEX *k2_2D, double z)
  *
- *	\brief	Determine the complex array k^2(x) for a homogeneous layer (for compatibility with non homogeneous profiles)
+ *	\brief	Determine the COMPLEX array k^2(x) for a homogeneous layer (for compatibility with non homogeneous profiles)
  *
  */
 /*-------------------------------------------------------------------------------------*/
-complex *k2_homog(struct Param_struct *par, complex *k2_2D, double z)
+COMPLEX *k2_homog(struct Param_struct *par, COMPLEX *k2_2D, double z)
 {
 	int i;
 	/* the index of the layer is placed  in par->nu_this_layer */
-	complex	k = 2*PI*par->nu_this_layer/par->lambda;
+	COMPLEX	k = 2*PI*par->nu_this_layer/par->lambda;
 	for (i=0;i<=par->Nprx*par->Npry-1;i++){
 		k2_2D[i] = k*k;
 	}
@@ -1760,17 +1760,17 @@ printf("\nCOUCOU, I am in k2_homog !\n\n");
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *invk2_homog(struct Param_struct *par, complex *k2_2D, double z)
+/*!	\fn		COMPLEX *invk2_homog(struct Param_struct *par, COMPLEX *k2_2D, double z)
  *
- *	\brief	Determine the complex array 1/k^2(x) for a homogeneous layer (for compatibility with non homogeneous profiles)
+ *	\brief	Determine the COMPLEX array 1/k^2(x) for a homogeneous layer (for compatibility with non homogeneous profiles)
  *
  */
 /*-------------------------------------------------------------------------------------*/
-complex *invk2_homog(struct Param_struct *par, complex *invk2_2D, double z)
+COMPLEX *invk2_homog(struct Param_struct *par, COMPLEX *invk2_2D, double z)
 {
 	int i;
 	/* the index of the layer is placed  in par->nu_this_layer */
-	complex	k = 2*PI*par->nu_this_layer/par->lambda;
+	COMPLEX	k = 2*PI*par->nu_this_layer/par->lambda;
 	for (i=0;i<=par->Nprx*par->Npry-1;i++){
 		invk2_2D[i] = 1/(k*k);
 	}
@@ -1782,12 +1782,12 @@ printf("\nCOUCOU, I am in invk2_homog !\n\n");
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn			complex *k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
+/*!	\fn			COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
- *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné, pour un multicouches
+ *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
-complex *k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
+COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	
 	int nx, n_layer=0;
@@ -1812,12 +1812,12 @@ complex *k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)	
+/*!	\fn		COMPLEX *k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)	
  *
- *		\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ *		\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
  */
 /*-------------------------------------------------------------------------------------*/
-complex *k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)
+COMPLEX *k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	int i, nz;
 	double DeuxPisurLambda2 = (2*PI/par->lambda)*(2*PI/par->lambda);
@@ -1839,12 +1839,12 @@ printf("\nreal(k2)\n");SaveCplxTab2file (k2_1D, par->Nprx*par->Npry, "Re", "stdo
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	complex *invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)	
+/*!	\fn	COMPLEX *invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)	
  *
- *	\brief	Détermine le tableau de complexes invk^2(x) pour un z donné
+ *	\brief	Détermine le tableau de COMPLEXes invk^2(x) pour un z donné
  */
 /*-------------------------------------------------------------------------------------*/
-complex *invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)
+COMPLEX *invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	int i, nz;
 	double invDeuxPisurLambda2 = 1/(2*PI/par->lambda*2*PI/par->lambda);
@@ -1865,15 +1865,15 @@ printf("\nreal(invk2)\n");SaveCplxTab2file (invk2_1D, par->Nprx*par->Npry, "Re",
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *invk2_H_XY(struct Param_struct *par, complex *invk2_1D, double z)
+/*!	\fn		COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
  *
- *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné
+ *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné
  *
  *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
  *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
  */
 /*-------------------------------------------------------------------------------------*/
-complex *invk2_H_XY(struct Param_struct *par, complex *invk2_1D, double z)
+COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	
 	int i;
@@ -1891,12 +1891,12 @@ complex *invk2_H_XY(struct Param_struct *par, complex *invk2_1D, double z)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	complex *invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
+/*!	\fn	COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
  *
- *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné, pour un multicouches
+ *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
-complex *invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
+COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	
 	int nx, n_layer=0;
@@ -1920,14 +1920,14 @@ complex *invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int Normal_H_XY(complex **normx, complex **normy, complex **normz, double z, struct Param_struct *par)
+/*!	\fn		int Normal_H_XY(COMPLEX **normx, COMPLEX **normy, COMPLEX **normz, double z, struct Param_struct *par)
  *
  *		\brief	Determine normx, normy, normz
  *
  * 	\todo 	The PRECISION can be IMPROVED with a HIGHER ORDER calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int Normal_H_XY(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par)
+int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par)
 {
 	int i,j;
 	int Nprx = par->Nprx;
@@ -2030,12 +2030,12 @@ norm_z[i][j] = 1.0;
 	return 0;
 }
 /*!-------------------------------------------------------------------------------------
- * \fn int Normal_N_XY_ZINVAR(complex **normx, complex **normy, complex **normz, double z, struct Param_struct *par)
+ * \fn int Normal_N_XY_ZINVAR(COMPLEX **normx, COMPLEX **normy, COMPLEX **normz, double z, struct Param_struct *par)
  *
  * \brief Determine normx, normy, normz for N_XY profile
  *
  *-------------------------------------------------------------------------------------*/
-int Normal_N_XY_ZINVAR(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par)
+int Normal_N_XY_ZINVAR(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par)
 {
 	int i,j;
 	int Nprx = par->Nprx;

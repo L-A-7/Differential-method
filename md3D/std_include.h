@@ -8,6 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#define COMPLEX double complex
 
 #ifdef _ACML
 #undef _BLAS
@@ -18,7 +19,7 @@
 #include <cblas.h>
 #endif
 #ifdef _LAPACK
-#include <lapack.h>
+#include <clapack.h>
 #endif
 #ifdef _ACML
 #include <acml.h>
@@ -65,8 +66,8 @@ struct Param_struct {
 	char **argvcp;
 	char calcul_type[SIZE_STR_BUFFER];
 	char calcul_method[SIZE_STR_BUFFER];
-	complex nu_super;
-	complex nu_sub;
+	COMPLEX nu_super;
+	COMPLEX nu_sub;
 	double Lx;
 	double Ly;
 	double h;
@@ -76,10 +77,10 @@ struct Param_struct {
 	double phi_i;
 	double psi;
 	int profile_type;
-	complex **n_xyz;
+	COMPLEX **n_xyz;
 	int N_layers;
-	complex *k2_layer;
-	complex *invk2_layer;
+	COMPLEX *k2_layer;
+	COMPLEX *invk2_layer;
 	int Nx;
 	int Ny;
 	
@@ -89,14 +90,14 @@ struct Param_struct {
 	int *ny;
 	double Delta_sigma_x;
 	double Delta_sigma_y;
-	complex sigma_x0;
-	complex sigma_y0;
-	complex k_super;
-	complex k_sub;
-	complex *sigma_x;
-	complex *sigma_y;
-	complex *kz_super;
-	complex *kz_sub;
+	COMPLEX sigma_x0;
+	COMPLEX sigma_y0;
+	COMPLEX k_super;
+	COMPLEX k_sub;
+	COMPLEX *sigma_x;
+	COMPLEX *sigma_y;
+	COMPLEX *kz_super;
+	COMPLEX *kz_sub;
 
 	int READ_tab_NS;
         int tab_NS_ENABLED;
@@ -120,62 +121,62 @@ struct Param_struct {
 
 	int HXY_Normal_CALCULATED;
 	int toepNorm_CALCULATED;
-	complex **P;
-	complex **M;
+	COMPLEX **P;
+	COMPLEX **M;
 
-	complex **Nxx;
-	complex **Nxy;
-	complex **Nxz;
-	complex **Nyy;
-	complex **Nyz;
-	complex **Nzz;
+	COMPLEX **Nxx;
+	COMPLEX **Nxy;
+	COMPLEX **Nxz;
+	COMPLEX **Nyy;
+	COMPLEX **Nyz;
+	COMPLEX **Nzz;
 
-	complex **Qxx;
-	complex **Qxy;
-	complex **Qxz;
-	complex **Qyy;
-	complex **Qyz;
-	complex **Qzz;
-	complex **Qzz_1;
+	COMPLEX **Qxx;
+	COMPLEX **Qxy;
+	COMPLEX **Qxz;
+	COMPLEX **Qyy;
+	COMPLEX **Qyz;
+	COMPLEX **Qzz;
+	COMPLEX **Qzz_1;
 
-	complex **S12;
-	complex **S22;
-	complex **S11;
-	complex **S21;
+	COMPLEX **S12;
+	COMPLEX **S22;
+	COMPLEX **S11;
+	COMPLEX **S21;
 
-	complex **T11;
-	complex **T12;
-	complex **T21;
-	complex **T22;
+	COMPLEX **T11;
+	COMPLEX **T12;
+	COMPLEX **T21;
+	COMPLEX **T22;
 
-	complex **Psi_sub;
-	complex **Psi_super;
-	complex **invPsi_super;
+	COMPLEX **Psi_sub;
+	COMPLEX **Psi_super;
+	COMPLEX **invPsi_super;
 
-	complex *Ai;
-	complex *Ar;
-	complex *At;
+	COMPLEX *Ai;
+	COMPLEX *Ar;
+	COMPLEX *At;
 	
-	complex *Vi;
-	complex *Vr;
-	complex *Vt;
+	COMPLEX *Vi;
+	COMPLEX *Vr;
+	COMPLEX *Vt;
 
-	complex *Exi;
-	complex *Exr;
-	complex *Ext;
-	complex *Hpxi;
-	complex *Hpxr;
-	complex *Hpxt;
+	COMPLEX *Exi;
+	COMPLEX *Exr;
+	COMPLEX *Ext;
+	COMPLEX *Hpxi;
+	COMPLEX *Hpxr;
+	COMPLEX *Hpxt;
 	
 	
 	/* Pointeurs de fonctions */
-	complex* (*k_2)(struct Param_struct *par, complex *k2_1D, double z);
-	complex* (*invk_2)(struct Param_struct *par, complex *invk2_1D, double z);
-	int (*Normal_function)(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par);
+	COMPLEX* (*k_2)(struct Param_struct *par, COMPLEX *k2_1D, double z);
+	COMPLEX* (*invk_2)(struct Param_struct *par, COMPLEX *invk2_1D, double z);
+	int (*Normal_function)(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par);
 	int (*md3D_lire_profil)(const char *, struct Param_struct *);
-	int (*M_matrix)(complex **M, double z, struct Param_struct *par);
-	int (*P_matrix)(complex **P, double z, double Delta_z, struct Param_struct *par);
-	int (*Normal_to_profile)(complex **norm_x, complex **norm_y, complex **norm_z, double z, struct Param_struct *par);
+	int (*M_matrix)(COMPLEX **M, double z, struct Param_struct *par);
+	int (*P_matrix)(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
+	int (*Normal_to_profile)(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par);
 
 	clock_t clock0;         /* Stocke le temps de départ                              */
 	clock_t last_clock;     /* Durée écoulée depuis le dernier appel à md3D_temps     */
@@ -190,8 +191,8 @@ struct Param_struct {
 	int N_stack;
 	int n_patterned_layer;
 	double *h_stack;
-	complex *nu_stack;
-	complex nu_this_layer;
+	COMPLEX *nu_stack;
+	COMPLEX nu_this_layer;
 
 	char profile_file[SIZE_STR_BUFFER]; /* is present both in this structure and in fichiers structures ... */
 	};

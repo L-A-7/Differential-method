@@ -87,13 +87,13 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 			if (lire_int (fp, "N_imposed_S_steps", &(par->N_imposed_S_steps) )) erreur="N_imposed_S_steps";}
 	}
 	if (lire_dble_arg(&nu_super_re, "-nu_super_re", argc, argvcp)) {
-		if (lire_complex(fp, "nu_super", &(par->nu_super))) erreur="nu_super";
+		if (lire_COMPLEX(fp, "nu_super", &(par->nu_super))) erreur="nu_super";
 	}else{
 		if (lire_dble_arg(&nu_super_im, "-nu_super_im", argc, argvcp)) {
 			nu_super_im =0;}
 		par->nu_super = nu_super_re +I*nu_super_im;}
 	if (lire_dble_arg(&nu_sub_re, "-nu_sub_re", argc, argvcp)) {
-		if (lire_complex(fp, "nu_sub", &(par->nu_sub))) erreur="nu_sub";
+		if (lire_COMPLEX(fp, "nu_sub", &(par->nu_sub))) erreur="nu_sub";
 	}else{
 		if (lire_dble_arg(&nu_sub_im, "-nu_sub_im", argc, argvcp)) {
 			nu_sub_im =0;}
@@ -269,7 +269,7 @@ int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par)
 	int i;
 	char index_name[SIZE_STR_BUFFER], h_name[SIZE_STR_BUFFER];
 	double hstack_tmp;
-	complex index_tmp;
+	COMPLEX index_tmp;
 	int Nprx = par->Nprx;
 	int Npry = par->Npry;
 	FILE *fp;
@@ -290,7 +290,7 @@ int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par)
 		for (i=0; i<=par->N_stack-1; i++){
 			if (i != par->n_patterned_layer){
 				sprintf(index_name,"n%d",i);
-				if (lire_complex(fp, index_name, &index_tmp)) fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,index_name);
+				if (lire_COMPLEX(fp, index_name, &index_tmp)) fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,index_name);
 				par->nu_stack[i] = index_tmp;
 				sprintf(h_name,"h%d",i);
 				if (lire_double(fp, h_name, &hstack_tmp))  fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,h_name);
@@ -372,7 +372,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	int Npts = Nprx*Npry;
 	int N_layers = par->N_layers;
 	double h_tmp;
-	complex indice;
+	COMPLEX indice;
 	
 	profil_tmp = (double *) malloc(sizeof(double)*Npts*(N_layers+1));
 
@@ -383,7 +383,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* Lecture des indices des couches et calculs des k2 et 1/k2 */
 	for (i=1; i<=N_layers; i++){
 		sprintf(nom_indice,"n%d",i);
-		if (lire_complex(fp, nom_indice, &indice)) erreur=nom_indice;
+		if (lire_COMPLEX(fp, nom_indice, &indice)) erreur=nom_indice;
 		par->k2_layer[i]    = (indice*par->k_super/par->nu_super)*(indice*par->k_super/par->nu_super); 
 		par->invk2_layer[i] = 1/par->k2_layer[i]; 
 	}
@@ -500,7 +500,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
  * \brief Read profil in case of n(x,y,z) index distribution
  *
  * Two ways of entering the refractive index in the stack for this function:
- * - first way: enter an array of values (1,2,3,...) corresponding to complex refractive indices
+ * - first way: enter an array of values (1,2,3,...) corresponding to COMPLEX refractive indices
  *   n1,n2,n3,... which values are defined in the profile file.
  *   Ex.:   n1 = 1.5 +i0.5
  *          n2 = 1.0 +i0.0
@@ -514,7 +514,7 @@ int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 {
 	int i, i_max, nx, nz, value_is_attributed, Nprx=par->Nprx, Npry=par->Npry, Nprz=par->Nprz, Nptxy = Nprx*Npry;
 	FILE *fp;	
-	complex **n_xyz = par->n_xyz;
+	COMPLEX **n_xyz = par->n_xyz;
 	char nu_name[SIZE_STR_BUFFER];
 	
 	/* Check Nprz for ZINVAR case */
@@ -527,20 +527,20 @@ int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 	double *Re_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
 	double *Im_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
 	double *int_n_xyz = malloc(sizeof(double)*Nptxy*Nprz);
-	complex *nu = malloc(sizeof(complex)*SIZE_INT_BUFFER);
+	COMPLEX *nu = malloc(sizeof(COMPLEX)*SIZE_INT_BUFFER);
 	
 
 	/* Reading index distribution as n_xyz, plus values n1, n2,... */
 	if (lire_tab(nom_fichier, "n_xyz", int_n_xyz, Nptxy*Nprz) == 0) {
 		if (par->verbosity >= 2) fprintf(stdout,"Reading the N_XYZ index distribution of the type n_xyz in %s... OK\n",nom_fichier);
-		/* Reading n1, n2, n3,... indices complex values */
+		/* Reading n1, n2, n3,... indices COMPLEX values */
 		if (!(fp = fopen(nom_fichier,"r"))){
 			fprintf(stderr, "%s line %d: Error, can't open %s\n",__FILE__, __LINE__,nom_fichier);
 			exit(EXIT_FAILURE);
 		}
 		for (i=1;i>0;i++){
  			snprintf(nu_name, SIZE_STR_BUFFER*sizeof(char), "n%d",i);
-			if (lire_complex(fp, nu_name, &nu[i-1])){
+			if (lire_COMPLEX(fp, nu_name, &nu[i-1])){
 				i_max = i;
 				break;
 			}
@@ -550,7 +550,7 @@ int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 			exit(EXIT_FAILURE);
 		}
 		fclose(fp);
-		/* Attributing the complex values to the index array */
+		/* Attributing the COMPLEX values to the index array */
 		for (nz=0; nz<=Nprz-1; nz++){
 			for (nx=0; nx<=Nptxy-1; nx++){
 				value_is_attributed = 0;
@@ -578,7 +578,7 @@ int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 				Im_n_xyz[nx] = 0;
 			}
 		}
-		/* Creating complex matrix n_xyz */
+		/* Creating COMPLEX matrix n_xyz */
 		for (nz=0; nz<=Nprz-1; nz++){
 			for (nx=0; nx<=Nptxy-1; nx++){
 				n_xyz[nz][nx] = Re_n_xyz[nx+Nptxy*nz] + I*Im_n_xyz[nx+Nptxy*nz];
@@ -687,17 +687,17 @@ int md3D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struc
 
 
 /*---------------------------------------------------------------------------------------------*/
-/*!	\fn		complex md3D_index(char* name,double lambda, char* method)
+/*!	\fn		COMPLEX md3D_index(char* name,double lambda, char* method)
  *
  *	\brief
  */
 /*---------------------------------------------------------------------------------------------*/
-complex md3D_index(char* name,double lambda, char* method)
+COMPLEX md3D_index(char* name,double lambda, char* method)
 {
 	char filename[SIZE_STR_BUFFER];
 	double lambda_angstrom = 10*lambda;
 	double cauchy_n[5],cauchy_k[5],n_power[6],k_power[6],index_n,index_k;
-	complex index;
+	COMPLEX index;
 	int i,Nb_cauchy = 5;
 	
 	/* File name */
