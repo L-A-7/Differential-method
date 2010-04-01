@@ -32,11 +32,11 @@ int main(int argc, char *argv[]){
 	md2D_init(&param, &effic, &nomfichier);
 
 /*********************************** DEBUG *************************************************************/
-/*int M_Matrix_TM(complex **M, double z, struct Param_struct *par);
+/*int M_Matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
 *par);M_Matrix_TM(param.M, param.h/2.0, &param);
 printf("\n");SaveMatrix2file (param.M, 2*param.vec_size, 2*param.vec_size, "Im", "stdout");
 */
-/*int md2D_QMatrix(double z, complex **Qxx, complex **Qyy, complex **Qxz, complex **Qzz, complex **Qzz_1, struct
+/*int md2D_QMatrix(double z, COMPLEX **Qxx, COMPLEX **Qyy, COMPLEX **Qxz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct
 Param_struct *par);
 
 md2D_QMatrix(param.h/2, param.Qxx, param.Qyy, param.Qxz, param.Qzz, param.Qzz_1, &param);
@@ -76,9 +76,9 @@ fprintf(stdout,"\nRePsisuper_TM :\n");SaveMatrix2file (param.Psi_super_TM, 2*par
 	
 	/* Showing used time & efficiencies sum */
 	if (param.verbosity >= 1){
-		printf("Efficiencies summ   : %1.10f\n",effic.sum_eff);
-		printf("1-Efficiencies summ : %e\n",1-effic.sum_eff);
-		fprintf(stdout,"Temps écoulé : %f s \n", md2D_chrono(&param));
+		printf("Efficiencies summ  : %1.10f\n",effic.sum_eff);
+		printf("1-Efficiencies summ: %e\n",1-effic.sum_eff);
+		fprintf(stdout,"Ellapsed time: %f s \n", md2D_chrono(&param));
 	}
 	
 	return 0;		
@@ -245,8 +245,8 @@ int md2D_alloc_init_profil(struct Param_struct *par)
 		par->n_xyz = allocate_CplxMatrix(par->N_z,par->N_x);
 	}else{
 		par->profil = allocate_DbleMatrix(par->N_layers+3,par->N_x);
-		par->k2_layer    = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
-		par->invk2_layer = (complex *) malloc(sizeof(complex)*(par->N_layers+2));
+		par->k2_layer    = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));
+		par->invk2_layer = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));
 	}
 
 
@@ -389,9 +389,9 @@ int md2D_arrays_init(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	int j;
 	
-	complex k_super2 = par->k_super*par->k_super;
-	complex k_sub2 = par->k_sub*par->k_sub;
-	complex ky_02 = par->ky_0*par->ky_0;
+	COMPLEX k_super2 = par->k_super*par->k_super;
+	COMPLEX k_sub2 = par->k_sub*par->k_sub;
+	COMPLEX ky_02 = par->ky_0*par->ky_0;
 	
 	for(j=0;j<=par->vec_size-1;j++){
 		par->sigma[j] = (j-par->vec_middle)*par->Delta_sigma + par->sigma0;
@@ -440,27 +440,27 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	int i;
 	
-	par->k2        = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->invk2     = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->Nx2       = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->Nz2       = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->NxNz      = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->k2        = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->invk2     = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->Nx2       = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->Nz2       = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->NxNz      = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
 
-	par->sigma    = (complex *) malloc(sizeof(complex)*par->vec_size);
-	par->kz_super = (complex *) malloc(sizeof(complex)*par->vec_size);
-	par->kz_sub   = (complex *) malloc(sizeof(complex)*par->vec_size);
+	par->sigma    = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->kz_super = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->kz_sub   = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
 
-	par->TF_k2     = (complex *) malloc(sizeof(complex)*(4*par->N+1));
-	par->TF_invk2  = (complex *) malloc(sizeof(complex)*(4*par->N+1));
-	par->TF_Nx2    = (complex *) malloc(sizeof(complex)*(4*par->N+1));
-	par->TF_Nz2    = (complex *) malloc(sizeof(complex)*(4*par->N+1));
-	par->TF_NxNz   = (complex *) malloc(sizeof(complex)*(4*par->N+1));
+	par->TF_k2     = (COMPLEX *) malloc(sizeof(COMPLEX)*(4*par->N+1));
+	par->TF_invk2  = (COMPLEX *) malloc(sizeof(COMPLEX)*(4*par->N+1));
+	par->TF_Nx2    = (COMPLEX *) malloc(sizeof(COMPLEX)*(4*par->N+1));
+	par->TF_Nz2    = (COMPLEX *) malloc(sizeof(COMPLEX)*(4*par->N+1));
+	par->TF_NxNz   = (COMPLEX *) malloc(sizeof(COMPLEX)*(4*par->N+1));
 
-	par->tmp_tf_k2    = (complex *) malloc(sizeof(complex)*par->N_x);   
-	par->tmp_tf_invk2 = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->tmp_tf_Nx2   = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->tmp_tf_Nz2   = (complex *) malloc(sizeof(complex)*par->N_x);
-	par->tmp_tf_NxNz  = (complex *) malloc(sizeof(complex)*par->N_x);
+	par->tmp_tf_k2    = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);   
+	par->tmp_tf_invk2 = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->tmp_tf_Nx2   = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->tmp_tf_Nz2   = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	par->tmp_tf_NxNz  = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
 	par->M_tmp1        = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	par->M_tmp2        = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	par->M_tmp3        = allocate_CplxMatrix(par->vec_size,par->vec_size);
@@ -484,24 +484,24 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->Qxz = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	par->Qzz_1 = allocate_CplxMatrix(par->vec_size,par->vec_size);
 
-	par->QxzEx         = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->Qzz_1QxzEx    = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->Qzz_1Hpx      = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->sigmaHpy      = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size); 
-	par->ky0Qzz_1Hpx   = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->Qzz_1sigmaHpy = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->QxxEx         = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->QyyEy         = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->QxzEx         = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->Qzz_1QxzEx    = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->Qzz_1Hpx      = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->sigmaHpy      = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size); 
+	par->ky0Qzz_1Hpx   = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->Qzz_1sigmaHpy = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->QxxEx         = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->QyyEy         = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
 
-	par->QxzVtmp1      = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
-	par->V_tmp1        = (REAL complex *) malloc(sizeof(REAL complex)*par->vec_size);
+	par->QxzVtmp1      = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
+	par->V_tmp1        = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
 
 	par->T         = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 
-	par->T11 = (complex **) malloc(sizeof(complex *)*par->vec_size);
-	par->T12 = (complex **) malloc(sizeof(complex *)*par->vec_size);
-	par->T21 = (complex **) malloc(sizeof(complex *)*par->vec_size);
-	par->T22 = (complex **) malloc(sizeof(complex *)*par->vec_size);
+	par->T11 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	par->T12 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	par->T21 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	par->T22 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
 	for (i=0;i<=par->vec_size-1;i++){
 			par->T11[i] = &par->T[i][0];
 			par->T12[i] = &par->T[i][par->vec_size];
@@ -517,15 +517,15 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->M_tmp21 = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	par->M_tmp22 = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	
-	par->eig_values = (complex *) malloc(sizeof(complex)*2*par->vec_size);
+	par->eig_values = (COMPLEX *) malloc(sizeof(COMPLEX)*2*par->vec_size);
 	par->EigVectors = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->eig_buffer = (complex *) malloc(sizeof(complex)*50*2*par->vec_size);
+	par->eig_buffer = (COMPLEX *) malloc(sizeof(COMPLEX)*50*2*par->vec_size);
 	
 	par->invEigVec         = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->invVec_Psi        = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->M_invVec_Psi      = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->M_buffer_2vecsize = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->M_sol = (complex *) malloc(sizeof(complex)*2*par->vec_size);
+	par->M_sol = (COMPLEX *) malloc(sizeof(COMPLEX)*2*par->vec_size);
 
 	par->rkMz    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->rkMzd   = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
@@ -544,19 +544,19 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->Psi_super_TM    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->invPsi_super_TM = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 
-	par->Ai = (complex *) malloc(sizeof(complex)*(par->vec_size));
-	par->Ar = (complex *) malloc(sizeof(complex)*(par->vec_size));
-	par->At = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Vi = (complex *) malloc(sizeof(complex)*(par->vec_size));
-	par->Vr = (complex *) malloc(sizeof(complex)*(par->vec_size));
-	par->Vt = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Ai = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));
+	par->Ar = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));
+	par->At = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Vi = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));
+	par->Vr = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));
+	par->Vt = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
 
-	par->Exi  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Exr  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Ext  = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Hpxi = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Hpxr = (complex *) malloc(sizeof(complex)*(par->vec_size));	
-	par->Hpxt = (complex *) malloc(sizeof(complex)*(par->vec_size));	
+	par->Exi  = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Exr  = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Ext  = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Hpxi = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Hpxr = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
+	par->Hpxt = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));	
 
 	eff->eff_r   = (double *) malloc(sizeof(double)*(par->vec_size));
 	eff->eff_t   = (double *) malloc(sizeof(double)*(par->vec_size));
@@ -590,7 +590,7 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 /*---------------------------------------------------------------------------------------------*/
 int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 {
-	if (par->verbosity>=3) fprintf(stdout,"Libération de la mémoire : "); fflush(stdout);
+	if (par->verbosity>=3) fprintf(stdout,"Freeing memory: "); fflush(stdout);
 
 	
 	if (par->type_profil == N_XYZ) {

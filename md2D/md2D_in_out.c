@@ -28,14 +28,14 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	/* Ouverture de fichioer_param */
 	if (!(fp = fopen(nomfichier->fichier_param,"r"))){
-		fprintf(stderr, "%s ligne %d : Erreur, impossible d'ouvrir %s\n",__FILE__, __LINE__,nomfichier->fichier_param);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nomfichier->fichier_param);
 		exit(EXIT_FAILURE);
 	}
 	
 	/* Verbosity level reading */
 	if (lire_int_arg(&par->verbosity, "-verbosity", argc, argvcp)) {
 		if (lire_int (fp, "verbosity", &(par->verbosity) )) par->verbosity = 2;}
-	if (par->verbosity >=2 ) fprintf(stdout,"Lecture des paramètres dans %s\n",nomfichier->fichier_param);
+	if (par->verbosity >=2 ) fprintf(stdout,"Reading parameters in %s\n",nomfichier->fichier_param);
 	
 
 	/* Lecture des paramètres, d'abord en ligne de commande, si rien en ligne de commande,
@@ -104,13 +104,13 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		else if (!strcmp(str_tmp,"TM")){par->pola = TM;}
 		else                            {erreur = "pola";}	
 	if (lire_dble_arg(&n_super_re, "-n_super_re", argc, argvcp)) {
-		if (lire_complex(fp, "n_super", &(par->n_super))) erreur="n_super";
+		if (lire_COMPLEX(fp, "n_super", &(par->n_super))) erreur="n_super";
 	}else{
 		if (lire_dble_arg(&n_super_im, "-n_super_im", argc, argvcp)) {
 			n_super_im =0;}
 		par->n_super = c_omplex(n_super_re, n_super_im);}
 	if (lire_dble_arg(&n_sub_re, "-n_sub_re", argc, argvcp)) {
-		if (lire_complex(fp, "n_sub", &(par->n_sub))) erreur="n_sub";
+		if (lire_COMPLEX(fp, "n_sub", &(par->n_sub))) erreur="n_sub";
 	}else{
 		if (lire_dble_arg(&n_sub_im, "-n_sub_im", argc, argvcp)) {
 			n_sub_im =0;}
@@ -192,15 +192,15 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	/* Vérification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
-		fprintf(stderr, "%s : Erreur, probleme de lecture de \"%s\"\n",__FILE__,erreur);
+		fprintf(stderr, "%s: ERROR, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
 	/* Lecture des paramètres dans fichier profil */
 	/* (Les paramètres liés à la nature ou indisociables du profil sont contenus dans fichier_profil) */
-	if (par->verbosity >= 2) fprintf(stdout,"Lecture des paramètres dans %s\n",nomfichier->fichier_profil);
+	if (par->verbosity >= 2) fprintf(stdout,"Reading parameters in %s\n",nomfichier->fichier_profil);
 	if (!(fp = fopen(nomfichier->fichier_profil,"r"))){
-		fprintf(stderr, "%s ligne %d : Erreur, impossible d'ouvrir %s\n",__FILE__, __LINE__,nomfichier->fichier_profil);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nomfichier->fichier_profil);
 		exit(EXIT_FAILURE);
 	}
 	erreur="NO_ERROR                     ";
@@ -223,7 +223,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	
 	/* Vérification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
-		fprintf(stderr, "%s : Erreur, probleme de lecture de \"%s\"\n",__FILE__,erreur);
+		fprintf(stderr, "%s: ERROR, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
@@ -244,7 +244,7 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 		fprintf(stdout,"n_super = %f + i%f\n", creal((par->n_super)), cimag((par->n_super)));
 		fprintf(stdout,"n_sub   = %f + i%f\n", creal((par->n_sub)), cimag((par->n_sub)));
 		fprintf(stdout,"lambda  = %f\n",par->lambda);
-		fprintf(stdout,"theta_i = %f rad (%f°)\n",par->theta_i,par->theta_i*180.0/PI);
+		fprintf(stdout,"theta_i = %f rad (%f deg)\n",par->theta_i,par->theta_i*180.0/PI);
 		fprintf(stdout,"L       = %f\n",par->L);
 		fprintf(stdout,"h       = %f\n",par->h);
 		fprintf(stdout,"coef_h  = %f\n",par->coef_h);
@@ -364,18 +364,18 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	int N_x = par->N_x;
 	int N_layers = par->N_layers;
 	double h_tmp;
-	complex indice;
+	COMPLEX indice;
 	
 	profil_tmp = (double *) malloc(sizeof(double)*N_x*(N_layers+1));
 
 	if (!(fp = fopen(nom_fichier,"r"))){
-		fprintf(stderr, "%s ligne %d : Erreur, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier);
 		exit(EXIT_FAILURE);
 	}
 	/* Lecture des indices des couches et calculs des k2 et 1/k2 */
 	for (i=1; i<=N_layers; i++){
 		sprintf(nom_indice,"n%d",i);
-		if (lire_complex(fp, nom_indice, &indice)) erreur=nom_indice;
+		if (lire_COMPLEX(fp, nom_indice, &indice)) erreur=nom_indice;
 		par->k2_layer[i]    = (indice*par->k_super/par->n_super)*(indice*par->k_super/par->n_super); 
 		par->invk2_layer[i] = 1/par->k2_layer[i]; 
 	}
@@ -387,7 +387,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	fclose(fp);	
 	/* Vérification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
-		fprintf(stderr, "%s : Erreur, probleme de lecture de \"%s\"\n",__FILE__,erreur);
+		fprintf(stderr, "%s: ERROR, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
@@ -396,11 +396,11 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* On lit comme un seul tableau, en lisant les lignes les unes à la suite des autres,  */
 	/* en considérant qu'une colonne représente les coordonnées d'une interface. On sépare */
 	/* ensuite les données en autant de tableaux qu'il y a d'interfaces                    */
-	if (par->verbosity >= 2) fprintf(stdout,"Lecture du profil %s : ",nom_fichier);
+	if (par->verbosity >= 2) fprintf(stdout,"Reading profile %s: ",nom_fichier);
 	if (lire_tab(nom_fichier, "profil", profil_tmp, N_x*(N_layers+1)) == 0) {
 		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
 	}else{
-		fprintf(stderr,"ERREUR de lecture du profil\n");
+		fprintf(stderr,"ERROR of profile reading\n");
 		exit(EXIT_FAILURE);
 	}
 /**************************************************/
@@ -419,8 +419,8 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 		par->h = h_tmp;
 	}else if (fabs(par->h - h_tmp) > eps*par->h) {
 		fprintf(stderr,  "+---------------------------------------------------------------------\
-				\n|                        ATTENTION !\
-				\n| h determiné pour %s vaut %f et h indiqué %f !\
+				\n|                        WARNING !\
+				\n| h determined for %s is %f while h indicated is %f !\
 				\n+---------------------------------------------------------------------\
 				\n",nom_fichier,h_tmp, par->h);
 	}
@@ -440,7 +440,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* Multiplication de par->h par coef_h */
 	par->h *= par->coef_h;
 	
-	if (par->verbosity >= 2) fprintf(stdout,"Normalisation du profil entre 0 et (h x coef_h) : OK\n");
+	if (par->verbosity >= 2) fprintf(stdout,"Normalisation of profile between 0 and (h x coef_h): OK\n");
 
 /**************************************************/
 
@@ -495,7 +495,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 int md2D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 {
 	int nx, nz, N_x=par->N_x, N_z=par->N_z;
-	complex **n_xyz = par->n_xyz;
+	COMPLEX **n_xyz = par->n_xyz;
 	
 
 	/* Allocations de mémoire pour variables temporaires */
@@ -503,25 +503,25 @@ int md2D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 	double *Im_n_xyz = malloc(sizeof(double)*N_x*N_z);
 
 	/* Lecture de la partie réelle */
-	if (par->verbosity >= 2) fprintf(stdout,"Lecture du profil %s :\npartie réelle : ",nom_fichier);
+	if (par->verbosity >= 2) fprintf(stdout,"Reading profile %s:\nreal part: ",nom_fichier);
 	if (lire_tab(nom_fichier, "Re_n_xyz", Re_n_xyz, N_x*N_z) == 0) {
 		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
 	}else{
-		fprintf(stderr,"ERREUR de lecture du profil\n");
+		fprintf(stderr,"Reading profile ERROR\n");
 		exit(EXIT_FAILURE);
 	}
 	/* Lecture de la partie imaginaire */
-	if (par->verbosity >= 2) fprintf(stdout,"partie imaginaire : ");fflush(stdout);
+	if (par->verbosity >= 2) fprintf(stdout,"imaginary part: ");fflush(stdout);
 	if (lire_tab(nom_fichier, "Im_n_xyz", Im_n_xyz, N_x*N_z) == 0) {
 		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
 	}else{
-		fprintf(stderr,"PAS DE PARTIE IMAGINAIRE (profil diélectrique)\n");
+		fprintf(stderr,"NO IMAGINARY PART (dielectric profile)\n");
 		for (nx=0; nx<=N_x*N_z-1; nx++){
 			Im_n_xyz[nx] = 0;
 		}
 	}
 	
-	/* Création de la matrice complexe n_xyz */
+	/* Création de la matrice COMPLEXe n_xyz */
 	for (nz=0; nz<=N_z-1; nz++){
 		for (nx=0; nx<=N_x-1; nx++){
 			n_xyz[nz][nx] = Re_n_xyz[nx+N_x*nz] + I*Im_n_xyz[nx+N_x*nz];
@@ -549,7 +549,7 @@ int md2D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 
 	/* Ouverture du fichier */
 	if (!(fp = fopen(nom_fichier,"w"))){
-		fprintf(stderr, "%s ligne %d : Erreur, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier);
 		exit(EXIT_FAILURE);
 	}
 
@@ -621,17 +621,17 @@ int md2D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struc
 
 
 /*---------------------------------------------------------------------------------------------*/
-/*!	\fn		complex md2D_index(char* name,double lambda, char* method)
+/*!	\fn		COMPLEX md2D_index(char* name,double lambda, char* method)
  *
  *	\brief
  */
 /*---------------------------------------------------------------------------------------------*/
-complex md2D_index(char* name,double lambda, char* method)
+COMPLEX md2D_index(char* name,double lambda, char* method)
 {
 	char filename[SIZE_STR_BUFFER];
 	double lambda_angstrom = 10*lambda;
 	double cauchy_n[5],cauchy_k[5],n_power[6],k_power[6],index_n,index_k;
-	complex index;
+	COMPLEX index;
 	int i,Nb_cauchy = 5;
 	
 	/* File name */

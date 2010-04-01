@@ -54,8 +54,8 @@ int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 {
 	int N = par->N;
 	double Delta_sigma = par->Delta_sigma;
-	complex k_super = par->k_super;
-	complex k_sub = par->k_sub;
+	COMPLEX k_super = par->k_super;
+	COMPLEX k_sub = par->k_sub;
 	double sigma0 = par->sigma0;
 	int Nmin_super, Nmax_super, Nmin_sub, Nmax_sub;
 
@@ -66,8 +66,8 @@ int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 	Nmin_sub   = -FLOOR( ( creal(k_sub) + sigma0 )/Delta_sigma );
 	int Nlimit = MAX(MAX(Nmax_super,Nmax_sub),MAX(-Nmin_super,-Nmin_sub));
 	if (N < Nlimit) {
-		fprintf(stderr,"ATTENTION, N trop petit pour représenter l'ensemble des modes propagatifs\n");
-		fprintf(stderr,"valeur minimale : N = %d \n",Nlimit);
+		fprintf(stderr,"WARNING, N too small to represent all propagatives orders\n");
+		fprintf(stderr,"minimum value: N = %d \n",Nlimit);
 		if (N < Nmax_super)  Nmax_super =  N;
 		if (N < Nmax_sub)    Nmax_sub   =  N;
 		if (Nmin_super < -N) Nmin_super = -N;
@@ -83,32 +83,32 @@ int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 
 	
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int md2D_efficiencies(complex *Ai, complex *A0, complex *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
+/*!	\fn		int md2D_efficiencies(COMPLEX *Ai, COMPLEX *A0, COMPLEX *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
  *
  *	\brief		Efficiencies calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_efficiencies(complex *Ai, complex *Ar, complex *At, struct Param_struct *par,  struct Efficacites_struct *eff)
+int md2D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct *par,  struct Efficacites_struct *eff)
 {
 	int n;
 	int vec_size = par->vec_size;
 	int mid = par->vec_middle;
 	
-	complex k_super = par->k_super;
-	complex k_sub = par->k_sub;
-	complex k_super2 = k_super*k_super;
-	complex k_sub2 = k_sub*k_sub;
-/*	complex ky_0  = par->ky_0;
-	complex ky_02 = ky_0*ky_0;*/
+	COMPLEX k_super = par->k_super;
+	COMPLEX k_sub = par->k_sub;
+	COMPLEX k_super2 = k_super*k_super;
+	COMPLEX k_sub2 = k_sub*k_sub;
+/*	COMPLEX ky_0  = par->ky_0;
+	COMPLEX ky_02 = ky_0*ky_0;*/
 	
-	complex *kz_super, *kz_sub, *sigma;
+	COMPLEX *kz_super, *kz_sub, *sigma;
 	kz_super = par->kz_super;
 	kz_sub = par->kz_sub;
 	sigma = par->sigma;
 
 	double Pz_i, Pz_r, Pz_t, sumPzi;
-	complex *Eyi, *Hpyi, *Eyr, *Hpyr, *Eyt, *Hpyt;
-	complex *Exi, *Hpxi, *Exr, *Hpxr, *Ext, *Hpxt;
+	COMPLEX *Eyi, *Hpyi, *Eyr, *Hpyr, *Eyt, *Hpyt;
+	COMPLEX *Exi, *Hpxi, *Exr, *Hpxr, *Ext, *Hpxt;
 	Exi = par->Exi;
 	Exr = par->Exr;
 	Ext = par->Ext;
@@ -149,7 +149,7 @@ int md2D_efficiencies(complex *Ai, complex *Ar, complex *At, struct Param_struct
 			Hpxt[n] = 0;
 		}
 	}else{
-		fprintf(stderr, "%s, ligne %d : ERROR, pola = %d, must be \"TE\" or \"TM\".Exiting\n",__FILE__,__LINE__,par->pola);
+		fprintf(stderr, "%s, line %d: ERROR, pola = %d, must be \"TE\" or \"TM\".Exiting\n",__FILE__,__LINE__,par->pola);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -192,17 +192,17 @@ int md2D_efficiencies(complex *Ai, complex *Ar, complex *At, struct Param_struct
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int md2D_amplitudes(complex *Ai, complex *Ar, complex *At, complex **S12, 
- *                               complex **S22, struct Param_struct *par)
+/*!	\fn		int md2D_amplitudes(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, COMPLEX **S12, 
+ *                               COMPLEX **S22, struct Param_struct *par)
  *
  *	\brief	Field amplitudes calculations
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_amplitudes(complex *Ai, complex *Ar, complex *At, complex **S12, complex **S22, struct Param_struct *par)
+int md2D_amplitudes(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, COMPLEX **S12, COMPLEX **S22, struct Param_struct *par)
 {
 	int n;
 	int vec_size = par->vec_size;
-	complex *kz_super;
+	COMPLEX *kz_super;
 	kz_super = par->kz_super;
 		
 	/* Vi = Ai*cexp(-I*kz_super*h) */
@@ -248,7 +248,7 @@ int S_matrix(struct Param_struct *par)
 	int i, j, nS;
 	int vec_size = par->vec_size;
 	int NS = par->NS;
-	complex **S12, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2;
+	COMPLEX **S12, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2;
 	S12 = par->S12;
 	S22 = par->S22;
 	T11 = par->T11;
@@ -308,18 +308,18 @@ int S_matrix(struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int T_Matrix_TE(complex **T11, complex **T12, complex **T21, complex **T22,
+/*!	\fn		int T_Matrix_TE(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22,
 				int nS, struct Param_struct *par)
  *
  *	\brief Calcul de la matrice T en polarisation TE
  */
 /*-------------------------------------------------------------------------------------*/
-int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22, int nS, struct Param_struct *par)
+int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS, struct Param_struct *par)
 {
 	int vec_size = par->vec_size;
 	
 	double hmin, hmax, z, Delta_z;
-	complex **Psi, **invPsi_super;
+	COMPLEX **Psi, **invPsi_super;
 
 	/* [F] vectors are defined by 	 	[V] vectors by
 	[F] = |[Ex ]|								[V] = |[VE-]|
@@ -377,12 +377,12 @@ SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+/*!	int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation in the case of z invariance
  */
 /*-------------------------------------------------------------------------------------*/
-int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
 {
 	int i,j, vec_size = par->vec_size;
 
@@ -416,15 +416,15 @@ int zinvar_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	int rk4_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+/*!	int rk4_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation with 4th order Runge Kutta vectorized method
  */
 /*-------------------------------------------------------------------------------------*/
-int rk4_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
+int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 {
 	int i,j, vec_size = par->vec_size;
-	complex **Mz, **Mzd, **Mzdd, **M2, **M3, **M4,**rkM_tmp;
+	COMPLEX **Mz, **Mzd, **Mzdd, **M2, **M3, **M4,**rkM_tmp;
 	Mz = par->rkMz;
 	Mzd = par->rkMzd;
 	Mzdd = par->rkMzdd;
@@ -486,15 +486,15 @@ int rk4_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	int euler_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+/*!	int euler_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation with vectorized Euler method
  */
 /*-------------------------------------------------------------------------------------*/
-int euler_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
+int euler_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 {
 	int i,j, vec_size = par->vec_size;
-	complex **Mz;
+	COMPLEX **Mz;
 	Mz = par->rkMz;
 
 	/* M matrix calculation */
@@ -513,15 +513,15 @@ int euler_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
 	return 0;
 }
 /*-------------------------------------------------------------------------------------*/
-/*!	int euler2_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+/*!	int euler2_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation with vectorized Euler method (takes the M matrix at the middle of the interval)
  */
 /*-------------------------------------------------------------------------------------*/
-int euler2_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
+int euler2_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 {
 	int i,j, vec_size = par->vec_size;
-	complex **Mzd;
+	COMPLEX **Mzd;
 	Mzd = par->rkMzd;
 
 	/* M matrix calculation */
@@ -541,15 +541,15 @@ int euler2_P_matrix(complex **P, double z, double dz, struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	int shooting_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+/*!	int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation in the cas of z invariance
  */
 /*-------------------------------------------------------------------------------------*/
-int shooting_P_matrix(complex **P, double z, double Delta_z, struct Param_struct *par)
+int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
 {
 	int n,j, Nstep, vec_size = par->vec_size;
-	complex *F1,*F2;
+	COMPLEX *F1,*F2;
 	F1 = par->M_buffer_2vecsize[0];
 	F2 = par->M_buffer_2vecsize[1];
 	
@@ -588,18 +588,18 @@ int shooting_P_matrix(complex **P, double z, double Delta_z, struct Param_struct
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int M_matrix(complex **M, double z, struct Param_struct *par)
+/*!	\fn		int M_matrix(COMPLEX **M, double z, struct Param_struct *par)
  *
  *		\brief	M matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int M_matrix_TE(complex **M, double z, struct Param_struct *par)
+int M_matrix_TE(COMPLEX **M, double z, struct Param_struct *par)
 {
 	int i,j;
 	int vec_size = par->vec_size;
 	
-	complex *sigma = par->sigma;
-	complex *TF_k2    = par->TF_k2;
+	COMPLEX *sigma = par->sigma;
+	COMPLEX *TF_k2    = par->TF_k2;
 
 	/* Calculations of the Fourier transforms of the necessary 'grandeurs' */
 	TF_k2 = FFT_k2_directe(z, TF_k2, par);
@@ -625,20 +625,20 @@ int M_matrix_TE(complex **M, double z, struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int M_matrix(complex **M, double z, struct Param_struct *par)
+/*!	\fn		int M_matrix(COMPLEX **M, double z, struct Param_struct *par)
  *
  *		\brief	M matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int M_matrix_TM(complex **M, double z, struct Param_struct *par)
+int M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par)
 {
 	int i,j;
 	int vec_size = par->vec_size;
 
-	complex *sigma = par->sigma;
-	complex **M11,**M12,**M21,**M22;
-	complex **M_tmp1, **M_tmp2, **M_tmp3;
-	complex **Qxx, **Qyy, **Qxz, **Qzz, **invQzz, **invQzzQxz, **invQzzsigma;
+	COMPLEX *sigma = par->sigma;
+	COMPLEX **M11,**M12,**M21,**M22;
+	COMPLEX **M_tmp1, **M_tmp2, **M_tmp3;
+	COMPLEX **Qxx, **Qyy, **Qxz, **Qzz, **invQzz, **invQzzQxz, **invQzzsigma;
 	Qxx = par->Qxx;
 	Qyy = par->Qyy;
 	Qxz = par->Qxz;
@@ -701,20 +701,20 @@ int M_matrix_TM(complex **M, double z, struct Param_struct *par)
 	return 0;
 }
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int zinvar_M_Matrix_TM(complex **M, double z, struct Param_struct *par)
+/*!	\fn		int zinvar_M_Matrix_TM(COMPLEX **M, double z, struct Param_struct *par)
  *
  *		\brief	M matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int zinvar_M_matrix_TM(complex **M, double z, struct Param_struct *par)
+int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par)
 {
 	int i,j;
 	int vec_size = par->vec_size;
 
-	complex *sigma = par->sigma;
-	complex **M12,**M21;
-	complex **M_tmp1, **M_tmp2, **M_tmp3;
-	complex **Qxx, **invQzz, **invToep_invk2, **invToep_k2, **Toep_k2;
+	COMPLEX *sigma = par->sigma;
+	COMPLEX **M12,**M21;
+	COMPLEX **M_tmp1, **M_tmp2, **M_tmp3;
+	COMPLEX **Qxx, **invQzz, **invToep_invk2, **invToep_k2, **Toep_k2;
 	Qxx = par->Qxx;
 	invQzz = par->Qzz_1;
 	M12 = par->M_tmp12;
@@ -764,10 +764,10 @@ int zinvar_M_matrix_TM(complex **M, double z, struct Param_struct *par)
 int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
 {
 	struct Param_struct *par = (struct Param_struct *) param_void;
-	complex *F, *dF;
+	COMPLEX *F, *dF;
 
-	F = (complex *) F_reel;
-	dF = (complex *) dF_reel;
+	F = (COMPLEX *) F_reel;
+	dF = (COMPLEX *) dF_reel;
 	
 	(*par->M_matrix)(par->M, z, par);
 	M_x_V(dF, par->M, F, 2*par->vec_size, 2*par->vec_size);
@@ -776,12 +776,12 @@ int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int md2D_QMatrix(double z, complex **Toep_k2, complex **invToep_invk2, complex **Qxx, complex **Qyy, complex **Qxz, complex **Qzz, complex **Qzz_1, struct Param_struct *par)
+/*!	\fn		int md2D_QMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, COMPLEX **Qxx, COMPLEX **Qyy, COMPLEX **Qxz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct Param_struct *par)
  *
  *		\brief	Q matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_QMatrix(double z, complex **Toep_k2, complex **invToep_invk2, complex **Qxx, complex **Qyy, complex **Qxz, complex **Qzz, complex **Qzz_1, struct Param_struct *par)
+int md2D_QMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, COMPLEX **Qxx, COMPLEX **Qyy, COMPLEX **Qxz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct Param_struct *par)
 {
 	int i,j,var_tmp01;
 	fftw_plan plan_TFk2, plan_TFinvk2, plan_TFNx2, plan_TFNz2, plan_TFNxNz;
@@ -789,21 +789,21 @@ int md2D_QMatrix(double z, complex **Toep_k2, complex **invToep_invk2, complex *
 	int N_tf = 2*par->N;
 	int vec_size = par->vec_size;
 	double coefnorm;
-	complex *tmp_k2, *tmp_invk2, *tmp_Nx2, *tmp_Nz2, *tmp_NxNz;
+	COMPLEX *tmp_k2, *tmp_invk2, *tmp_Nx2, *tmp_Nz2, *tmp_NxNz;
 	tmp_k2    = par->tmp_tf_k2;
 	tmp_invk2 = par->tmp_tf_invk2;
 	tmp_Nx2   = par->tmp_tf_Nx2;
 	tmp_Nz2   = par->tmp_tf_Nz2;
 	tmp_NxNz  = par->tmp_tf_NxNz;
 
-	complex *TF_k2, *TF_invk2, *TF_Nx2, *TF_Nz2, *TF_NxNz;
+	COMPLEX *TF_k2, *TF_invk2, *TF_Nx2, *TF_Nz2, *TF_NxNz;
 	TF_k2    = par->TF_k2;
 	TF_invk2 = par->TF_invk2;
 	TF_Nx2   = par->TF_Nx2;
 	TF_Nz2   = par->TF_Nz2;
 	TF_NxNz  = par->TF_NxNz;
 	
-	complex **Toep_invk2, **Toep_Nx2, **Toep_NxNz, **Toep_Nz2, **M_tmp1, **M_tmp2;
+	COMPLEX **Toep_invk2, **Toep_Nx2, **Toep_NxNz, **Toep_Nz2, **M_tmp1, **M_tmp2;
 	Toep_invk2    = par->Toep_invk2;
 	Toep_Nx2      = par->Toep_Nx2;
 	Toep_NxNz     = par->Toep_NxNz;
@@ -829,7 +829,7 @@ printf("\nIm(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Im", "stdout"," ")
 	plan_TFNxNz  = fftw_plan_dft_1d(N_x, (fftw_complex *)par->NxNz,  (fftw_complex *)tmp_NxNz,  FFTW_FORWARD, FFTW_ESTIMATE);	
 
 	/* Calculating the FFT */
-	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code complexity) */	
+	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code COMPLEXity) */	
 	fftw_execute(plan_TFk2); 
 	fftw_execute(plan_TFinvk2); 
 	fftw_execute(plan_TFNx2); 
@@ -908,7 +908,7 @@ printf("\nIm(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Im", "stdout"," ")
  *		\brief	Q matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_zinvarQMatrix(double z, complex **Toep_k2, complex **invToep_invk2, struct Param_struct *par)
+int md2D_zinvarQMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, struct Param_struct *par)
 {
 	int i,j,var_tmp01;
 	fftw_plan plan_TFk2, plan_TFinvk2;
@@ -916,15 +916,15 @@ int md2D_zinvarQMatrix(double z, complex **Toep_k2, complex **invToep_invk2, str
 	int N_tf = 2*par->N;
 	int vec_size = par->vec_size;
 	double coefnorm;
-	complex *tmp_k2, *tmp_invk2;
+	COMPLEX *tmp_k2, *tmp_invk2;
 	tmp_k2    = par->tmp_tf_k2;
 	tmp_invk2 = par->tmp_tf_invk2;
 
-	complex *TF_k2, *TF_invk2;
+	COMPLEX *TF_k2, *TF_invk2;
 	TF_k2    = par->TF_k2;
 	TF_invk2 = par->TF_invk2;
 	
-	complex **Toep_invk2;
+	COMPLEX **Toep_invk2;
 	Toep_invk2    = par->Toep_invk2;
 		
 	/*--- Calculations of the Fourier transforms of the necessary 'grandeurs' ---*/
@@ -939,7 +939,7 @@ int md2D_zinvarQMatrix(double z, complex **Toep_k2, complex **invToep_invk2, str
 	plan_TFinvk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->invk2, (fftw_complex *)tmp_invk2, FFTW_FORWARD, FFTW_ESTIMATE);	
 
 	/* Calculating the FFT */
-	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code complexity) */	
+	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code COMPLEXity) */	
 	fftw_execute(plan_TFk2); 
 	fftw_execute(plan_TFinvk2); 
 
@@ -974,12 +974,12 @@ int md2D_zinvarQMatrix(double z, complex **Toep_k2, complex **invToep_invk2, str
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int PsiMatrixTE(complex **Psi, complex *kz, struct Param_struct *par)
+/*!	\fn		int PsiMatrixTE(COMPLEX **Psi, COMPLEX *kz, struct Param_struct *par)
  *
  *		\brief	Psi matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int PsiMatrixTE(complex **Psi, complex k, complex *kz, struct Param_struct *par)
+int PsiMatrixTE(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
 {
 	int i,j;
 	int vec_size = par->vec_size;
@@ -1000,12 +1000,12 @@ int PsiMatrixTE(complex **Psi, complex k, complex *kz, struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int PsiMatrixTE(complex **Psi, complex *kz, struct Param_struct *par)
+/*!	\fn		int PsiMatrixTE(COMPLEX **Psi, COMPLEX *kz, struct Param_struct *par)
  *
  *		\brief	Psi matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int PsiMatrixTM(complex **Psi, complex k, complex *kz, struct Param_struct *par)
+int PsiMatrixTM(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
 {
 	int i,j;
 	int vec_size = par->vec_size;
@@ -1027,13 +1027,13 @@ int PsiMatrixTM(complex **Psi, complex k, complex *kz, struct Param_struct *par)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int k2_H_X(struct Param_struct *par, complex *k2_1D, double z)
+/*!	\fn		int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
- *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
  *
  */
 /*-------------------------------------------------------------------------------------*/
-int k2_H_X(struct Param_struct *par, complex *k2_1D, double z)
+int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	int i;
 	
@@ -1052,10 +1052,10 @@ int k2_H_X(struct Param_struct *par, complex *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn			
  *
- *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné, pour un multicouches
+ *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
-int k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
+int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	
 	int nx, n_layer=0;
@@ -1082,10 +1082,10 @@ int k2_MULTI(struct Param_struct *par, complex *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn			
  *
- *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné, pour un multicouches
+ *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
-int invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
+int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	int nx, n_layer=0;
 	
@@ -1108,12 +1108,12 @@ int invk2_MULTI(struct Param_struct *par, complex *invk2_1D, double z)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)	
+/*!	\fn		k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)	
  *
- *		\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ *		\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
  */
 /*-------------------------------------------------------------------------------------*/
-int k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)
+int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	int i, nz;
 	double DeuxPisurLambda2 = (2*PI/par->lambda)*(2*PI/par->lambda);
@@ -1133,12 +1133,12 @@ int k2_N_XYZ(struct Param_struct *par, complex *k2_1D, double z)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)	
+/*!	\fn	invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)	
  *
- *	\brief	Détermine le tableau de complexes invk^2(x) pour un z donné
+ *	\brief	Détermine le tableau de COMPLEXes invk^2(x) pour un z donné
  */
 /*-------------------------------------------------------------------------------------*/
-int invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)
+int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	int i, nz;
 	double invDeuxPisurLambda2 = 1/(2*PI/par->lambda*2*PI/par->lambda);
@@ -1157,15 +1157,15 @@ int invk2_N_XYZ(struct Param_struct *par, complex *invk2_1D, double z)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int invk_2(complex *invk2_1D, double *profil, struct Param_struct *par, double z)
+/*!	\fn		int invk_2(COMPLEX *invk2_1D, double *profil, struct Param_struct *par, double z)
  *
- *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné
+ *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné
  *
  *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
  *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
  */
 /*-------------------------------------------------------------------------------------*/
-int invk2_H_X(struct Param_struct *par, complex *invk2_1D, double z)
+int invk2_H_X(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	
 	int i;
@@ -1183,7 +1183,7 @@ int invk2_H_X(struct Param_struct *par, complex *invk2_1D, double z)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int Normal_H_X(struct Param_struct *par, complex *k2_1D, double z)
+/*!	\fn		int Normal_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
  *		\brief	Determine the Nx2, Nz2 and NxNz arrays, defined as \n
  * 				Nx2  = norm_x^2,  											\n
@@ -1197,7 +1197,7 @@ int invk2_H_X(struct Param_struct *par, complex *invk2_1D, double z)
  * 	\todo 	The PRECISION can be IMPROVED with a HIGHER ORDER calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int Normal_H_X(struct Param_struct *par, complex *Nx2, complex *NxNz, complex *Nz2, double z)
+int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z)
 {
 	int i;
 	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
@@ -1241,16 +1241,16 @@ int Normal_H_X(struct Param_struct *par, complex *Nx2, complex *NxNz, complex *N
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
+/*!	\fn		COMPLEX *FFT_k2_directe(double z, COMPLEX *TF_k2, struct Param_struct *par)
  *
  *		\brief	
  */
 /*-------------------------------------------------------------------------------------*/
-complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
+COMPLEX *FFT_k2_directe(double z, COMPLEX *TF_k2, struct Param_struct *par)
 {
 
 	int i;
-	complex *tmp;
+	COMPLEX *tmp;
 	fftw_plan plan_TFk2;
 
 	int N_x = par->N_x;
@@ -1264,7 +1264,7 @@ complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
 	
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 /*!!!!!!!!!!!!!!!!!!!!!!!   ALLOUER A L'EXTERIEUR   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-	tmp = (complex *) malloc(sizeof(complex) * N_x);
+	tmp = (COMPLEX *) malloc(sizeof(COMPLEX) * N_x);
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 
 	plan_TFk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->k2, (fftw_complex *)tmp, FFTW_FORWARD, FFTW_ESTIMATE);	
@@ -1287,16 +1287,16 @@ complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par)
+/*!	\fn		COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par)
  *
  *	\brief	Calcule la TF de 1/k^2(x) pour un z donné et la tronque entre -N et +N
  */
 /*-------------------------------------------------------------------------------------*/
-complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par)
+COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par)
 {
 
 	int i;
-	complex *tmp;
+	COMPLEX *tmp;
 	fftw_plan plan_TFk2;
 
 	int N_x = par->N_x;
@@ -1307,7 +1307,7 @@ complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par
 	(*par->invk_2)(par, par->invk2, z);
 
 	/* Calcul de la TF de invk2, avec N_x points */
-	tmp = (complex *) malloc(sizeof(complex) * N_x); /*TODO : ALLOUER A L'EXTERIEUR */
+	tmp = (COMPLEX *) malloc(sizeof(COMPLEX) * N_x); /*TODO : ALLOUER A L'EXTERIEUR */
 	plan_TFk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->invk2, (fftw_complex *)tmp, FFTW_FORWARD, FFTW_ESTIMATE);	
 	fftw_execute(plan_TFk2); 
 
@@ -1361,7 +1361,7 @@ int md2D_affichTemps(int n, int N, int nS, int NS, int ni, int Ni, struct Param_
 				
 		fprintf(stdout,"\r");
 		if (par->Ni > 1){
-			 fprintf(stdout,"%3d %%, i = %d° [%ds ", pourcent,ROUND(par->theta_i*180/PI),ROUND(t_ecoule));
+			 fprintf(stdout,"%3d %%, i = %d deg [%ds ", pourcent,ROUND(par->theta_i*180/PI),ROUND(t_ecoule));
 		}else{
 			fprintf(stdout,"%3d %% [%ds ", pourcent,ROUND(t_ecoule));
 		}
@@ -1480,12 +1480,12 @@ int md2D_make_tab_S_steps(struct Param_struct *par){
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	int md2D_save_near_field(complex **S12, complex **Z, int vec_size, int nS)
+/*!	\fn	int md2D_save_near_field(COMPLEX **S12, COMPLEX **Z, int vec_size, int nS)
  *
  *	\brief	Save Z and S12 matrices for near field reconstruction
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_save_near_field(complex **S12, complex **Z, int vec_size, int nS, struct Param_struct *par)
+int md2D_save_near_field(COMPLEX **S12, COMPLEX **Z, int vec_size, int nS, struct Param_struct *par)
 {
 	int i, j;
 	
@@ -1505,10 +1505,10 @@ int md2D_save_near_field(complex **S12, complex **Z, int vec_size, int nS, struc
  *	\brief	Map field reconstruction
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_near_field_map(complex ***tab_S12, complex ***tab_Z, struct Param_struct *par)
+int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struct *par)
 {
 	int q,i,j,n,nx, NS, N_x, vec_size;
-	complex *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, **Z_prod, **Z_prod_tmp, **Psi, k_super2;
+	COMPLEX *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, **Z_prod, **Z_prod_tmp, **Psi, k_super2;
 	double x, **Hpx2, **Hpz2,**Ex2,**Ez2, Hpx, Hpz, Ex, Ez;
 
 	NS = par->NS;
@@ -1533,9 +1533,9 @@ int md2D_near_field_map(complex ***tab_S12, complex ***tab_Z, struct Param_struc
 		Hpz2 = NULL;
 	}
 	
-	Vi = (complex *) malloc(sizeof(complex)*vec_size);
-	Vq = (complex *) malloc(sizeof(complex)*2*vec_size);
-	Fq = (complex *) malloc(sizeof(complex)*2*vec_size);
+	Vi = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
+	Vq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
+	Fq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
 	Vq_m = Vq;
 	Vq_p = Vq + vec_size;
 	Eq = Fq;

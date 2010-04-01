@@ -93,14 +93,14 @@ int lire_string(FILE *fp, const char *label, char *value){
 }
 
 /*---------------------------------------------------------------------------------------------*/
-/*! \fn    int lire_complex(FILE *fp,  char *label, complex *value)
+/*! \fn    int lire_COMPLEX(FILE *fp,  char *label, COMPLEX *value)
  *
  *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
  *			sous la forme label = value (ex.: Z1 = 1.0 + i0.5 )
  *  \return	0 si lecture réussie 1 sinon
  */
 /*---------------------------------------------------------------------------------------------*/
-int lire_complex(FILE *fp, const char *label, complex *value){
+int lire_COMPLEX(FILE *fp, const char *label, COMPLEX *value){
 
 	char *pos, *pos2, stmp[SIZE_LINE_BUFFER];
 	float tmp1, tmp2;
@@ -144,7 +144,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 	double tmp;
 	
 	if (!(fp = fopen(nom_fichier,"r"))){
-		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier);
 		return 1;
 	}
 
@@ -160,7 +160,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 		}
 	}
 
-	fprintf(stderr,"%s ligne %d : ERREUR, le label '%s' n'a pas été trouvé dans %s \n", __FILE__, __LINE__, label, nom_fichier);
+	fprintf(stderr,"%s line %d: ERROR, label '%s' was not found in %s \n", __FILE__, __LINE__, label, nom_fichier);
 	fclose(fp);
 	return 1;
 
@@ -185,7 +185,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 
 	LECTURE_FINIE:
 	if (cpt != N) {
-		fprintf(stderr, "%s ligne %d : ERREUR, %s contient %d valeurs au lieu de %d dans %s (ligne %d)\n", __FILE__, __LINE__, label, cpt, N, nom_fichier, line_cpt);
+		fprintf(stderr, "%s line %d: ERROR, %s contains %d values instead of %d in %s (line %d)\n", __FILE__, __LINE__, label, cpt, N, nom_fichier, line_cpt);
 		fclose(fp);
 		return 1;
 	}
@@ -204,8 +204,8 @@ int lire_ligne(FILE *fp, char *line)
 {
 	if (fgets(line, SIZE_LINE_BUFFER, fp) == NULL) return 1;
 	if (strlen(line) == SIZE_LINE_BUFFER-1) {
-		fprintf(stderr, "%s ligne %d : ERREUR, taille de buffer insuffisante,impossible de lire plus de "
-						"%d caractères par ligne.\n",__FILE__, __LINE__,SIZE_LINE_BUFFER-1);
+		fprintf(stderr, "%s line %d: ERROR, insufficient buffer size, can't read more than "
+						"%d characters per line.\n",__FILE__, __LINE__,SIZE_LINE_BUFFER-1);
 		exit(EXIT_FAILURE);
 	}
 	return 0;
@@ -292,13 +292,13 @@ int ecrire_dble_tab(FILE *fp, double *tab, int N, char *separateur1, int Nmax1, 
 }
 
 /*---------------------------------------------------------------------------------------------*/
-/*!	\fn		int	ecrire_cplx_tab(FILE *fp, complex *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2)
+/*!	\fn		int	ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2)
  *
  *	\brief	Ecrit les valeurs d'un tableau séparées par les 'séparateurs1' (par ex " "), plus par les \n
  *          'séparateurs2' (par ex "\n") une fois tous les Nmax1 éléments, mode RE/IM
  */
 /*---------------------------------------------------------------------------------------------*/
-int ecrire_cplx_tab(FILE *fp, complex *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2)
+int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2)
 {
 	int i,k=0;
 	if (mode == RE){
@@ -326,7 +326,7 @@ int ecrire_cplx_tab(FILE *fp, complex *tab, int N, int mode, char *separateur1, 
 			fprintf(fp,"% 1.12e%s",cimag(tab[i]),separateur1);
 		}
 	}else{
-		fprintf(stderr,"ERREUR, ecrire_cplx_tab, mode non reconnu");	
+		fprintf(stderr,"ERROR, ecrire_cplx_tab, mode non reconnu");	
 	}
 	
 	return 0;
@@ -343,14 +343,14 @@ int ecrire_col(double *tab, char *nomtab, char *nom_fichier)
 	
 	/* Ouverture du fichier */	
 	if (!(fp = fopen(nom_fichier,"w+"))){
-		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier);
 		return 1;
 	}
 	
 	/* Copie dans un fichier temporaire */
 	char nom_fichier_tmp[] = "md2D_fichier_tmp_68gIg78GUgkd.tmp";
 	if (!(fp_tmp = fopen(nom_fichier_tmp,"w+"))){
-		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier_tmp);
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier_tmp);
 		return 1;
 	}
 

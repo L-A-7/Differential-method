@@ -24,6 +24,7 @@
 #include <acml.h>
 #endif
 
+#define COMPLEX double complex
 #include <complex.h>
 
 /* Constantes */
@@ -52,8 +53,8 @@
 #define SIGN(x)  (creal(x)/fabs(creal(x)))
 #define CONJ(z)  (creal(z)-I*cimag(z))
 /*#define free(x) fprintf(stdout,"%s, line%d, freeing %p\n",__FILE__,__LINE__,x);fflush(stdout);free(x)*/
-/* For complex precision */
-/* Using complex is not correct ('double complex' or 'float complex' must be used) */
+/* For COMPLEX precision */
+/* Using COMPLEX is not correct ('double COMPLEX' or 'float COMPLEX' must be used) */
 #define REAL double
 
 /* Structures */
@@ -63,8 +64,8 @@ struct Param_struct {
 	int pola;
 	char calcul_type[SIZE_STR_BUFFER];
 	char calcul_method[SIZE_STR_BUFFER];
-	complex n_super;
-	complex n_sub;
+	COMPLEX n_super;
+	COMPLEX n_sub;
 	double L;
 	double h;
 	double coef_h;
@@ -75,21 +76,21 @@ struct Param_struct {
 /*	double k_sin_i;*/
 	int type_profil;
 	int N_layers;
-	complex *k2_layer;
-	complex *invk2_layer;
+	COMPLEX *k2_layer;
+	COMPLEX *invk2_layer;
 	int N;
 	int NS;
 	int N_steps;
 	int Ni;
 	int ni;
 	double Delta_sigma;
-	complex sigma0;
-	complex ky_0;
-	complex k_super;
-	complex k_sub;
-	complex *sigma;
-	complex *kz_super;
-	complex *kz_sub;
+	COMPLEX sigma0;
+	COMPLEX ky_0;
+	COMPLEX k_super;
+	COMPLEX k_sub;
+	COMPLEX *sigma;
+	COMPLEX *kz_super;
+	COMPLEX *kz_sub;
 
 	int READ_tab_NS;
         int tab_NS_ENABLED;
@@ -104,120 +105,120 @@ struct Param_struct {
 	
 	double delta_h;
 	double **profil;
-	complex **n_xyz;
+	COMPLEX **n_xyz;
 	int N_x;
 	int N_z;
 	int vec_size;
 	int vec_middle;
 	char nom_profil[SIZE_STR_BUFFER];
 		
-	complex **tab_TF_k2;
-	complex **tab_TF_invk2;
+	COMPLEX **tab_TF_k2;
+	COMPLEX **tab_TF_invk2;
 	
-	complex *k2;
-	complex *invk2;
-	complex *Nx2;
-	complex *Nz2;
-	complex *NxNz;
+	COMPLEX *k2;
+	COMPLEX *invk2;
+	COMPLEX *Nx2;
+	COMPLEX *Nz2;
+	COMPLEX *NxNz;
 	
-	complex *TF_k2;
-	complex *TF_invk2;
-	complex *TF_Nx2;
-	complex *TF_Nz2;
-	complex *TF_NxNz;
+	COMPLEX *TF_k2;
+	COMPLEX *TF_invk2;
+	COMPLEX *TF_Nx2;
+	COMPLEX *TF_Nz2;
+	COMPLEX *TF_NxNz;
 	int HX_Normal_CALCULATED;
 
-	complex **T;
-	complex **P;
-	complex **M;
-	complex *eig_values;
-	complex **EigVectors;
-	complex *eig_buffer;
+	COMPLEX **T;
+	COMPLEX **P;
+	COMPLEX **M;
+	COMPLEX *eig_values;
+	COMPLEX **EigVectors;
+	COMPLEX *eig_buffer;
 	
-	complex **Toep_k2;
-	complex **Toep_invk2;
-	complex **invToep_k2;
-	complex **invToep_invk2;
-	complex **Toep_Nx2;
-	complex **Toep_NxNz;
-	complex **Toep_Nz2;
-	complex **M_tmp1;
-	complex **M_tmp2;
-	complex **M_tmp3;
+	COMPLEX **Toep_k2;
+	COMPLEX **Toep_invk2;
+	COMPLEX **invToep_k2;
+	COMPLEX **invToep_invk2;
+	COMPLEX **Toep_Nx2;
+	COMPLEX **Toep_NxNz;
+	COMPLEX **Toep_Nz2;
+	COMPLEX **M_tmp1;
+	COMPLEX **M_tmp2;
+	COMPLEX **M_tmp3;
 	
-	complex *tmp_tf_k2;   
-	complex *tmp_tf_invk2;
-	complex *tmp_tf_Nx2;
-	complex *tmp_tf_Nz2;
-	complex *tmp_tf_NxNz;
+	COMPLEX *tmp_tf_k2;   
+	COMPLEX *tmp_tf_invk2;
+	COMPLEX *tmp_tf_Nx2;
+	COMPLEX *tmp_tf_Nz2;
+	COMPLEX *tmp_tf_NxNz;
 
-	complex **Qxx;
-	complex **Qyy;
-	complex **Qzz;
-	complex **Qxz;
-	complex **Qzz_1;
+	COMPLEX **Qxx;
+	COMPLEX **Qyy;
+	COMPLEX **Qzz;
+	COMPLEX **Qxz;
+	COMPLEX **Qzz_1;
 
-	complex *QxzEx;
-	complex *Qzz_1QxzEx;
-	complex *Qzz_1Hpx;
-	complex *V_tmp1;
-	complex *sigmaHpy; 
-	complex *ky0Qzz_1Hpx;
-	complex *Qzz_1sigmaHpy;
-	complex *QxxEx;
-	complex *QyyEy;
-	complex *QxzVtmp1;
+	COMPLEX *QxzEx;
+	COMPLEX *Qzz_1QxzEx;
+	COMPLEX *Qzz_1Hpx;
+	COMPLEX *V_tmp1;
+	COMPLEX *sigmaHpy; 
+	COMPLEX *ky0Qzz_1Hpx;
+	COMPLEX *Qzz_1sigmaHpy;
+	COMPLEX *QxxEx;
+	COMPLEX *QyyEy;
+	COMPLEX *QxzVtmp1;
 
-	complex **S12;
-	complex **S22;
-	complex **S11;
-	complex **S21;
+	COMPLEX **S12;
+	COMPLEX **S22;
+	COMPLEX **S11;
+	COMPLEX **S21;
 
-	complex **T11;
-	complex **T12;
-	complex **T21;
-	complex **T22;
+	COMPLEX **T11;
+	COMPLEX **T12;
+	COMPLEX **T21;
+	COMPLEX **T22;
 	
-	complex **M_tmp11;
-	complex **M_tmp12;
-	complex **M_tmp21;
-	complex **M_tmp22;
+	COMPLEX **M_tmp11;
+	COMPLEX **M_tmp12;
+	COMPLEX **M_tmp21;
+	COMPLEX **M_tmp22;
 
-	complex **rkMz;
-	complex **rkMzd;
-	complex **rkMzdd;
-	complex **rkM1;
-	complex **rkM2;
-	complex **rkM3;
-	complex **rkM4;
-	complex **rkMtmp1;
+	COMPLEX **rkMz;
+	COMPLEX **rkMzd;
+	COMPLEX **rkMzdd;
+	COMPLEX **rkM1;
+	COMPLEX **rkM2;
+	COMPLEX **rkM3;
+	COMPLEX **rkM4;
+	COMPLEX **rkMtmp1;
 
-	complex **Psi_sub_TE;
-	complex **Psi_super_TE;
-	complex **invPsi_super_TE;
-	complex **Psi_sub_TM;
-	complex **Psi_super_TM;
-	complex **invPsi_super_TM;
-	complex **invEigVec;
-	complex **invVec_Psi;
-	complex **M_invVec_Psi;
-	complex **M_buffer_2vecsize;
-	complex *M_sol;
+	COMPLEX **Psi_sub_TE;
+	COMPLEX **Psi_super_TE;
+	COMPLEX **invPsi_super_TE;
+	COMPLEX **Psi_sub_TM;
+	COMPLEX **Psi_super_TM;
+	COMPLEX **invPsi_super_TM;
+	COMPLEX **invEigVec;
+	COMPLEX **invVec_Psi;
+	COMPLEX **M_invVec_Psi;
+	COMPLEX **M_buffer_2vecsize;
+	COMPLEX *M_sol;
 	
-	complex *Ai;
-	complex *Ar;
-	complex *At;
+	COMPLEX *Ai;
+	COMPLEX *Ar;
+	COMPLEX *At;
 	
-	complex *Vi;
-	complex *Vr;
-	complex *Vt;
+	COMPLEX *Vi;
+	COMPLEX *Vr;
+	COMPLEX *Vt;
 
-	complex *Exi;
-	complex *Exr;
-	complex *Ext;
-	complex *Hpxi;
-	complex *Hpxr;
-	complex *Hpxt;
+	COMPLEX *Exi;
+	COMPLEX *Exr;
+	COMPLEX *Ext;
+	COMPLEX *Hpxi;
+	COMPLEX *Hpxr;
+	COMPLEX *Hpxt;
 	
 	double *var_i;
 	double *var_i2;
@@ -234,22 +235,22 @@ struct Param_struct {
 	int NS_total;
 
 	/* NEAR_FIELD mode */
-/*	complex **Near_field_matrix;
-	complex *bottom_field;*/
-	complex ***tab_Z;
-	complex ***tab_S12;
+/*	COMPLEX **Near_field_matrix;
+	COMPLEX *bottom_field;*/
+	COMPLEX ***tab_Z;
+	COMPLEX ***tab_S12;
 		
 	/* mode extract S */
 	int mode_extract_S;
 	double h_extract_S;
 	
 	/* Pointeurs de fonctions */
-	int (*k_2)(struct Param_struct *par, complex *k2_1D, double z);
-	int (*invk_2)(struct Param_struct *par, complex *invk2_1D, double z);
-	int (*Normal_function)(struct Param_struct *par, complex *Nx2, complex *NxNz, complex *Nz2, double z);
+	int (*k_2)(struct Param_struct *par, COMPLEX *k2_1D, double z);
+	int (*invk_2)(struct Param_struct *par, COMPLEX *invk2_1D, double z);
+	int (*Normal_function)(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z);
 	int (*md2D_lire_profil)(const char *, struct Param_struct *);
-	int (*M_matrix)(complex **M, double z, struct Param_struct *par);
-	int (*P_matrix)(complex **P, double z, double Delta_z, struct Param_struct *par);
+	int (*M_matrix)(COMPLEX **M, double z, struct Param_struct *par);
+	int (*P_matrix)(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
 	
 	clock_t clock0;         /* Stocke le temps de départ                              */
 	clock_t last_clock;     /* Durée écoulée depuis le dernier appel à md2D_temps     */

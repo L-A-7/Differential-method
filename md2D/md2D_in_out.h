@@ -22,8 +22,8 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 int md2D_ecrire_results(char *filename, struct Param_struct *par, struct Efficacites_struct *eff);
 int md2D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struct *par);
 int md2D_ecrire_config(struct Param_struct *par, struct Noms_fichiers *nomfichier);
-complex md2D_indice(char* name,double lambda, char* method);
-complex md2D_index(char* name,double lambda, char* method);
+COMPLEX md2D_indice(char* name,double lambda, char* method);
+COMPLEX md2D_index(char* name,double lambda, char* method);
 
 #endif /* _md2D_IN_OUT_H */
 
