@@ -357,9 +357,6 @@ int T_Matrix(complex **T11, complex **T12, complex **T21, complex **T22, int nS,
 	Delta_z = hmax - hmin;
 	z = (hmax + hmin)/2;
 
-/*printf("\nIm(par->M) :\n");
-SaveMatrix2file (par->M, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
-*/
 
 	/* P_matrix calculation */
 	(*par->P_matrix)(par->P, z, Delta_z, par);
@@ -367,6 +364,11 @@ SaveMatrix2file (par->M, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
 	/* T matrix : T = inv(Psi_super) * P_matrix * Psi */
 	M_x_M(par->T,
 			invPsi_super, M_x_M(par->M_buffer_2vecsize, par->P, Psi, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
+/*printf("\nRe(par->T) :\n");
+SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
+printf("\nIm(par->T) :\n");
+SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
+
 
 	/*Affichage du temps restant à l'écran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);

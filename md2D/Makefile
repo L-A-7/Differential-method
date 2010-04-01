@@ -109,7 +109,7 @@ $(EQ_DIFF) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(ODE_SOL
 # Archivage du projet en .tar
 tar :  
 #	tar -cvf $(NAME).tar ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./results/*
-	tar -cvf $(NAME).tar ./*.c ./*.h ./*param* ./Makefile
+	tar -cvf $(NAME).tar ./*.c ./*.h ./*param* ./Makefile ./utils/*
 #	tar -cvf $(NAME).tar ./*.c ./*.h ./*.m ./md1D_param.txt ./utils/*  
 #	tar -cvf $(NAME).tar ./*.c ./*.h  
 
