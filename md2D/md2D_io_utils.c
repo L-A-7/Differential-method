@@ -1,4 +1,4 @@
-/*! \file		md2D_io_utils.c
+/*! \file		md_io_utilss.c
  *
  *	\brief		Elementary input-output functions
  *
@@ -6,7 +6,7 @@
  *  \authors	Laurent ARNAUD
  */
 
-#include "md2D_io_utils.h"
+#include "md_io_utilss.h"
 
 
 /*---------------------------------------------------------------------------------------------*/

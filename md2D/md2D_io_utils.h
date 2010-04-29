@@ -1,5 +1,5 @@
-/* \file  md2D_io_utils.h
- *  \brief Fichier d'en-tête pour md2D_io_utils.c
+/* \file  md_io_utilss.h
+ *  \brief Fichier d'en-tête pour md_io_utilss.c
  */
 
 #ifndef _md2D_I0_UTILS_H

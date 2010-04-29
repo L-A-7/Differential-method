@@ -1,11 +1,11 @@
-/*!	\file		md2D_utils.c
+/*!	\file		md_utils.c
  *
  * 	\brief		fonctions de manipulation de vecteurs et de matrices
  */
 
 
 
-#include "md2D_utils.h"
+#include "md_utils.h"
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		double md2D_chrono(struct Param_struct *par)
@@ -246,9 +246,9 @@ printf("blas_MxV ");
 #else
 	#ifdef _ACML
   int i, j;
-  doubleCOMPLEX alpha;
-  doubleCOMPLEX beta;
-  doubleCOMPLEX *m1;
+  COMPLEX alpha;
+  COMPLEX beta;
+  COMPLEX *m1;
 
   alpha.real = 1.0;
   alpha.imag = 0.0;
@@ -256,7 +256,7 @@ printf("blas_MxV ");
   beta.real = 0.0;
   beta.imag = 0.0;
 
-  m1 = malloc(sizeof(doubleCOMPLEX) * nlign * ncol);
+  m1 = malloc(sizeof(COMPLEX) * nlign * ncol);
 
   /* Copie de la matrice */
   for(i=0;i<nlign;i++){
@@ -266,7 +266,7 @@ printf("blas_MxV ");
     }
   }
 
-  zgemv('N', nlign, ncol, &alpha, m1, nlign, (doubleCOMPLEX *)vector_in, 1, &beta, (doubleCOMPLEX *)vector_out, 1);
+  zgemv('N', nlign, ncol, &alpha, m1, nlign, (COMPLEX *)vector_in, 1, &beta, (COMPLEX *)vector_out, 1);
 
   free(m1);
 	#else
@@ -426,8 +426,8 @@ int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 {
   int i,j;
   COMPLEX *A_tmp, *B_tmp, *M_out_tmp;
-  doubleCOMPLEX alpha;
-  doubleCOMPLEX beta;
+  COMPLEX alpha;
+  COMPLEX beta;
 
   alpha.real = 1.0;
   alpha.imag = 0.0;
@@ -436,7 +436,7 @@ int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 
   A_tmp = malloc(sizeof(COMPLEX) * N * N);
   B_tmp = malloc(sizeof(COMPLEX) * N * N);
-  M_out_tmp = malloc(sizeof(doubleCOMPLEX) * N * N);
+  M_out_tmp = malloc(sizeof(COMPLEX) * N * N);
 
   /* Copying A and B into col major (Fortran style) */
   for(i=0;i<N;i++){
@@ -447,8 +447,8 @@ int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
   }
 
   /* Computing the matrix product */
-  zgemm('N', 'N', N, N, N, &alpha, (doubleCOMPLEX *)A_tmp, N, 
-	(doubleCOMPLEX *)B_tmp, N, &beta, (doubleCOMPLEX *)M_out_tmp, N);
+  zgemm('N', 'N', N, N, N, &alpha, (COMPLEX *)A_tmp, N, 
+	(COMPLEX *)B_tmp, N, &beta, (COMPLEX *)M_out_tmp, N);
 
   /* Transforming M_out_tmp in row major (C style) */
   for(i=0;i<N;i++){
@@ -705,12 +705,12 @@ int acml_eigen_values(COMPLEX **A, COMPLEX *eig_values, COMPLEX **EigVectors, CO
 	'N', 
 	'V', 
 	N, 
-	(doubleCOMPLEX *) A[0], 
+	(COMPLEX *) A[0], 
 	N, 
-	(doubleCOMPLEX *) eig_values, 
+	(COMPLEX *) eig_values, 
 	NULL, 
 	N,
-	(doubleCOMPLEX *) EigVectors[0],
+	(COMPLEX *) EigVectors[0],
 	N, 
 	&info);
 
@@ -861,7 +861,7 @@ int acml_invM(COMPLEX **inv, COMPLEX **A, int N)
   }
 	
   /* LU factorization */
-  zgetrf(N, N, (doubleCOMPLEX *) inv[0], N, ipiv, &info);
+  zgetrf(N, N, (COMPLEX *) inv[0], N, ipiv, &info);
 
   if (info != 0){
     printf("ERROR, %s, line %d, can't compute LU factorization, error_code info = %d\n",__FILE__,__LINE__,info);
@@ -869,7 +869,7 @@ int acml_invM(COMPLEX **inv, COMPLEX **A, int N)
   }
 	
   /* Matrix inversion */
-  zgetri(N, (doubleCOMPLEX *) inv[0], N, ipiv, &info);
+  zgetri(N, (COMPLEX *) inv[0], N, ipiv, &info);
 
   if (info != 0){
     printf("ERROR, %s, line %d, can't invert matrix, error_code info = %d\n",__FILE__,__LINE__,info);
