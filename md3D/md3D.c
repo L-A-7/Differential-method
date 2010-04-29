@@ -404,6 +404,7 @@ int S_matrix(struct Param_struct *par)
 		
 		/* Following blocks only usefull when some light is coming from below */
 		/* NOT TESTED YET, but carrefully written... (should work !) */
+		/* (Matrices should also be initialized ... !) */
 		/* S11 = (T22 - S12*T12)*S11 */
 /*		M_equals(T_tmp, S11, 2*vec_size, 2*vec_size);
 		M_x_M(S11,

@@ -12,6 +12,7 @@
 #include "md3D_io_utils.h"
 #include "md3D_in_out.h"
 #include "md3D_utils.h"
+#include "md3D_maths.h"
 
 
 /* functions md3D.c */

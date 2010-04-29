@@ -8,7 +8,13 @@ ATLAS_LIB_DIR = /usr/lib64/atlas
 
 #BUILD=ACML
 #BUILD=Lapack
-BUILD=Lapack_ATLAS
+#BUILD=Lapack_ATLAS
+HAVE_ACML=1
+HAVE_BLAS=0
+HAVE_CBLAS=0
+HAVE_LAPACK=0
+HAVE_ATLAS=0
+
 
 NAME = md3D
 STD_H = std_include.h
@@ -16,9 +22,15 @@ IN_OUT = $(NAME)_in_out
 UTILS = $(NAME)_utils
 IO_UTILS = $(NAME)_io_utils
 PILOT = $(NAME)_pilot
-
+MATHS = $(NAME)_maths
 
 LIB1 = -lfftw3 -lgsl -lgslcblas
+
+ifeq ($(HAVE_ACML),1)
+INC2= -I$(ACML_INCLUDE_DIR)
+LIB2 = -L$(ACML_LIB_DIR) -lacml
+OPTIM_FLAGS= -D_ACML
+endif
 
 ifeq ($(BUILD),Lapack)
 INC2 = -I$(ATLAS_INCLUDE_DIR)
@@ -82,12 +94,16 @@ $(UTILS).o : $(UTILS).c $(UTILS).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(UTILS).c $(PG)
 
 #
+$(MATHS).o : $(MATHS).c $(MATHS).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(MATHS).c $(PG)
+
+#
 $(PILOT).o : $(PILOT).c $(NAME).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(PILOT).c $(PG)
 
 # Link the object files :
-$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o
-	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(LIB) $(PG)
+$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(MATHS).o
+	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(MATHS).o $(LIB) $(PG)
 
 # Archivage du projet en .tar
 tar :  
