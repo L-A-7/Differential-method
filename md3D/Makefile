@@ -19,10 +19,10 @@ HAVE_ATLAS=0
 NAME = md3D
 STD_H = std_include.h
 IN_OUT = $(NAME)_in_out
-UTILS = $(NAME)_utils
-IO_UTILS = $(NAME)_io_utils
+UTILS = md_utils
+IO_UTILS = md_io_utils
 PILOT = $(NAME)_pilot
-MATHS = $(NAME)_maths
+MATHS = md_maths
 
 LIB1 = -lfftw3 -lgsl -lgslcblas
 

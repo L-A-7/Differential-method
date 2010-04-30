@@ -9,10 +9,10 @@
 
 #include <fftw3.h>
 
-#include "md3D_io_utils.h"
+#include "md_io_utils.h"
 #include "md3D_in_out.h"
-#include "md3D_utils.h"
-#include "md3D_maths.h"
+#include "md_utils.h"
+#include "md_maths.h"
 
 
 /* functions md3D.c */

@@ -6,8 +6,8 @@
 #define _md3D_IN_OUT_H
 
 #include "std_include.h"
-#include "md3D_io_utils.h"
-#include "md3D_utils.h"
+#include "md_io_utils.h"
+#include "md_utils.h"
 
 /* Constantes */
 #define AUTO -987325984

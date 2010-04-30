@@ -642,7 +642,7 @@ int md3D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 /*	fprintf(fp,"profile_file = %s\n",profile_file);*/
 	fprintf(fp,"Nprx = %d\n",par->Nprx);
 	fprintf(fp,"Npry = %d\n",par->Npry);
-	fprintf(fp,"Calcul_duration = %f s \n", md3D_chrono(par));
+	fprintf(fp,"Calcul_duration = %f s \n", md_chrono(par));
 
 	fprintf(fp,  "\n#------------ Results -------------\n");
 	fprintf(fp,"sum_eff           = % 1.6le\n",eff->sum_eff);

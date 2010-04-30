@@ -76,7 +76,7 @@ fprintf(stdout,"\nRePsisuper_TM :\n");SaveMatrix2file (param.Psi_super_TM, 2*par
 	if (param.verbosity >= 1){
 		printf("Efficiencies summ   : %1.10f\n",effic.sum_eff);
 		printf("1-Efficiencies summ : %e\n",1-effic.sum_eff);
-		fprintf(stdout,"Ellapsed time : %f s \n", md3D_chrono(&param));
+		fprintf(stdout,"Ellapsed time : %f s \n", md_chrono(&param));
 	}
 	
 	return 0;		
