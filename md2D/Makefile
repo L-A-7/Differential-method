@@ -2,40 +2,49 @@
 #
 #
 ACML_INCLUDE_DIR = /opt/acml4.3.0/gfortran64/include 
-ACML_LIB_DIR = /opt/acml4.3.0/gfortran64/lib 
+ACML_LIB_DIR = /opt/acml4.3.0/gfortran64/lib
 ATLAS_INCLUDE_DIR = /usr/include/atlas
 ATLAS_LIB_DIR = /usr/lib64/atlas
 
-BUILD=ACML
+#BUILD=ACML
 #BUILD=Lapack
+#BUILD=Lapack_ATLAS
+HAVE_ACML=1
+HAVE_BLAS=0
+HAVE_CBLAS=0
+HAVE_LAPACK=0
+HAVE_ATLAS=0
+
 
 NAME = md2D
 STD_H = std_include.h
 IN_OUT = $(NAME)_in_out
-UTILS = $(NAME)_utils
-IO_UTILS = $(NAME)_io_utils
+UTILS = md_utils
+IO_UTILS = md_io_utils
 PILOT = $(NAME)_pilot
-ODE_SOLVE = ode_solve
-EQ_DIFF = eq_diff
+MATHS = md_maths
 
+#LIB1 = -static -lfftw3
+LIB1 = /usr/lib/libfftw3.a
 
-#INC1 = -I/home/lau/Programmes/md1D/fftw
-#LIB1 = -static -lfftw3 -lgsl 
-LIB1 = -lfftw3 -lgsl -lgslcblas
-#LIB1 = -lfftw3
+ifeq ($(HAVE_ACML),1)
+INC2= -I$(ACML_INCLUDE_DIR)
+LIB2 = -L$(ACML_LIB_DIR) -lacml
+OPTIM_FLAGS= -D_ACML
+endif
 
 ifeq ($(BUILD),Lapack)
 INC2 = -I$(ATLAS_INCLUDE_DIR)
 LIB2 = -llapack -lblas 
 XERBLA=xerbla.o
-OPTIM_FLAGS=-D_LAPACK_OPTIMIZATION
+OPTIM_FLAGS=-D_LAPACK
 endif
 
 ifeq ($(BUILD),Lapack_ATLAS)
 INC2 = -I$(ATLAS_INCLUDE_DIR)
 LIB2 = -L$(ATLAS_LIB_DIR) -latlas -llapack -lblas 
 XERBLA=xerbla.o
-OPTIM_FLAGS=-D_BLAS_OPTIMIZATION -D_LAPACK_OPTIMIZATION
+OPTIM_FLAGS=-D_BLAS -D_LAPACK
 endif
 
 ifeq ($(BUILD),ACML)
@@ -56,11 +65,10 @@ OPTIM_FLAGS+=-DSCHED_FIFO=1
 endif
 
 INC =$(INC1) $(INC2) $(INC3)
-#LIB =$(LIB1) $(LIB2) -lg2c -lm
+#LIB =$(LIB1) $(LIB2) -lf2c -lm
 LIB =$(LIB1) $(LIB2) -lm
 
-#all : $(NAME)
-all : $(EQ_DIFF)
+all : $(NAME)
 
 # Options de compilation :
 #CFLAGS = -g -Wall -ansi $(OPTIM_FLAGS)
@@ -87,31 +95,21 @@ $(UTILS).o : $(UTILS).c $(UTILS).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(UTILS).c $(PG)
 
 #
-$(PILOT).o : $(PILOT).c $(PILOT).h $(STD_H)
+$(MATHS).o : $(MATHS).c $(MATHS).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(MATHS).c $(PG)
+
+#
+$(PILOT).o : $(PILOT).c $(NAME).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(PILOT).c $(PG)
 
-#
-$(ODE_SOLVE).o : $(ODE_SOLVE).c $(STD_H)
-	$(CC) -c $(CFLAGS) $(INC) $(ODE_SOLVE).c $(PG)
-
-#
-$(EQ_DIFF).o : $(EQ_DIFF).c $(STD_H)
-	$(CC) -c $(CFLAGS) $(INC) $(EQ_DIFF).c $(PG)
-
 # Link the object files :
-$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o
-	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o $(LIB) $(PG)
-
-# Link the object files :
-$(EQ_DIFF) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o $(EQ_DIFF).o
-	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o $(EQ_DIFF).o $(LIB) $(PG)
+$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(MATHS).o
+	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(MATHS).o $(LIB) $(PG)
 
 # Archivage du projet en .tar
 tar :  
-#	tar -cvf $(NAME).tar ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./results/*
-	tar -cvf $(NAME).tar ./*.c ./*.h ./*param* ./Makefile ./utils/*
-#	tar -cvf $(NAME).tar ./*.c ./*.h ./*.m ./md1D_param.txt ./utils/*  
-#	tar -cvf $(NAME).tar ./*.c ./*.h  
+#	tar -cvf $(NAME).tar ./*.c ./*.h  ./Makefile ./*.txt
+	tar -cvf $(NAME).tar ./*.c ./*.h ./*.txt
 
 # Archivage et Compression du projet en .tar.bz2
 bz2 : tar

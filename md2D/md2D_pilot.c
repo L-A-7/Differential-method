@@ -52,6 +52,8 @@ return 0;*/
 		md2D_classical_FFF (&param, &effic, &nomfichier);
 	}else if (!strcmp(param.calcul_type,"NEAR_FIELD")){
 		md2D_near_field (&param, &effic, &nomfichier);
+	}else if (!strcmp(param.calcul_type,"VAR_I")){
+		md2D_var_i (&param, &effic, &nomfichier);
 	}else if (!strcmp(param.calcul_type,"ELLIPSO")){
 		md2D_conical_FFF_ellipso (&param, &effic, &nomfichier);
 	}else if (!strcmp(param.calcul_type,"VAR_LAMBDA_ELLIPSO")){
@@ -78,7 +80,7 @@ fprintf(stdout,"\nRePsisuper_TM :\n");SaveMatrix2file (param.Psi_super_TM, 2*par
 	if (param.verbosity >= 1){
 		printf("Efficiencies summ  : %1.10f\n",effic.sum_eff);
 		printf("1-Efficiencies summ: %e\n",1-effic.sum_eff);
-		fprintf(stdout,"Ellapsed time: %f s \n", md2D_chrono(&param));
+		fprintf(stdout,"Ellapsed time: %f s \n", md_chrono(&param));
 	}
 	
 	return 0;		
@@ -93,26 +95,24 @@ fprintf(stdout,"\nRePsisuper_TM :\n");SaveMatrix2file (param.Psi_super_TM, 2*par
 /*---------------------------------------------------------------------------------------------*/
 int md2D_classical_FFF (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
 {
-
-	/* Calcul des limites des modes propagatifs */
+	/* Propagative orders limits calculation */
 	md2D_propagativ_limits(par, eff);
 		
-	/* Amplitude du champ incident */
+	/* Incident field amplitude */
 	md2D_incident_field(par,eff);
 
 	S_matrix(par);
 
-	/* Calcul des amplitudes */
+	/* Amplitudes calculation */
 	md2D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
 
-	/* Calcul des efficacités */
+	/* Efficiencies calculation */
 	md2D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
 
-	/* Ecriture des résultats dans fichier_results */
+	/* Writting results in fichier_results */
 	md2D_genere_nom_fichier_results(nomfichier->fichier_results, par);
 
 	md2D_ecrire_results(nomfichier->fichier_results, par, eff);
-
 
 	return 0;
 }
@@ -160,6 +160,87 @@ int md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,st
 	return 0;
 }
 
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+ *
+ *		\brief	vary incidence and record specular variation as a function of theta_i.
+ */
+/*---------------------------------------------------------------------------------------------*/
+int md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
+{
+	FILE *fp;
+	double i_min = 0;
+	double i_max = 89;
+	double delta_i = 1;
+	par->Ni = ROUND((i_max - i_min + 1)/delta_i); 
+	int Ni = par->Ni;
+	double *var_i_angle, *var_i_effR, *var_i_effR_p1, *var_i_effR_m1, *var_i_effR_m2, *var_i_modR, *var_i_argR;
+
+	var_i_angle = (double *) malloc(sizeof(double)*Ni);
+	var_i_effR  = (double *) malloc(sizeof(double)*Ni);
+	var_i_effR_p1  = (double *) malloc(sizeof(double)*Ni);
+	var_i_effR_m1  = (double *) malloc(sizeof(double)*Ni);
+	var_i_effR_m2  = (double *) malloc(sizeof(double)*Ni);
+	var_i_modR  = (double *) malloc(sizeof(double)*Ni);
+	var_i_argR  = (double *) malloc(sizeof(double)*Ni);
+
+
+	/* Boucle sur l'angle d'incidence */
+	for (par->ni=0; par->ni<=Ni-1; (par->ni)++){
+	
+		par->theta_i = (i_min + delta_i*(double)par->ni)*PI/180.0;
+		par->sigma0 = par->k_super*sin(par->theta_i);
+		var_i_angle[par->ni] = (i_min + delta_i*(double)par->ni);
+			
+/*		fprintf(stdout,"\r i = %3.0f   ",par->theta_i*180.0/PI);fflush(stdout);
+*/		par->verbosity = 0;
+	
+		/* Propagative orders limits calculation */
+		md2D_propagativ_limits(par, eff);
+		/* Incident field amplitude */
+		md2D_incident_field(par,eff);
+		/* S matrix */
+		S_matrix(par);
+		/* Amplitudes calculation */
+		md2D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
+		/* Efficiencies calculation */
+		md2D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
+			
+		/* Récupération de la grandeur */
+		var_i_effR[par->ni] = eff->eff_r[-eff->Nmin_super];       /* Efficacité faisceau réfléchi */
+		var_i_effR_p1[par->ni] = eff->eff_r[-eff->Nmin_super+1];       /* Efficacité ordre 1 */
+		var_i_effR_m1[par->ni] = eff->eff_r[-eff->Nmin_super-1];       /* Efficacité ordre -1 */
+		var_i_effR_m2[par->ni] = eff->eff_r[-eff->Nmin_super-2];       /* Efficacité ordre -2 */
+		var_i_modR[par->ni] = cabs(par->S12[par->N][par->N]);     /* module du facteur de réflexion du spéculaire */
+		var_i_argR[par->ni] = carg(par->S12[par->N][par->N]); /* argument du facteur de réflexion complexe du spéculaire */
+
+	}
+	
+	/* Writting results in fichier_results */
+	md2D_genere_nom_fichier_results(nomfichier->fichier_results, par);
+	md2D_ecrire_results(nomfichier->fichier_results, par, eff);
+
+	/* Ajout d'une ligne contenant var_i */
+	if (!(fp = fopen(nomfichier->fichier_results,"a"))){
+		fprintf(stderr, "%s ligne %d : Erreur, impossible d'ouvrir %s\n",__FILE__, __LINE__,nomfichier->fichier_results);
+		exit(EXIT_FAILURE);
+	}
+	int LMAX = 1000; /* NORMALEMENT UNE MACRO */
+	
+	fprintf(fp,"\nvar_i_angle = "); ecrire_dble_tab(fp, var_i_angle, par->Ni, " ", LMAX,"\n");
+	fprintf(fp,"\nvar_i_effR  = "); ecrire_dble_tab(fp, var_i_effR, par->Ni, " ", LMAX,"\n");
+	fprintf(fp,"\nvar_i_effR_p1  = "); ecrire_dble_tab(fp, var_i_effR_p1, par->Ni, " ", LMAX,"\n");
+	fprintf(fp,"\nvar_i_effR_m1  = "); ecrire_dble_tab(fp, var_i_effR_m1, par->Ni, " ", LMAX,"\n");
+	fprintf(fp,"\nvar_i_effR_m2  = "); ecrire_dble_tab(fp, var_i_effR_m2, par->Ni, " ", LMAX,"\n");
+	fprintf(fp,"\nvar_i_modR  = "); ecrire_dble_tab(fp, var_i_modR, par->Ni, " ", LMAX,"\n");
+	fprintf(fp,"\nvar_i_argR  = "); ecrire_dble_tab(fp, var_i_argR, par->Ni, " ", LMAX,"\n");
+		
+	fclose(fp);
+
+
+	return 0;
+}
 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		md2D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
@@ -361,8 +442,8 @@ int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 
 	if (!strcmp(par->calcul_method,"RK4")){
 			par->P_matrix = rk4_P_matrix;
-	}else if (!strcmp(par->calcul_method,"SHOOTING_METHOD")){
-			par->P_matrix = shooting_P_matrix;
+/*	}else if (!strcmp(par->calcul_method,"SHOOTING_METHOD")){
+			par->P_matrix = shooting_P_matrix;*/
 	}else if (!strcmp(par->calcul_method,"Z_INVAR")){
 			par->P_matrix = zinvar_P_matrix;
 	}else if (!strcmp(par->calcul_method,"IMPROVED_RCWA")){

@@ -540,52 +540,6 @@ int euler2_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 	return 0;
 }
 
-/*-------------------------------------------------------------------------------------*/
-/*!	int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
- *
- *	\brief P_matrix calculation in the cas of z invariance
- */
-/*-------------------------------------------------------------------------------------*/
-int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
-{
-	int n,j, Nstep, vec_size = par->vec_size;
-	COMPLEX *F1,*F2;
-	F1 = par->M_buffer_2vecsize[0];
-	F2 = par->M_buffer_2vecsize[1];
-	
-	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier*/
-	double eps = -1e-10; /* Pour s'affranchir des erreurs d'arrondi */
-	Nstep = CEIL(eps + Delta_z/par->delta_h);
-	/* dz = Delta_z/Nstep; */
-
-	/* Shooting method */
-	for (n=0; n<=2*vec_size-1; n++){
-
-		/* Construction des vecteurs de base */	
-		for (j=0;j<=2*vec_size-1;j++){
-			F1[j] = 0;
-		}
-		F1[n] = 1;
-		
-   	/* Intégration des grandeurs pour une couche */
-		ode_solve((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);
-/*		eq_diff((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);*/
-
-		/* Construction de la matrice P */
-		for(j=0;j<=2*vec_size-1;j++){
-			P[j][n] = F2[j];
-		}
-		
-		/*Affichage du temps restant à l'écran */
-		/*md1D_affichTemps(n,N,nS,NS,par->ni,par->Ni,par);*/
-	}
-	
-	par->N_steps += Nstep;
-		
-	return 0;
-}
-
-
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int M_matrix(COMPLEX **M, double z, struct Param_struct *par)
@@ -1650,3 +1604,60 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+#if 0
+/*-------------------------------------------------------------------------------------*/
+/*!	int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+ *
+ *	\brief P_matrix calculation in the cas of z invariance
+ */
+/*-------------------------------------------------------------------------------------*/
+int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+{
+	int n,j, Nstep, vec_size = par->vec_size;
+	COMPLEX *F1,*F2;
+	F1 = par->M_buffer_2vecsize[0];
+	F2 = par->M_buffer_2vecsize[1];
+	
+	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier*/
+	double eps = -1e-10; /* Pour s'affranchir des erreurs d'arrondi */
+	Nstep = CEIL(eps + Delta_z/par->delta_h);
+	/* dz = Delta_z/Nstep; */
+
+	/* Shooting method */
+	for (n=0; n<=2*vec_size-1; n++){
+
+		/* Construction des vecteurs de base */	
+		for (j=0;j<=2*vec_size-1;j++){
+			F1[j] = 0;
+		}
+		F1[n] = 1;
+		
+   	/* Intégration des grandeurs pour une couche */
+		ode_solve((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);
+/*		eq_diff((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);*/
+
+		/* Construction de la matrice P */
+		for(j=0;j<=2*vec_size-1;j++){
+			P[j][n] = F2[j];
+		}
+		
+		/*Affichage du temps restant à l'écran */
+		/*md1D_affichTemps(n,N,nS,NS,par->ni,par->Ni,par);*/
+	}
+	
+	par->N_steps += Nstep;
+		
+	return 0;
+}
+#endif
+
+

@@ -574,7 +574,7 @@ int md2D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"N_steps   = %d\n",par->N_steps);
 /*	fprintf(fp,"fichier_profil = %s\n",fichier_profil);*/
 	fprintf(fp,"N_x = %d\n",par->N_x);
-	fprintf(fp,"Calcul_duration = %f s \n", md2D_chrono(par));
+	fprintf(fp,"Calcul_duration = %f s \n", md_chrono(par));
 
 
 	fprintf(fp,  "\n#------------ Results -------------\n");

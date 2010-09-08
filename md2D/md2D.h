@@ -9,9 +9,10 @@
 
 #include <fftw3.h>
 
-#include "md_io_utilss.h"
+#include "md_io_utils.h"
 #include "md2D_in_out.h"
 #include "md_utils.h"
+#include "md_maths.h"
 
 
 /* fonctions */
