@@ -1345,14 +1345,14 @@ int md2D_save_S_matrix(double h_partial, struct Param_struct *par)
 	
 	/* Nom de fichier */
 	if (par->pola == TM){
-		sprintf(filename,"S_TM_%s_h%f.txt",par->nom_profil,h_partial);
+		sprintf(filename,"S_TM_%s_h%f.txt",par->profile_name,h_partial);
 	}else{
-		sprintf(filename,"S_TE_%s_h%f.txt",par->nom_profil,h_partial);
+		sprintf(filename,"S_TE_%s_h%f.txt",par->profile_name,h_partial);
 	}	
 	fp = fopen(filename, "w");
 
 	/* Ecriture de certains parametres */
-	fprintf(fp,"mat_S_name = %s_h%f\n",par->nom_profil,h_partial);
+	fprintf(fp,"mat_S_name = %s_h%f\n",par->profile_name,h_partial);
 	fprintf(fp,"N = %d\n",par->N);
 	fprintf(fp,"h_partial = %1.6e\n",h_partial);
 	fprintf(fp,"Re_k_super = %1.6e\n",creal(par->k_super));

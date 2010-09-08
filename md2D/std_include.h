@@ -110,7 +110,7 @@ struct Param_struct {
 	int N_z;
 	int vec_size;
 	int vec_middle;
-	char nom_profil[SIZE_STR_BUFFER];
+	char profile_name[SIZE_STR_BUFFER];
 		
 	COMPLEX **tab_TF_k2;
 	COMPLEX **tab_TF_invk2;
@@ -293,7 +293,7 @@ struct Efficacites_struct {
 struct Noms_fichiers {
 	char fichier_config[SIZE_STR_BUFFER];
 	char fichier_param[SIZE_STR_BUFFER];
-	char fichier_profil[SIZE_STR_BUFFER];
+	char profile_file[SIZE_STR_BUFFER];
 	char fichier_results[SIZE_STR_BUFFER];
 	};
 

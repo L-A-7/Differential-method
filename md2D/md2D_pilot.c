@@ -288,7 +288,7 @@ int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct N
 	md2D_alloc_init_profil(par);
 
 	/* Lecture du profil h(x) décrivant la surface */
-	(*par->md2D_lire_profil)(nomfichier->fichier_profil, par);
+	(*par->md2D_lire_profil)(nomfichier->profile_file, par);
 
 	/* Initialisations de certaines variables */
 	md2D_variables_init(par, eff);

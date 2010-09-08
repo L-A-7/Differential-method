@@ -40,8 +40,8 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	/* Lecture des paramètres, d'abord en ligne de commande, si rien en ligne de commande,
 	   lecture dans fichier_param, sinon erreur et arret du programme */
-	if (lire_str_arg(nomfichier->fichier_profil, "-fichier_profil", argc, argvcp)){
-		if (lire_string (fp, "fichier_profil", nomfichier->fichier_profil)) erreur="fichier_profil";}
+	if (lire_str_arg(nomfichier->profile_file, "-profile_file", argc, argvcp)){
+		if (lire_string (fp, "profile_file", nomfichier->profile_file)) erreur="profile_file";}
 	if (lire_dble_arg(&par->L, "-L", argc, argvcp)){
 		if (lire_double (fp, "L", &(par->L) )) erreur="L";}
 	if (lire_str_arg(par->calcul_type, "-calcul_type", argc, argvcp)) {
@@ -50,8 +50,8 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		if (lire_string (fp, "calcul_method", par->calcul_method)) erreur="calcul_method";}
 	if (lire_dble_arg(&par->lambda, "-lambda", argc, argvcp)) {
 		if (lire_double (fp, "lambda", &(par->lambda) )) erreur="lambda";}
-	if (lire_str_arg(par->nom_profil, "-nom_profil", argc, argvcp)) {
-		if (lire_string (fp, "nom_profil", par->nom_profil)) erreur="nom_profil";}
+	if (lire_str_arg(par->profile_name, "-profile_name", argc, argvcp)) {
+		if (lire_string (fp, "profile_name", par->profile_name)) erreur="profile_name";}
 	if (lire_dble_arg(&par->coef_h, "-coef_h", argc, argvcp)) {
 		if (lire_double (fp, "coef_h", &(par->coef_h) )) par->coef_h = 1;}
 	if (lire_int_arg(&par->mode_extract_S, "-mode_extract_S", argc, argvcp)) {
@@ -197,10 +197,10 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	}
 
 	/* Lecture des paramètres dans fichier profil */
-	/* (Les paramètres liés à la nature ou indisociables du profil sont contenus dans fichier_profil) */
-	if (par->verbosity >= 2) fprintf(stdout,"Reading parameters in %s\n",nomfichier->fichier_profil);
-	if (!(fp = fopen(nomfichier->fichier_profil,"r"))){
-		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nomfichier->fichier_profil);
+	/* (Les paramètres liés à la nature ou indisociables du profil sont contenus dans profile_file) */
+	if (par->verbosity >= 2) fprintf(stdout,"Reading parameters in %s\n",nomfichier->profile_file);
+	if (!(fp = fopen(nomfichier->profile_file,"r"))){
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nomfichier->profile_file);
 		exit(EXIT_FAILURE);
 	}
 	erreur="NO_ERROR                     ";
@@ -256,8 +256,8 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 		fprintf(stdout,"calcul_type    = %s\n",par->calcul_type);
 		fprintf(stdout,"calcul_method  = %s\n",par->calcul_method);
 		fprintf(stdout,"i_field_mode   = %s\n",par->i_field_mode);
-		fprintf(stdout,"nom_profil     = %s\n",par->nom_profil);
-		fprintf(stdout,"fichier_profil = %s\n",nomfichier->fichier_profil);
+		fprintf(stdout,"profile_name     = %s\n",par->profile_name);
+		fprintf(stdout,"profile_file = %s\n",nomfichier->profile_file);
 		fprintf(stdout,"type_profil    = %s\n",(par->type_profil==H_X ? "H_X" :
 		                                        (par->type_profil==N_XYZ ? "N_XYZ":"MULTICOUCHES")));
 		fprintf(stdout,"N_couches      = %d\n",par->N_layers);
@@ -572,7 +572,7 @@ int md2D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"NS      = %d\n",par->NS);
 	fprintf(fp,"delta_h = %f\n",par->delta_h);
 	fprintf(fp,"N_steps   = %d\n",par->N_steps);
-/*	fprintf(fp,"fichier_profil = %s\n",fichier_profil);*/
+/*	fprintf(fp,"profile_file = %s\n",profile_file);*/
 	fprintf(fp,"N_x = %d\n",par->N_x);
 	fprintf(fp,"Calcul_duration = %f s \n", md_chrono(par));
 
@@ -611,9 +611,9 @@ int md2D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struc
 	
 	/* Génération d'un nom de la forme  nom_2004_10_12_16h34.mdi */
 /*	sprintf(nomfichier_results,"results/%s_%d_%02d_%02d_%02d%s%02d.txt",\
-		par->nom_profil, temps.tm_year+1900, temps.tm_mon+1, temps.tm_mday, temps.tm_hour, "h", temps.tm_min);
+		par->profile_name, temps.tm_year+1900, temps.tm_mon+1, temps.tm_mday, temps.tm_hour, "h", temps.tm_min);
 */
-	sprintf(nomfichier_results,"%s.txt",par->nom_profil);
+	sprintf(nomfichier_results,"%s.txt",par->profile_name);
 
 	return 1;
 
