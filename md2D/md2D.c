@@ -1308,8 +1308,9 @@ int md2D_affichTemps(int n, int N, int nS, int NS, int ni, int Ni, struct Param_
 		}else{
 			fprintf(stderr, "%s, line %d : ERROR, unknown calculation method (\"%s\")\n",__FILE__,__LINE__,par->calcul_method);
 		}*/
-		t_total = t_ecoule*NS/(nS+1);
-		
+/*		t_total = t_ecoule*NS/(nS+1);*/
+		t_total = t_ecoule*Ni*NS/( ni*NS+nS+1 );
+
 		float t_restant = t_total - t_ecoule;
 		int pourcent = ROUND(100.0*t_ecoule/t_total);
 				
