@@ -190,12 +190,17 @@ int md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct 
 	for (par->ni=0; par->ni<=Ni-1; (par->ni)++){
 	
 		par->theta_i = (i_min + delta_i*(double)par->ni)*PI/180.0;
-		par->sigma0 = par->k_super*sin(par->theta_i);
+		par->sigma0 = par->k_super*sin(par->theta_i)*cos(par->phi_i);
+		par->ky_0   = par->k_super*sin(par->theta_i)*sin(par->phi_i);
 		var_i_angle[par->ni] = (i_min + delta_i*(double)par->ni);
 			
 /*		fprintf(stdout,"\r i = %3.0f   ",par->theta_i*180.0/PI);fflush(stdout);
 */		par->verbosity = 0;
 	
+	/* Initialising some arrays */
+	md2D_arrays_init(par, eff);
+	/* Affichage des paramètres lus et calculés */
+	md2D_affiche_valeurs_param(par, nomfichier);
 		/* Propagative orders limits calculation */
 		md2D_propagativ_limits(par, eff);
 		/* Incident field amplitude */
@@ -208,6 +213,11 @@ int md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct 
 		md2D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
 			
 		/* Récupération de la grandeur */
+/*printf("Nmin_super = %d\n",eff->Nmin_super);
+printf("theta_i = %f\n",par->theta_i);
+printf("sigma0 = %f\n",creal(par->sigma0));
+printf("eff->eff_r[-eff->Nmin_super] = %f\n",eff->eff_r[-eff->Nmin_super]);
+SaveDbleTab2file (eff->eff_r,  par->vec_size,"stdout", " ",10000000,"");*/
 		var_i_effR[par->ni] = eff->eff_r[-eff->Nmin_super];       /* Efficacité faisceau réfléchi */
 		var_i_effR_p1[par->ni] = eff->eff_r[-eff->Nmin_super+1];       /* Efficacité ordre 1 */
 		var_i_effR_m1[par->ni] = eff->eff_r[-eff->Nmin_super-1];       /* Efficacité ordre -1 */
