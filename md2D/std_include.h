@@ -9,15 +9,25 @@
 #include <ctype.h>
 #include <time.h>
 
-#ifdef _ACML
-#undef _BLAS_OPTIMIZATION
-#undef _LAPACK_OPTIMIZATION
+#if defined (_ACML) || defined (_BLAS) || defined (_CBLAS)
+#define _LOWLEVEL_MAT_LIB
+#else
+#define _NO_LOWLEVEL_MAT_LIB
 #endif
 
-#ifdef _BLAS_OPTIMIZATION
+#ifdef _ACML
+#undef _BLAS
+#undef _CBLAS
+#undef _LAPACK
+#endif
+
+#ifdef _BLAS
+/*#include <blas.h>*/
+#endif
+#ifdef _CBLAS
 #include <cblas.h>
 #endif
-#ifdef _LAPACK_OPTIMIZATION
+#ifdef _LAPACK
 #include <clapack.h>
 #endif
 #ifdef _ACML

@@ -6,15 +6,11 @@ ACML_LIB_DIR = /opt/acml4.3.0/gfortran64/lib
 ATLAS_INCLUDE_DIR = /usr/include/atlas
 ATLAS_LIB_DIR = /usr/lib64/atlas
 
-#BUILD=ACML
-#BUILD=Lapack
-#BUILD=Lapack_ATLAS
 HAVE_ACML=1
 HAVE_BLAS=0
 HAVE_CBLAS=0
-HAVE_LAPACK=0
+HAVE_LAPACK=1
 HAVE_ATLAS=0
-
 
 NAME = md2D
 STD_H = std_include.h
@@ -25,32 +21,42 @@ PILOT = $(NAME)_pilot
 MATHS = md_maths
 
 #LIB1 = -static -lfftw3
-LIB1 = /usr/lib/libfftw3.a
+LIB+= /usr/lib/libfftw3.a
+INC=
+DEFS=
 
 ifeq ($(HAVE_ACML),1)
-INC2= -I$(ACML_INCLUDE_DIR)
-LIB2 = -L$(ACML_LIB_DIR) -lacml
-OPTIM_FLAGS= -D_ACML
+INC+= -I$(ACML_INCLUDE_DIR)
+LIB+= -L$(ACML_LIB_DIR) -lacml
+DEFS+= -D_ACML
 endif
 
-ifeq ($(BUILD),Lapack)
-INC2 = -I$(ATLAS_INCLUDE_DIR)
-LIB2 = -llapack -lblas 
+ifeq ($(HAVE_BLAS),1)
+#INC+= -I$(BLAS_INCLUDE_DIR)
+#LIB+= -L$(BLAS_LIB_DIR) -lblas
+LIB+= -lblas
+DEFS+= -D_BLAS
+endif
+
+ifeq ($(HAVE_CBLAS),1)
+#INC+= -I$(BLAS_INCLUDE_DIR)
+#LIB+= -L$(BLAS_LIB_DIR) -lcblas
+LIB+= -lcblas
+DEFS+= -D_CBLAS
+endif
+
+ifeq ($(HAVE_LAPACK),1)
+#INC+= -I$(LAPACK_INCLUDE_DIR)
+#LIB+= -L$(LAPACK_LIB_DIR) -llapack
+LIB+= -llapack
+DEFS+= -D_LAPACK
+endif
+
+ifeq ($(HAVE_ATLAS),1)
+INC+= -I$(ATLAS_INCLUDE_DIR)
+LIB+= -L$(ATLAS_LIB_DIR) -latlas -llapack -lblas 
 XERBLA=xerbla.o
-OPTIM_FLAGS=-D_LAPACK
-endif
-
-ifeq ($(BUILD),Lapack_ATLAS)
-INC2 = -I$(ATLAS_INCLUDE_DIR)
-LIB2 = -L$(ATLAS_LIB_DIR) -latlas -llapack -lblas 
-XERBLA=xerbla.o
-OPTIM_FLAGS=-D_BLAS -D_LAPACK
-endif
-
-ifeq ($(BUILD),ACML)
-INC2= -I$(ACML_INCLUDE_DIR)
-LIB2 = -L$(ACML_LIB_DIR) -lacml
-OPTIM_FLAGS= -D_ACML
+DEFS+= -D_BLAS -D_LAPACK
 endif
 
 ifeq ($(COMPIL),ICC)
@@ -60,19 +66,18 @@ else
 CC=gcc
 endif
 
-ifeq ($(SCHED),FIFO)
-OPTIM_FLAGS+=-DSCHED_FIFO=1
-endif
+#ifeq ($(SCHED),FIFO)
+#OPTIM_FLAGS+=-DSCHED_FIFO=1
+#endif
 
-INC =$(INC1) $(INC2) $(INC3)
-#LIB =$(LIB1) $(LIB2) -lf2c -lm
-LIB =$(LIB1) $(LIB2) -lm
+#LIB =$(LIB) -lf2c -lm
+LIB+= -lm
 
 all : $(NAME)
 
 # Options de compilation :
-#CFLAGS = -g -Wall -ansi $(OPTIM_FLAGS)
-CFLAGS = -O3 -Wall -ansi $(OPTIM_FLAGS)
+#CFLAGS = -g -Wall -ansi $(DEFS)
+CFLAGS = -O3 -Wall -ansi $(DEFS)
 
 # Profiling
 #PG = -pg

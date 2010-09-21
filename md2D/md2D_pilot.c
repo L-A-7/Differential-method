@@ -36,15 +36,10 @@ int main(int argc, char *argv[]){
 *par);M_Matrix_TM(param.M, param.h/2.0, &param);
 printf("\n");SaveMatrix2file (param.M, 2*param.vec_size, 2*param.vec_size, "Im", "stdout");
 */
-/*int md2D_QMatrix(double z, COMPLEX **Qxx, COMPLEX **Qyy, COMPLEX **Qxz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct
-Param_struct *par);
+check_complex(1);
+matrix_operations_check();
 
-md2D_QMatrix(param.h/2, param.Qxx, param.Qyy, param.Qxz, param.Qzz, param.Qzz_1, &param);
-SaveCplxTab2file (param.TF_k2, 4*param.N+1, "Re", "stdout", " ");
-
-
-
-return 0;*/
+/*return 0;
 /*******************************************************************************************************/
 
 	/* Choix du type de calcul */
