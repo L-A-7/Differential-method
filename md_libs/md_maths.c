@@ -22,6 +22,8 @@ COMPLEX **M_x_M(COMPLEX **matrix_out, COMPLEX **matrix_1, COMPLEX **matrix_2, in
 	}
 #ifdef _ACML
 	acml_MxM(matrix_out, matrix_1, matrix_2, ncol);
+#elif defined _BLAS
+	blas_MxM(matrix_out, matrix_1, matrix_2, ncol);
 #elif defined _CBLAS
 	cblas_MxM(matrix_out, matrix_1, matrix_2, ncol);
 #elif defined _NO_LOWLEVEL_MAT_LIB
@@ -33,130 +35,13 @@ COMPLEX **M_x_M(COMPLEX **matrix_out, COMPLEX **matrix_1, COMPLEX **matrix_2, in
 	return matrix_out;
 }
 
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn	int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
- *
- *	\brief	Matrix product using ACML Library
- */
-/*-------------------------------------------------------------------------------------*/
-#ifdef _ACML_orig
-int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
-{
-  int i,j;
-  COMPLEX tmp1, tmp2;
-  doublecomplex alpha;
-  doublecomplex beta;
-
-  alpha.real = 1.0;
-  alpha.imag = 0.0;
-  beta.real = 0.0;
-  beta.imag = 0.0;
-
-  /* Transforming A and B in col major (Fortran style) */
-  for(i=0;i<N;i++){
-    for(j=i;j<N;j++){
-      tmp1 = A[i][j];
-      tmp2 = B[i][j];
-      A[i][j] = A[j][i];
-      B[i][j] = B[j][i];
-      A[j][i] = tmp1;
-      B[j][i] = tmp2;
-    }
-  }
-
-  /* Computing the matrix product */
-  zgemm('N', 
-  		'N', 
-		N, 
-		N, 
-		N, 
-		&alpha, 
-		(doublecomplex *) A[0], 
-		N,
-		(doublecomplex *) B[0],
-		N,
-		&beta,
-		(doublecomplex *) M_out[0],
-		N);
-
-  /* Transforming EigVectors in row major (C style) */
-  for(i=0;i<=N-1;i++){
-    for(j=i;j<=N-1;j++){
-      tmp1 = M_out[i][j];
-      M_out[i][j] = M_out[j][i];
-      M_out[j][i] = tmp1;
-    }
-  }
-  /* Transforming A and B in row major (C style) */
-  for(i=0;i<N;i++){
-    for(j=i;j<N;j++){
-      tmp1 = A[i][j];
-      tmp2 = B[i][j];
-      A[i][j] = A[j][i];
-      B[i][j] = B[j][i];
-      A[j][i] = tmp1;
-      B[j][i] = tmp2;
-    }
-  }
-
-  return 0;
-}
-#endif
-
-#ifdef _ACML_INTERMEDIAIRE
-/* intermediaire */
-int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
-{
-  int i,j;
-  COMPLEX tmp1, tmp2,tmp3;
-  doublecomplex alpha;
-  doublecomplex beta;
-
-  alpha.real = 1.0;
-  alpha.imag = 0.0;
-  beta.real = 0.0;
-  beta.imag = 0.0;
-
-  /* Transforming A and B in row major (C style) */
-	for(i=0;i<N;i++){
-		for(j=i;j<N;j++){
-			tmp2 = B[i][j];
-			B[i][j] = B[j][i];
-			B[j][i] = tmp2;
-			tmp1 = A[i][j];
-			A[i][j] = A[j][i];
-			A[j][i] = tmp1;
-		}
-	}
-  /* Computing the matrix product */
-  zgemm('N', 'N', N, N, N, &alpha, (doublecomplex *) A[0], N, 
-	(doublecomplex *) B[0], N, &beta, (doublecomplex *)M_out[0], N);
-
-  /* Transforming A,B & M_out in row major (C style) */
-  for(i=0;i<=N-1;i++){
-    for(j=i;j<=N-1;j++){
-      tmp3 = M_out[i][j];
-      M_out[i][j] = M_out[j][i];
-      M_out[j][i] = tmp3;
-      tmp2 = B[i][j];
-      B[i][j] = B[j][i];
-      B[j][i] = tmp2;
-      tmp1 = A[i][j];
-      A[i][j] = A[j][i];
-      A[j][i] = tmp1;
-    }
-  }
-
-  return 0;
-}
-#endif
 
 #ifdef _ACML
 /* Shakti */
 int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 {
   int i,j;
-  COMPLEX *A_tmp, *B_tmp, *M_out_tmp;
+  COMPLEX *A_tmp, *B_tmp, tmp1;
   doublecomplex alpha;
   doublecomplex beta;
 
@@ -167,7 +52,6 @@ int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 
   A_tmp = malloc(sizeof(COMPLEX) * N * N);
   B_tmp = malloc(sizeof(COMPLEX) * N * N);
-  M_out_tmp = malloc(sizeof(doublecomplex) * N * N);
 
   /* Copying A and B into col major (Fortran style) */
   for(i=0;i<N;i++){
@@ -179,25 +63,67 @@ int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 
   /* Computing the matrix product */
   zgemm('N', 'N', N, N, N, &alpha, (doublecomplex *)A_tmp, N, 
-	(doublecomplex *)B_tmp, N, &beta, (doublecomplex *)M_out_tmp, N);
+	(doublecomplex *)B_tmp, N, &beta, (doublecomplex *)M_out[0], N);
 
-  /* Transforming M_out_tmp in row major (C style) */
-  for(i=0;i<N;i++){
-    for(j=0;j<N;j++){
-      M_out[i][j] = M_out_tmp[j * N + i];
+  /* Transforming M_out in row major (C style) */
+  for(i=0;i<N-1;i++){
+    for(j=i+1;j<N;j++){
+      tmp1 = M_out[i][j];
+      M_out[i][j] = M_out[j][i];
+      M_out[j][i] = tmp1;
     }
   }
-  /*
-  for (i=0; i<N; i++)
-    for (j=0; j<N; j++)
-    {
-      printf("M[%d][%d]: %f + %fI\n", i, j, creal(M_out[i][j]), cimag(M_out[i][j]));
-    }
-  */
 
   free(A_tmp);
   free(B_tmp);
-  free(M_out_tmp);
+
+  return 0;
+}
+#endif
+
+
+/*!------------------------------------------------------------------------------------
+ *	\fn		int blas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
+ *
+ *	\brief	Matrix product using BLAS Library
+ *
+ *-------------------------------------------------------------------------------------*/
+#ifdef _BLAS
+int blas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
+{
+  int i,j;
+  COMPLEX tmp1, *A_tmp, *B_tmp;
+  COMPLEX alpha = 1.0;
+  COMPLEX beta = 0.0;
+  char *TransA = "N";
+  char *TransB = "N";
+  extern void zgemm_(char *TRANSA, char *TRANSB, int *, int *, int *, COMPLEX *ALPHA, COMPLEX *a, int *, COMPLEX *, int *, COMPLEX *, COMPLEX *, int *);
+
+  /* Making a copy of A and B (some blas implementations modify their values...) */
+  /* The copies are transposed matrices of A and B (because of the different matrices memory storing conventions in Fortran and C) */
+  /* (transposition could also be performed by seting TRANSA and TRANSB to "T") */
+  A_tmp = malloc(sizeof(COMPLEX) * N * N);
+  B_tmp = malloc(sizeof(COMPLEX) * N * N);
+  for(i=0;i<N;i++){
+    for(j=0;j<N;j++){
+      A_tmp[i + N * j] = A[i][j];
+      B_tmp[i + N * j] = B[i][j];
+    }
+  }
+
+  zgemm_(TransA, TransB, &N, &N, &N, &alpha, &A_tmp[0], &N, &B_tmp[0], &N, &beta, &M_out[0][0], &N);
+
+  /* Transposition of resulting matrice */
+  for(i=0;i<N-1;i++){
+    for(j=i+1;j<N;j++){
+      tmp1 = M_out[i][j];
+      M_out[i][j] = M_out[j][i];
+      M_out[j][i] = tmp1;
+    }
+  }
+
+free(A_tmp);
+free(B_tmp);
 
   return 0;
 }
@@ -206,18 +132,26 @@ int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 /*!------------------------------------------------------------------------------------
  *	\fn		int cblas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
  *
- *	\brief	Matrix product using BLAS Library
+ *	\brief	Matrix product using CBLAS Library
  *
  *-------------------------------------------------------------------------------------*/
 #ifdef _CBLAS
 int cblas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 {
+  int i,j;
+  COMPLEX *A_tmp, *B_tmp;
   COMPLEX alpha = 1.0;
   COMPLEX beta = 0.0;
 
-/*  fprintf(stdout, "blas_MxM, there is an unsolved problem... use manual product matrix instead");
-  exit(EXIT_FAILURE);
-*/
+  /* Making a copy of A and B (some cblas implementations modify their values...) */
+  A_tmp = malloc(sizeof(COMPLEX) * N * N);
+  B_tmp = malloc(sizeof(COMPLEX) * N * N);
+  for(i=0;i<N;i++){
+    for(j=0;j<N;j++){
+      A_tmp[i + N * j] = A[j][i];
+      B_tmp[i + N * j] = B[j][i];
+    }
+  }
   /*void cblas_zgemm (
     const enum CBLAS_ORDER Order, 
     const enum CBLAS_TRANSPOSE TransA, 
@@ -232,10 +166,13 @@ int cblas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 	       CblasNoTrans,
 	       N, N, N, 
 	       &alpha, 
-	       &A[0][0], N, 
-	       &B[0][0], N, 
+	       &A_tmp[0], N, 
+	       &B_tmp[0], N, 
 	       &beta, 
 	       &M_out[0][0], N);
+
+free(A_tmp);
+free(B_tmp);
 
   return 0;
 }
@@ -247,7 +184,6 @@ int cblas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
  *	\brief	Matrix product without use of a library
  *
  *-------------------------------------------------------------------------------------*/
-#ifdef _NO_LOWLEVEL_MAT_LIB
 int nolib_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 {
 	int i,j,k;
@@ -264,19 +200,6 @@ int nolib_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 	}
 	return 0;
 }
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /*-------------------------------------------------------------------------------------*/
@@ -1211,8 +1134,8 @@ COMPLEX **transpose_M(COMPLEX **M, int N)
 	int i,j;
 	COMPLEX tmp;
 
-	for(i=0;i<N;i++){
-		for(j=i;j<N;j++){
+	for(i=0;i<N-1;i++){
+		for(j=i+1;j<N;j++){
 			tmp = M[i][j];
 			M[i][j] = M[j][i];
 			M[j][i] = tmp;
@@ -1220,6 +1143,51 @@ COMPLEX **transpose_M(COMPLEX **M, int N)
 	}
 	
 	return M;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int check_complex()
+ *
+ *	\brief	Check that complex real and imag part are stored consecutively in memory for both COMPLEX type and struct{REAL real;REAL imag} typedef
+ */
+/*-------------------------------------------------------------------------------------*/
+int check_complex(int verbosity)
+{
+	COMPLEX *A;
+	typedef struct {REAL real; REAL imag;} doublecomplex;
+	doublecomplex *B;
+	double error,*a,*b;
+	int n;
+	A=(COMPLEX *) malloc(sizeof(COMPLEX)*3);
+	B=(doublecomplex *) malloc(sizeof(doublecomplex)*3);
+	a=(double *)A;
+	b=(double *)B;
+	A[0]=10+I*1;
+	A[1]=20+I*2;
+	A[2]=30+I*3;
+	B[0].real=10;
+	B[0].imag=1;
+	B[1].real=20;
+	B[1].imag=2;
+	B[2].real=30;
+	B[2].imag=3;
+
+	error=0;
+	for (n=0;n<6;n++){
+		error+=abs(a[n]-b[n]);
+	}
+	free(A);
+	free(B);
+
+	fprintf(stdout,"check_complex: ");
+	if (error < 1e-18){
+		fprintf(stdout,"OK (error = %.1e)\n",error);
+		return 0;
+	}else{
+		fprintf(stdout,"ERROR. Complex number don't seem properly aligned in the memory (error = %.1e)\n",error);
+		return 1;
+	}
 }
 
 /*-------------------------------------------------------------------------------------*/
@@ -1230,39 +1198,127 @@ COMPLEX **transpose_M(COMPLEX **M, int N)
 /*-------------------------------------------------------------------------------------*/
 int matrix_operations_check()
 {
-	int i,j,N=3;
+	int i,j,N=30;
 	double error;
-	COMPLEX **A,**B,**C;
+	COMPLEX **A,**B,**C, **Id, **A1, **A2, **A3, **A4, **A5, **Mtmp1, **Mtmp2, **Mtmp3;
 	A = allocate_CplxMatrix(N, N);
 	B = allocate_CplxMatrix(N, N);
 	C = allocate_CplxMatrix(N, N);
+	Id = allocate_CplxMatrix(N, N);
+	A1 = allocate_CplxMatrix(3, 3);
+	A2 = allocate_CplxMatrix(3, 3);
+	A3 = allocate_CplxMatrix(3, 3);
+	A4 = allocate_CplxMatrix(3, 3);
+	A5 = allocate_CplxMatrix(3, 3);
+	Mtmp1 = allocate_CplxMatrix(N, N);
+	Mtmp2 = allocate_CplxMatrix(N, N);
+	Mtmp3 = allocate_CplxMatrix(N, N);
 
 	srand(time(NULL));
 	for(i=0;i<N;i++){
-		for(j=i;j<N;j++){
-			A[j][i] = (double) rand()/RAND_MAX;
-			B[j][i] = (double) rand()/RAND_MAX;
+		for(j=0;j<N;j++){
+			A[j][i] = (double) rand()/RAND_MAX + I*(double) rand()/RAND_MAX;
+			B[j][i] = (double) rand()/RAND_MAX + I*(double) rand()/RAND_MAX;
+			Id[j][i] = 0;
 		}
+		Id[i][i] = 1;
 	}
 
-	
+
 	fprintf(stdout,"\nMatrix operations checking:\n");
 	fprintf(stdout,"(Errors are calculated as the sum of the absolute values of all elements of the resulting matrix, divided by the number of elements)\n\n");
 
+	/* Checking that A - M_equals(A) = 0 */
 	fprintf(stdout,"EQUALITY: Checking that A - M_equals(A) = 0... ");
-	C=sub_M(C,A,M_equals(C, A, N, N),N,N);
+	sub_M(C,A,M_equals(Mtmp1, A, N, N),N,N);
 	error = M_norm(C,N)/(N*N);
 	fprintf(stdout,"Error = %e\n",error);
-	fprintf(stdout,"Transpose: Checking that A - ((A)t)t = 0... ");
-	B=M_equals(B, A, N, N);
-	C=sub_M(C,A,transpose_M(transpose_M(B,N),N),N,N);
+
+	/* Checking that A - ((A)t)t = 0 */
+	fprintf(stdout,"TRANSPOSE: Checking that A - ((A)t)t = 0... ");
+	M_equals(Mtmp1, A, N, N);
+	sub_M(C,A,transpose_M(transpose_M(Mtmp1,N),N),N,N);
 	error = M_norm(C,N)/(N*N);
 	fprintf(stdout,"Error = %e\n",error);
+
+	/* Checking that A*Id - A = 0 */
+	fprintf(stdout,"PRODUCT: Checking that Id*A - A = 0... ");
+	sub_M(C, M_x_M(Mtmp1, Id, A, N, N), A, N, N);
+	error = M_norm(C,N)/(N*N);
+	fprintf(stdout,"Error = %e\n",error);
+
+	/* Checking that A*Id - A = 0 */
+	fprintf(stdout,"PRODUCT: Checking that A*Id - A = 0... ");
+	sub_M(C, M_x_M(Mtmp1, A, Id, N, N), A, N, N);
+/*fprintf(stdout,"\n");
+SaveMatrix2file (Mtmp1, N, N, "Re", "stdout");fprintf(stdout,"\n");
+SaveMatrix2file (A, N, N, "Re", "stdout");fprintf(stdout,"\n");
+SaveMatrix2file (Mtmp1, N, N, "Im", "stdout");fprintf(stdout,"\n");
+SaveMatrix2file (A, N, N, "Im", "stdout");fprintf(stdout,"\n");*/
+	error = M_norm(C,N)/(N*N);
+	fprintf(stdout,"Error = %e\n",error);
+
+	/* Checking that (A)t*(B)t - (B*A)t = 0 */
+	fprintf(stdout,"PRODUCT: Checking that (A)t*(B)t - (B*A)t = 0... ");
+	M_equals(Mtmp1, A, N, N);
+	M_equals(Mtmp2, B, N, N);
+	M_x_M(Mtmp3, transpose_M(Mtmp1,N), transpose_M(Mtmp2,N), N, N);
+	M_x_M(Mtmp1, B, A, N, N);
+	transpose_M(Mtmp1, N);
+	sub_M(C, Mtmp3, Mtmp1, N, N);
+	error = M_norm(C,N)/(N*N);
+	fprintf(stdout,"Error = %e\n",error);
+
+	/* Checking that A1*A2 - A3 = 0 */
+	A1[0][0]=1*(2+I);A1[0][1]=2*(2+I);A1[0][2]=3*(2+I);
+	A1[1][0]=4*(2+I);A1[1][1]=5*(2+I);A1[1][2]=6*(2+I);
+	A1[2][0]=7*(2+I);A1[2][1]=8*(2+I);A1[2][2]=9*(2+I);
+	A2[0][0]=3*(2+I);A2[0][1]=7*(2+I);A2[0][2]=8*(2+I);
+	A2[1][0]=9*(2+I);A2[1][1]=6*(2+I);A2[1][2]=5*(2+I);
+	A2[2][0]=4*(2+I);A2[2][1]=2*(2+I);A2[2][2]=1*(2+I);
+    A3[0][0]= 99+I*132;A3[0][1]= 75+I*100;A3[0][2]= 63+I*84;
+    A3[1][0]=243+I*324;A3[1][1]=210+I*280;A3[1][2]=189+I*252;
+    A3[2][0]=387+I*516;A3[2][1]=345+I*460;A3[2][2]=315+I*420;
+	fprintf(stdout,"PRODUCT: Checking that A1*A2 - A3 = 0... ");
+	sub_M(A5, M_x_M(A4, A1, A2, 3, 3), A3, 3, 3);
+	error = M_norm(A5,3)/(3*3);
+	fprintf(stdout,"Error = %e\n",error);
+/*	SaveMatrix2file (A1, 3, 3, "Re", "stdout");fprintf(stdout,"\n");
+	SaveMatrix2file (A2, 3, 3, "Re", "stdout");fprintf(stdout,"\n");
+	SaveMatrix2file (A3, 3, 3, "Re", "stdout");fprintf(stdout,"\n");
+	SaveMatrix2file (Mtmp1, 3, 3, "Re", "stdout");fprintf(stdout,"\n");*/
+/*	error = M_norm(A,N)/(N*N);
+	fprintf(stdout,"Error A= %e\n",error);
+	error = M_norm(B,N)/(N*N);
+	fprintf(stdout,"Error B= %e\n",error);
+	error = M_norm(Mtmp3,N)/(N*N);
+	fprintf(stdout,"Error tmp3= %e\n",error);
+	error = M_norm(Mtmp1,N)/(N*N);
+	fprintf(stdout,"Error tmp1= %e\n",error);*/
+
+	/* Checking that initial matrix values are preserved after a matrix product */
+	fprintf(stdout,"PRODUCT: Checking that initial matrix values are preserved after a matrix product... ");
+	M_equals(Mtmp1, A, N, N);
+	M_equals(Mtmp2, B, N, N);
+	M_x_M(Mtmp3, A, B, N, N);
+	error = M_norm(sub_M(C,A,Mtmp1,N,N),N)/(N*N);
+	fprintf(stdout,"Error A = %e\n",error);
+	error = M_norm(sub_M(C,B,Mtmp2,N,N),N)/(N*N);
+	fprintf(stdout,"Error B = %e\n",error);
 
 
 	free(A[0]); free(A);
 	free(B[0]); free(B);
 	free(C[0]); free(C);
+	free(Id[0]); free(Id);
+	free(A1[0]); free(A1);
+	free(A2[0]); free(A2);
+	free(A3[0]); free(A3);
+	free(A4[0]); free(A4);
+	free(A5[0]); free(A5);
+	free(Mtmp1[0]); free(Mtmp1);
+	free(Mtmp2[0]); free(Mtmp2);
+	free(Mtmp3[0]); free(Mtmp3);
 	
 	return 0;
 }

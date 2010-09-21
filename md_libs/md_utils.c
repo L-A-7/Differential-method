@@ -140,9 +140,11 @@ int SaveMatrix2file (COMPLEX **M, int Nlign, int Ncol, char *mode, char *filenam
   for (i=0;i<=Nlign-1;i++){
     for (j=0;j<=Ncol-1;j++){
       if(!strcmp(mode,"Re")){
-	fprintf(fp,"% 1.8e  ",creal(M[i][j]));
+/*	fprintf(fp,"% 1.8e  ",creal(M[i][j]));*/
+	fprintf(fp,"%g  ",creal(M[i][j]));
       }else if(!strcmp(mode,"Im")){
-	fprintf(fp,"% 1.8e  ",cimag(M[i][j]));
+/*	fprintf(fp,"% 1.8e  ",cimag(M[i][j]));*/
+	fprintf(fp,"%g  ",cimag(M[i][j]));
       }
     }
     fprintf(fp,"\n");
