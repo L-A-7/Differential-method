@@ -1,5 +1,5 @@
 /* \file  md2D_pilot.h
- *  \brief Fichier d'en-tête pour le programme md2D_pilot
+ *  \brief Header file for md2D_pilot
  */
 
 #ifndef _md2D_PILOT_H
@@ -58,6 +58,7 @@ int M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
 int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
 int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
 int rk4_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
+int implicit_rk_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par);
 int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
 
 /* For testing purpose */

@@ -19,6 +19,7 @@ UTILS = md_utils
 IO_UTILS = md_io_utils
 PILOT = $(NAME)_pilot
 MATHS = md_maths
+ODE = md_odesolve
 
 #LIB1 = -static -lfftw3
 LIB+= /usr/lib/libfftw3.a
@@ -76,8 +77,8 @@ LIB+= -lm
 all : $(NAME)
 
 # Options de compilation :
-#CFLAGS = -g -Wall -ansi $(DEFS)
-CFLAGS = -O3 -Wall -ansi $(DEFS)
+CFLAGS = -g -Wall -ansi $(DEFS)
+#CFLAGS = -O3 -Wall -ansi $(DEFS)
 
 # Profiling
 #PG = -pg
@@ -104,12 +105,16 @@ $(MATHS).o : $(MATHS).c $(MATHS).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(MATHS).c $(PG)
 
 #
+$(ODE).o : $(ODE).c $(ODE).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(ODE).c $(PG)
+
+#
 $(PILOT).o : $(PILOT).c $(NAME).h $(STD_H)
 	$(CC) -c $(CFLAGS) $(INC) $(PILOT).c $(PG)
 
 # Link the object files :
-$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(MATHS).o
-	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(MATHS).o $(LIB) $(PG)
+$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(MATHS).o $(ODE).o
+	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(MATHS).o $(ODE).o $(LIB) $(PG)
 
 # Archivage du projet en .tar
 tar :  

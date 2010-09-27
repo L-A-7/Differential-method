@@ -194,16 +194,7 @@ struct Param_struct {
 	COMPLEX **M_tmp21;
 	COMPLEX **M_tmp22;
 
-	COMPLEX **rkMz;
-	COMPLEX **rkMzd;
-	COMPLEX **rkMzdd;
-	COMPLEX **rkM1;
-	COMPLEX **rkM2;
-	COMPLEX **rkM3;
-	COMPLEX **rkM4;
-	COMPLEX **rkMtmp1;
-
-	COMPLEX **Psi_sub_TE;
+/*	COMPLEX **Psi_sub_TE;
 	COMPLEX **Psi_super_TE;
 	COMPLEX **invPsi_super_TE;
 	COMPLEX **Psi_sub_TM;
@@ -213,7 +204,7 @@ struct Param_struct {
 	COMPLEX **invVec_Psi;
 	COMPLEX **M_invVec_Psi;
 	COMPLEX **M_buffer_2vecsize;
-	COMPLEX *M_sol;
+	COMPLEX *M_sol;*/
 	
 	COMPLEX *Ai;
 	COMPLEX *Ar;

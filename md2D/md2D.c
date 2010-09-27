@@ -24,7 +24,6 @@ int md2D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff
 {
 	int n;
 
-
 	/* Plane wave */
 	if (!strcmp(par->i_field_mode,"PLANE_WAVE")){
 
@@ -308,44 +307,40 @@ int S_matrix(struct Param_struct *par)
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int T_Matrix_TE(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22,
-				int nS, struct Param_struct *par)
+/*!	\fn		int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS, struct Param_struct *par)
  *
- *	\brief Calcul de la matrice T en polarisation TE
+ *	\brief T matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
 int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS, struct Param_struct *par)
 {
 	int vec_size = par->vec_size;
-	
-	double hmin, hmax, z, Delta_z;
-	COMPLEX **Psi, **invPsi_super;
+	int i, j, v = vec_size;
+	int pola = par->pola;
+	COMPLEX *kz_sub, *kz_super, k_sub, k_super;
+	kz_sub = par->kz_sub;
+	kz_super = par->kz_super;
+	k_sub = par->k_sub;
+	k_super = par->k_super;
 
-	/* [F] vectors are defined by 	 	[V] vectors by
-	[F] = |[Ex ]|								[V] = |[VE-]|
-			|[Ey ]|								      |[VH-]|
-			|[H'x]|								      |[VE+]|
-			|[H'y]|  							      |[VH+]|  
-	with H'=omega mu H											*/
+	double hmin, hmax, z, Delta_z;
+	COMPLEX **P, **PPsi11, **PPsi12, **PPsi21, **PPsi22, *Psi22, *Psi11, *Psi12, *Psi21, *iPsi11, *iPsi12, *iPsi21, *iPsi22;
+
+	Psi11 = malloc(sizeof(COMPLEX)*vec_size); Psi12 = malloc(sizeof(COMPLEX)*vec_size);
+	Psi21 = malloc(sizeof(COMPLEX)*vec_size); Psi22 = malloc(sizeof(COMPLEX)*vec_size);
+	iPsi11 = malloc(sizeof(COMPLEX)*vec_size); iPsi12 = malloc(sizeof(COMPLEX)*vec_size);
+	iPsi21 = malloc(sizeof(COMPLEX)*vec_size); iPsi22 = malloc(sizeof(COMPLEX)*vec_size);
+	PPsi11 = allocate_CplxMatrix(vec_size,vec_size); PPsi12 = allocate_CplxMatrix(vec_size,vec_size);
+	PPsi21 = allocate_CplxMatrix(vec_size,vec_size); PPsi22 = allocate_CplxMatrix(vec_size,vec_size);
+	P = allocate_CplxMatrix(2*vec_size,2*vec_size);
 
 	/* Psi matrix */
 	if (nS==0){ /* 1st S-Matrix iteration : we are in the substrat */
-		if (par->pola == TE){
-			Psi = par->Psi_sub_TE;
-		}else{
-			Psi = par->Psi_sub_TM;}
+		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_sub, k_sub, vec_size, pola);
 	}else{     /* Following iterations : we are in the superstrat */
-		if (par->pola == TE){
-			Psi = par->Psi_super_TE;
-		}else{
-			Psi = par->Psi_super_TM;}
+		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, pola);
 	}
-
-	if (par->pola == TE){
-		invPsi_super = par->invPsi_super_TE;
-	}else{ /* TM */
-		invPsi_super = par->invPsi_super_TM;
-	}
+	invPsiMatrix(iPsi11, iPsi12, iPsi21, iPsi22, kz_super, k_super, vec_size, pola);
 
 	/* z of the considered T matrix slice */
 	hmin = par->h*nS/par->NS;
@@ -357,186 +352,223 @@ int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS,
 	Delta_z = hmax - hmin;
 	z = (hmax + hmin)/2;
 
-
 	/* P_matrix calculation */
-	(*par->P_matrix)(par->P, z, Delta_z, par);
+	(*par->P_matrix)(P, z, Delta_z, par);
 
 	/* T matrix : T = inv(Psi_super) * P_matrix * Psi */
-	M_x_M(par->T,
+/*	M_x_M(par->T,
 			invPsi_super, M_x_M(par->M_buffer_2vecsize, par->P, Psi, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
+*/
 /*printf("\nRe(par->T) :\n");
 SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
 printf("\nIm(par->T) :\n");
 SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
+	/* PPsi = P * Psi */
+	for (i=0;i<=vec_size-1;i++){
+		for (j=0;j<=vec_size-1;j++){
+			/* PPsi11 = P11 * Psi11 + P12 * Psi21 */
+			PPsi11[i][j] = P[i][j]*Psi11[j] + P[i][j+v]*Psi21[j];
+			/* PPsi12 = P11 * Psi12 + P12 * Psi22 */
+			PPsi12[i][j] = P[i][j]*Psi12[j] + P[i][j+v]*Psi22[j];
+			/* PPsi21 = P21 * Psi11 + P22 * Psi21 */
+			PPsi21[i][j] = P[i+v][j]*Psi11[j] + P[i+v][j+v]*Psi21[j];
+			/* PPsi22 = P21 * Psi12 + P22 * Psi22 */
+			PPsi22[i][j] = P[i+v][j]*Psi12[j] + P[i+v][j+v]*Psi22[j];
+		}
+	}
+
+	/* T = inv(Psi_super) * P * Psi */
+	for (i=0;i<=vec_size-1;i++){
+		for (j=0;j<=vec_size-1;j++){
+			/* T11 = iPsi11 * PPsi11 + iPsi12 * PPsi21 */
+			T11[i][j] = iPsi11[i]*PPsi11[i][j] + iPsi12[i]*PPsi21[i][j];
+			/* PPsi12 = iPsi11 * PPsi12 + iPsi12 * PPsi22 */
+			T12[i][j] = iPsi11[i]*PPsi12[i][j] + iPsi12[i]*PPsi22[i][j];
+			/* PPsi21 = iPsi21 * PPsi11 + iPsi22 * PPsi21 */
+			T21[i][j] = iPsi21[i]*PPsi11[i][j] + iPsi22[i]*PPsi21[i][j];
+			/* PPsi22 = iPsi21 * PPsi12 + iPsi22 * PPsi22 */
+			T22[i][j] = iPsi21[i]*PPsi12[i][j] + iPsi22[i]*PPsi22[i][j];
+		}
+	}
+/*--------------- DEBUG -----------------*/
+/*
+COMPLEX **Mtmp1,**Mtmp2,**Mtmp3,**Psi,**invPsi_super;
+Mtmp1 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+Mtmp2 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+Mtmp3 = allocate_CplxMatrix(2*vec_size,2*vec_size);
+Psi = allocate_CplxMatrix(2*vec_size,2*vec_size);
+if (nS==0){
+	if (par->pola == TE){
+		Psi = par->Psi_sub_TE;
+	}else{
+		Psi = par->Psi_sub_TM;}
+}else{
+	if (par->pola == TE){
+		Psi = par->Psi_super_TE;
+	}else{
+		Psi = par->Psi_super_TM;}}
+if (par->pola == TE){
+	invPsi_super = par->invPsi_super_TE;
+}else{
+	invPsi_super = par->invPsi_super_TM;}
+M_x_M(Mtmp1, P, Psi, 2*vec_size, 2*vec_size);
+M_x_M(Mtmp2, invPsi_super, Mtmp1, 2*vec_size, 2*vec_size);
+printf("\nRe(T) :\n");
+SaveMatrix2file (Mtmp2, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nIm(T) :\n");
+SaveMatrix2file (Mtmp2, 2*vec_size, 2*vec_size, "Im", "stdout");
+printf("\nRe(T11) :\n");
+SaveMatrix2file (T11, vec_size, vec_size, "Re", "stdout");
+printf("\nRe(T12) :\n");
+SaveMatrix2file (T12, vec_size, vec_size, "Re", "stdout");
+printf("\nRe(T21) :\n");
+SaveMatrix2file (T21, vec_size, vec_size, "Re", "stdout");
+printf("\nRe(T22) :\n");
+SaveMatrix2file (T22, vec_size, vec_size, "Re", "stdout");
+printf("\nIm(T11) :\n");
+SaveMatrix2file (T11, vec_size, vec_size, "Im", "stdout");
+printf("\nIm(T12) :\n");
+SaveMatrix2file (T12, vec_size, vec_size, "Im", "stdout");
+printf("\nIm(T21) :\n");
+SaveMatrix2file (T21, vec_size, vec_size, "Im", "stdout");
+printf("\nIm(T22) :\n");
+SaveMatrix2file (T22, vec_size, vec_size, "Im", "stdout");
+*/
+
+/*--------------- DEBUG -----------------*/
+
 
 	/*Affichage du temps restant à l'écran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
 	
+	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
+	free(iPsi11);free(iPsi12);free(iPsi21);free(iPsi22);
+	free(PPsi11[0]);free(PPsi11);free(PPsi12[0]);free(PPsi12);
+	free(PPsi21[0]);free(PPsi21);free(PPsi22[0]);free(PPsi22);
+	free(P[0]);free(P);
+
 	return 0;
 }
 
+
 /*-------------------------------------------------------------------------------------*/
-/*!	int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+/*!	\fn		int PsiMatrix(COMPLEX *Psi11, COMPLEX *Psi12, COMPLEX *Psi21, COMPLEX *Psi22, COMPLEX *kz, COMPLEX k, int vec_size, int pola)
  *
- *	\brief P_matrix calculation in the case of z invariance
+ *		\brief	Psi block diagonal matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+int PsiMatrix(COMPLEX *Psi11, COMPLEX *Psi12, COMPLEX *Psi21, COMPLEX *Psi22, COMPLEX *kz, COMPLEX k, int vec_size, int pola)
 {
-	int i,j, vec_size = par->vec_size;
+	int i;
 
-	/* M matrix calculation */
-	(*par->M_matrix)(par->M, z, par);
-
-	/* Diagonalisation of M */
-	eigen_values(par->M, par->eig_values, par->EigVectors, par->eig_buffer, 2*vec_size);
-
-	/* Solution of the diagonalized system */
-	for (i=0;i<=2*vec_size-1;i++){
-		par->M_sol[i] = cexp(par->eig_values[i]*Delta_z);
-	}
-		
-	/* invEigVec = inv(EigVectors) */
-	invM(par->invEigVec, par->EigVectors, 2*vec_size);
-
-	/* M_invVec_Psi = M_sol * invVec_Psi */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			par->M_invVec_Psi[i][j] = par->M_sol[i] * par->invEigVec[i][j];
+	if (pola == TE){
+		for(i=0;i<=vec_size-1;i++){
+			Psi11[i] =  1;
+			Psi12[i] =  1;
+			Psi21[i] =  kz[i];
+			Psi22[i] = -kz[i];
 		}
+	}else if (pola == TM){
+		for(i=0;i<=vec_size-1;i++){
+			Psi11[i] =  -kz[i]/(k*k);
+			Psi12[i] =  kz[i]/(k*k);
+			Psi21[i] = 1;
+			Psi22[i] = 1;
+		}
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, unknown polarization... (\"%d\")\n",__FILE__,__LINE__,pola);
+		exit(EXIT_FAILURE);
 	}
 
-	/* P = EigVec * M_diag * inv(EigVec) */
-	M_x_M(P, par->EigVectors, par->M_invVec_Psi, 2*vec_size, 2*vec_size);
-
-	par->N_steps++;
-		
 	return 0;
 }
 
+
 /*-------------------------------------------------------------------------------------*/
-/*!	int rk4_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+/*!	\fn		int invPsiMatrix(COMPLEX *iPsi11, COMPLEX *iPsi12, COMPLEX *iPsi21, COMPLEX *iPsi22, COMPLEX *kz, COMPLEX k, int vec_size, int pola)
  *
- *	\brief P_matrix calculation with 4th order Runge Kutta vectorized method
+ *		\brief	Psi block diagonal matrix inverse
  */
 /*-------------------------------------------------------------------------------------*/
-int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
+int invPsiMatrix(COMPLEX *iPsi11, COMPLEX *iPsi12, COMPLEX *iPsi21, COMPLEX *iPsi22, COMPLEX *kz, COMPLEX k, int vec_size, int pola)
 {
-	int i,j, vec_size = par->vec_size;
-	COMPLEX **Mz, **Mzd, **Mzdd, **M2, **M3, **M4,**rkM_tmp;
-	Mz = par->rkMz;
-	Mzd = par->rkMzd;
-	Mzdd = par->rkMzdd;
-	M2 = par->rkM2;
-	M3 = par->rkM3;
-	M4 = par->rkM4;
-	rkM_tmp = par->rkMtmp1;
+	int i;
 
-	double dz_2 = 0.5*dz;
-
-	/* M matrix calculation */
-	(*par->M_matrix)(Mz,   z,         par);
-	(*par->M_matrix)(Mzd,  z+dz_2	, par);
-	(*par->M_matrix)(Mzdd, z+dz,      par);
-
-	/* M1 = Mz */
-
-	/* M2 = Mzd*(Id + M1*dz/2) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			rkM_tmp[i][j] = dz_2 * Mz[i][j]; 
+	if (pola == TE){
+		for(i=0;i<=vec_size-1;i++){
+			iPsi11[i] =  0.5;
+			iPsi12[i] =  0.5/kz[i];
+			iPsi21[i] =  0.5;
+			iPsi22[i] = -0.5/kz[i];
 		}
-		rkM_tmp[i][i] += 1; 
-	}
-	M_x_M(M2, Mzd, rkM_tmp, 2*vec_size, 2*vec_size);
-
-	/* M3 = Mzd*(Id + M2*dz/2) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			rkM_tmp[i][j] = dz_2 * M2[i][j]; 
+	}else if (pola == TM){
+		for(i=0;i<=vec_size-1;i++){
+			iPsi11[i] = -0.5*k*k/kz[i];
+			iPsi12[i] =  0.5;
+			iPsi21[i] =  0.5*k*k/kz[i];
+			iPsi22[i] =  0.5;
 		}
-		rkM_tmp[i][i] += 1; 
-	}
-	M_x_M(M3, Mzd, rkM_tmp, 2*vec_size, 2*vec_size);
-
-	
-	/* M4 = Mzdd*(Id + M3*dz) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			rkM_tmp[i][j] = dz * M3[i][j]; 
-		}
-		rkM_tmp[i][i] += 1; 
-	}
-	M_x_M(M4, Mzdd, rkM_tmp, 2*vec_size, 2*vec_size);
-
-	/* P = Id + (h/6)M1 + (h/3)M2 + (h/3)M3 + (h/6)M4 */
-	double dz_6 = dz/6.0;
-	double dz_3 = dz/3.0;
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			P[i][j] = dz_6*(Mz[i][j] + M4[i][j]) + dz_3*(M2[i][j] + M3[i][j]);
-		}
-		P[i][i] += 1; 
+	}else{
+		fprintf(stderr, "%s, line %d : ERROR, unknown polarization... (\"%d\")\n",__FILE__,__LINE__,pola);
+		exit(EXIT_FAILURE);
 	}
 
-	par->N_steps++;
-		
 	return 0;
 }
 
+
+
 /*-------------------------------------------------------------------------------------*/
-/*!	int euler_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+/*!	\fn		int PsiMatrixTE(COMPLEX **Psi, COMPLEX *kz, struct Param_struct *par)
  *
- *	\brief P_matrix calculation with vectorized Euler method
+ *		\brief	Psi matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int euler_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
+int PsiMatrixTE(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
 {
-	int i,j, vec_size = par->vec_size;
-	COMPLEX **Mz;
-	Mz = par->rkMz;
+	int i,j;
+	int vec_size = par->vec_size;
 
-	/* M matrix calculation */
-	(*par->M_matrix)(Mz,  z	, par);
-
-	/* P = Id + h*M */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			P[i][j] = dz * Mz[i][j]; 
+	for(i=0;i<=2*vec_size-1;i++){
+		for(j=0;j<=2*vec_size-1;j++){
+			Psi[i][j] = 0;
 		}
-		P[i][i] += 1; 
+	}
+	for(i=0;i<=vec_size-1;i++){
+		Psi[i][i]            =  1;
+		Psi[i][i+  vec_size] =  1;
+		Psi[i+vec_size][i]          = kz[i];
+		Psi[i+vec_size][i+vec_size] = -kz[i];
 	}
 
-	par->N_steps++;
-		
 	return 0;
 }
+
+
 /*-------------------------------------------------------------------------------------*/
-/*!	int euler2_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+/*!	\fn		int PsiMatrixTE(COMPLEX **Psi, COMPLEX *kz, struct Param_struct *par)
  *
- *	\brief P_matrix calculation with vectorized Euler method (takes the M matrix at the middle of the interval)
+ *		\brief	Psi matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int euler2_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
+int PsiMatrixTM(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
 {
-	int i,j, vec_size = par->vec_size;
-	COMPLEX **Mzd;
-	Mzd = par->rkMzd;
+	int i,j;
+	int vec_size = par->vec_size;
 
-	/* M matrix calculation */
-	(*par->M_matrix)(Mzd,  z+0.5*dz	, par);
-
-	/* P = Id + h*M(h+dz/2) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			P[i][j] = dz * Mzd[i][j]; 
+	for(i=0;i<=2*vec_size-1;i++){
+		for(j=0;j<=2*vec_size-1;j++){
+			Psi[i][j] = 0;
 		}
-		P[i][i] += 1; 
+	}
+	for(i=0;i<=vec_size-1;i++){
+		Psi[i][i]            =  -kz[i]/(k*k);
+		Psi[i][i+  vec_size] =  kz[i]/(k*k);
+		Psi[i+vec_size][i]          = 1;
+		Psi[i+vec_size][i+vec_size] = 1;
 	}
 
-	par->N_steps++;
-		
 	return 0;
 }
 
@@ -707,26 +739,6 @@ int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par)
 	}
 
 	return 0;
-}
-
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn		int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
- *
- *		\brief	
- */
-/*-------------------------------------------------------------------------------------*/
-int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
-{
-	struct Param_struct *par = (struct Param_struct *) param_void;
-	COMPLEX *F, *dF;
-
-	F = (COMPLEX *) F_reel;
-	dF = (COMPLEX *) dF_reel;
-	
-	(*par->M_matrix)(par->M, z, par);
-	M_x_V(dF, par->M, F, 2*par->vec_size, 2*par->vec_size);
-
-	return 0;	
 }
 
 /*-------------------------------------------------------------------------------------*/
@@ -928,59 +940,6 @@ int md2D_zinvarQMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, str
 }
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn		int PsiMatrixTE(COMPLEX **Psi, COMPLEX *kz, struct Param_struct *par)
- *
- *		\brief	Psi matrix calculation
- */
-/*-------------------------------------------------------------------------------------*/
-int PsiMatrixTE(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
-{
-	int i,j;
-	int vec_size = par->vec_size;
-
-	for(i=0;i<=2*vec_size-1;i++){
-		for(j=0;j<=2*vec_size-1;j++){
-			Psi[i][j] = 0;
-		}
-	}
-	for(i=0;i<=vec_size-1;i++){
-		Psi[i][i]            =  1;
-		Psi[i][i+  vec_size] =  1;
-		Psi[i+vec_size][i]          = kz[i];
-		Psi[i+vec_size][i+vec_size] = -kz[i];
-	}
-
-	return 0;
-}
-
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn		int PsiMatrixTE(COMPLEX **Psi, COMPLEX *kz, struct Param_struct *par)
- *
- *		\brief	Psi matrix calculation
- */
-/*-------------------------------------------------------------------------------------*/
-int PsiMatrixTM(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
-{
-	int i,j;
-	int vec_size = par->vec_size;
-
-	for(i=0;i<=2*vec_size-1;i++){
-		for(j=0;j<=2*vec_size-1;j++){
-			Psi[i][j] = 0;
-		}
-	}
-	for(i=0;i<=vec_size-1;i++){
-		Psi[i][i]            =  -kz[i]/(k*k);
-		Psi[i][i+  vec_size] =  kz[i]/(k*k);
-		Psi[i+vec_size][i]          = 1;
-		Psi[i+vec_size][i+vec_size] = 1;
-	}
-
-	return 0;
-}
-
-
-/*-------------------------------------------------------------------------------------*/
 /*!	\fn		int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
  *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
@@ -1083,7 +1042,6 @@ int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 	
 	return 0;
 }
-
 
 
 /*-------------------------------------------------------------------------------------*/
@@ -1524,12 +1482,13 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 		M_x_V(Vq_p, tab_S12[q], Vq_m, vec_size, vec_size);
 
 		/* Fq = Psi*Vq */
-		if (par->pola == TE){
+/*		if (par->pola == TE){
 			Psi = par->Psi_super_TE;
 		}else{
 			Psi = par->Psi_super_TM;
 		}
-		M_x_V(Fq, Psi, Vq, 2*vec_size, 2*vec_size);
+		M_x_V(Fq, Psi, Vq, 2*vec_size, 2*vec_size);*/
+fprintf(stderr, "Reprogram Fq = Psi*Vq, with the new block diagonal Psi matrices. Exiting.\n");exit(EXIT_FAILURE);
 
 		/* Near field in the real space */
 		if (par->pola == TE){
@@ -1607,58 +1566,74 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 }
 
 
-
-
-
-
-
-
-
 #if 0
 /*-------------------------------------------------------------------------------------*/
-/*!	int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+/*!	\fn		int oldT_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22,
+				int nS, struct Param_struct *par)
  *
- *	\brief P_matrix calculation in the cas of z invariance
+ *	\brief Calcul de la matrice T en polarisation TE
  */
 /*-------------------------------------------------------------------------------------*/
-int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
+int oldT_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS, struct Param_struct *par)
 {
-	int n,j, Nstep, vec_size = par->vec_size;
-	COMPLEX *F1,*F2;
-	F1 = par->M_buffer_2vecsize[0];
-	F2 = par->M_buffer_2vecsize[1];
+	int vec_size = par->vec_size;
 	
-	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier*/
-	double eps = -1e-10; /* Pour s'affranchir des erreurs d'arrondi */
-	Nstep = CEIL(eps + Delta_z/par->delta_h);
-	/* dz = Delta_z/Nstep; */
+	double hmin, hmax, z, Delta_z;
+	COMPLEX **Psi, **invPsi_super;
 
-	/* Shooting method */
-	for (n=0; n<=2*vec_size-1; n++){
+	/* [F] vectors are defined by 	 	[V] vectors by
+	[F] = |[Ex ]|								[V] = |[VE-]|
+			|[Ey ]|								      |[VH-]|
+			|[H'x]|								      |[VE+]|
+			|[H'y]|  							      |[VH+]|  
+	with H'=omega mu H											*/
 
-		/* Construction des vecteurs de base */	
-		for (j=0;j<=2*vec_size-1;j++){
-			F1[j] = 0;
-		}
-		F1[n] = 1;
-		
-   	/* Intégration des grandeurs pour une couche */
-		ode_solve((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);
-/*		eq_diff((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);*/
-
-		/* Construction de la matrice P */
-		for(j=0;j<=2*vec_size-1;j++){
-			P[j][n] = F2[j];
-		}
-		
-		/*Affichage du temps restant à l'écran */
-		/*md1D_affichTemps(n,N,nS,NS,par->ni,par->Ni,par);*/
+	/* Psi matrix */
+	if (nS==0){ /* 1st S-Matrix iteration : we are in the substrat */
+		if (par->pola == TE){
+			Psi = par->Psi_sub_TE;
+		}else{
+			Psi = par->Psi_sub_TM;}
+	}else{     /* Following iterations : we are in the superstrat */
+		if (par->pola == TE){
+			Psi = par->Psi_super_TE;
+		}else{
+			Psi = par->Psi_super_TM;}
 	}
+
+	if (par->pola == TE){
+		invPsi_super = par->invPsi_super_TE;
+	}else{ /* TM */
+		invPsi_super = par->invPsi_super_TM;
+	}
+
+	/* z of the considered T matrix slice */
+	hmin = par->h*nS/par->NS;
+	hmax = par->h*(nS+1)/par->NS;
+	if (par->tab_NS_ENABLED){
+		hmin = par->tab_NS[nS];
+		hmax = par->tab_NS[nS+1];
+	}
+	Delta_z = hmax - hmin;
+	z = (hmax + hmin)/2;
+
+
+	/* P_matrix calculation */
+	(*par->P_matrix)(par->P, z, Delta_z, par);
+
+	/* T matrix : T = inv(Psi_super) * P_matrix * Psi */
+	M_x_M(par->T,
+			invPsi_super, M_x_M(par->M_buffer_2vecsize, par->P, Psi, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
+/*printf("\nRe(par->T) :\n");
+SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
+printf("\nIm(par->T) :\n");
+SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
+
+
+	/*Affichage du temps restant à l'écran */
+	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
 	
-	par->N_steps += Nstep;
-		
 	return 0;
 }
 #endif
-
 

@@ -35,11 +35,50 @@ int main(int argc, char *argv[]){
 /*int M_Matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
 *par);M_Matrix_TM(param.M, param.h/2.0, &param);
 printf("\n");SaveMatrix2file (param.M, 2*param.vec_size, 2*param.vec_size, "Im", "stdout");
-*/
 check_complex(1);
 matrix_operations_check();
+*/
+/*
+	COMPLEX **Psi,**P, **PPsi11, **PPsi12, **PPsi21, **PPsi22, *Psi22, *Psi11, *Psi12, *Psi21, *iPsi11, *iPsi12, *iPsi21, *iPsi22, k, *kz;
+	int pola,vec_size=param.vec_size;
+	Psi11 = malloc(sizeof(COMPLEX)*vec_size); Psi12 = malloc(sizeof(COMPLEX)*vec_size);
+	Psi21 = malloc(sizeof(COMPLEX)*vec_size); Psi22 = malloc(sizeof(COMPLEX)*vec_size);
+	iPsi11 = malloc(sizeof(COMPLEX)*vec_size); iPsi12 = malloc(sizeof(COMPLEX)*vec_size);
+	iPsi21 = malloc(sizeof(COMPLEX)*vec_size); iPsi22 = malloc(sizeof(COMPLEX)*vec_size);
+	PPsi11 = allocate_CplxMatrix(vec_size,vec_size); PPsi12 = allocate_CplxMatrix(vec_size,vec_size);
+	PPsi21 = allocate_CplxMatrix(vec_size,vec_size); PPsi22 = allocate_CplxMatrix(vec_size,vec_size);
+	P = allocate_CplxMatrix(2*vec_size,2*vec_size);
+	Psi = param.invPsi_super_TM;
 
-/*return 0;
+k=param.k_super;
+kz=param.kz_super;
+pola=TM;
+invPsiMatrix(Psi11, Psi12, Psi21, Psi22, kz, k, vec_size, pola);
+
+printf("\nRe(Psi) :\n");
+SaveMatrix2file (Psi, 2*vec_size, 2*vec_size, "Re", "stdout");
+printf("\nIm(Psi) :\n");
+SaveMatrix2file (Psi, 2*vec_size, 2*vec_size, "Im", "stdout");
+printf("\nRe(Psi11) :\n");
+SaveCplxTab2file (Psi11, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nRe(Psi12) :\n");
+SaveCplxTab2file (Psi12, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nRe(Psi21) :\n");
+SaveCplxTab2file (Psi21, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nRe(Psi22) :\n");
+SaveCplxTab2file (Psi22, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(Psi11) :\n");
+SaveCplxTab2file (Psi11, vec_size, "Im", "stdout", " ", 10000, "\n");
+printf("\nIm(Psi12) :\n");
+SaveCplxTab2file (Psi12, vec_size, "Im", "stdout", " ", 10000, "\n");
+printf("\nIm(Psi21) :\n");
+SaveCplxTab2file (Psi21, vec_size, "Im", "stdout", " ", 10000, "\n");
+printf("\nIm(Psi22) :\n");
+SaveCplxTab2file (Psi22, vec_size, "Im", "stdout", " ", 10000, "\n");
+
+
+
+return 0;*/
 /*******************************************************************************************************/
 
 	/* Choix du type de calcul */
@@ -449,6 +488,8 @@ int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 			par->P_matrix = rk4_P_matrix;
 /*	}else if (!strcmp(par->calcul_method,"SHOOTING_METHOD")){
 			par->P_matrix = shooting_P_matrix;*/
+	}else if (!strcmp(par->calcul_method,"IMPLICIT_RK")){
+			par->P_matrix = implicit_rk_P_matrix;
 	}else if (!strcmp(par->calcul_method,"Z_INVAR")){
 			par->P_matrix = zinvar_P_matrix;
 	}else if (!strcmp(par->calcul_method,"IMPROVED_RCWA")){
@@ -484,12 +525,12 @@ int md2D_arrays_init(struct Param_struct *par, struct Efficacites_struct *eff)
 		par->kz_super[j] = csqrt(k_super2 - par->sigma[j]*par->sigma[j] - ky_02);
 		par->kz_sub[j]   = csqrt(k_sub2   - par->sigma[j]*par->sigma[j] - ky_02);
 	}
-	PsiMatrixTE(par->Psi_super_TE, par->k_super, par->kz_super, par);
+/*	PsiMatrixTE(par->Psi_super_TE, par->k_super, par->kz_super, par);
 	PsiMatrixTE(par->Psi_sub_TE, par->k_sub, par->kz_sub, par);
 	invM(par->invPsi_super_TE, par->Psi_super_TE, 2*par->vec_size);
 	PsiMatrixTM(par->Psi_super_TM, par->k_super, par->kz_super, par);
 	PsiMatrixTM(par->Psi_sub_TM, par->k_sub, par->kz_sub, par);
-	invM(par->invPsi_super_TM, par->Psi_super_TM, 2*par->vec_size);
+	invM(par->invPsi_super_TM, par->Psi_super_TM, 2*par->vec_size);*/
 
 	if (par->READ_tab_NS){
 		if (lire_tab(par->tab_NS_filename, "tab_NS", par->tab_NS, par->NS+1) != 0) {
@@ -603,7 +644,7 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->M_tmp21 = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	par->M_tmp22 = allocate_CplxMatrix(par->vec_size,par->vec_size);
 	
-	par->eig_values = (COMPLEX *) malloc(sizeof(COMPLEX)*2*par->vec_size);
+/*	par->eig_values = (COMPLEX *) malloc(sizeof(COMPLEX)*2*par->vec_size);
 	par->EigVectors = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->eig_buffer = (COMPLEX *) malloc(sizeof(COMPLEX)*50*2*par->vec_size);
 	
@@ -613,22 +654,12 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->M_buffer_2vecsize = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->M_sol = (COMPLEX *) malloc(sizeof(COMPLEX)*2*par->vec_size);
 
-	par->rkMz    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkMzd   = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkMzdd  = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkM1    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkM2    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkM3    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkM4    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->rkMtmp1 = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-
-
 	par->Psi_sub_TE      = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->Psi_super_TE    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->invPsi_super_TE = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->Psi_sub_TM      = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
 	par->Psi_super_TM    = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
-	par->invPsi_super_TM = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	par->invPsi_super_TM = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);*/
 
 	par->Ai = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));
 	par->Ar = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->vec_size));
@@ -759,7 +790,8 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 
 	free(par->T[0]);
 	free(par->T);
-	free(par->EigVectors[0]);
+
+/*	free(par->EigVectors[0]);
 	free(par->EigVectors);
 	free(par->invEigVec[0]);
 	free(par->invEigVec);
@@ -771,7 +803,8 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 	free(par->M_buffer_2vecsize);
 	free(par->eig_values);
 	free(par->eig_buffer);
-	free(par->M_sol);
+	free(par->M_sol);*/
+
 	free(par->Qxx[0]);
 	free(par->Qyy[0]);
 	free(par->Qzz[0]);
@@ -803,25 +836,7 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 	free(par->M_tmp21);
 	free(par->M_tmp22);
 	
-	free(par->rkMz[0]);
-	free(par->rkMzd[0]);
-	free(par->rkMzdd[0]);
-	free(par->rkM1[0]);
-	free(par->rkM2[0]);
-	free(par->rkM3[0]);
-	free(par->rkM4[0]);
-	free(par->rkMtmp1[0]);
-	free(par->rkMz);
-	free(par->rkMzd);
-	free(par->rkMzdd);
-	free(par->rkM1);
-	free(par->rkM2);
-	free(par->rkM3);
-	free(par->rkM4);
-	free(par->rkMtmp1);
-
-	
-	free(par->invPsi_super_TE[0]);
+/*	free(par->invPsi_super_TE[0]);
 	free(par->invPsi_super_TE);
 	free(par->Psi_sub_TE[0]);
 	free(par->Psi_sub_TE);
@@ -832,7 +847,7 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 	free(par->Psi_sub_TM[0]);
 	free(par->Psi_sub_TM);
 	free(par->Psi_super_TM[0]);
-	free(par->Psi_super_TM);
+	free(par->Psi_super_TM);*/
 	
 	free(par->Ai);
 	free(par->Ar);
