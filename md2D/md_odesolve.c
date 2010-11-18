@@ -13,7 +13,7 @@
 /*-------------------------------------------------------------------------------------*/
 /*!	int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
  *
- *	\brief P_matrix calculation in the case of z invariance
+ *	\brief P_matrix calculation in the case of z invariance. Uses eigen values resolution of the system (ie RCWA or Fourier Modal Method)
  */
 /*-------------------------------------------------------------------------------------*/
 int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)

@@ -39,6 +39,7 @@
 
 /* Constantes */
 #define DBLE_CMP_EXIGEANCE 100000000.0
+#define EPS 1e-10
 #define PI 3.14159265358979323846
 #define TE 1
 #define TM 2
@@ -52,6 +53,7 @@
 #define SIZE_LINE_BUFFER 50000
 
 #define NON_LU "Et_non_c_pas_lu"
+#define SUPER_BIG_HMIN_SSTEP 9999999999
 /* Macros */
 #define c_omplex(a,b) (a+I*b) 
 #define CHRONO(t2,t1) ((double)(t2-t1)/CLOCKS_PER_SEC)
@@ -102,17 +104,29 @@ struct Param_struct {
 	COMPLEX *kz_super;
 	COMPLEX *kz_sub;
 
-	int READ_tab_NS;
-        int tab_NS_ENABLED;
-        double *tab_NS;
-        char tab_NS_filename[SIZE_STR_BUFFER];
+/* A documenter tout ça...*/
+	/* Imposed S steps
+	if imposed_S_steps is entered in parameter file or command line. 2 values possible
+	. AUTO
+		The imposed steps are read from the profile.
+		If specified, hmin_Sstep is the maximum height between 2 successives iterations (otherwise it is set to h).
+	. FROM_FILE
+		imposed_S_steps are read from imposed_S_steps_filename which format must be
+			N_imposed_S_steps = [number of values]
+			tab_imposed_S_steps = [list of double values, separated by space/tab/end of line]
+	. NONE
+*/
+/*	int READ_tab_NS;*/
+	int tab_NS_ENABLED;
+	char imposed_S_steps[SIZE_STR_BUFFER];		/* value 'AUTO', 'FROM_FILE' or 'NONE'(default) */
+	double *tab_NS;				/* tab_NS: array of S-steps. First element should be 0 and last element should be h */
+	double *tab_imposed_S_steps;/* tab_imposed_S_steps: array of imposed height of some S-steps. This is not necessary the same as tab_NS, which contains at least all positions indicated by tab_imposed_S_steps, and eventually some more in order to respect hmin_Ssteps */
+/*	char tab_NS_filename[SIZE_STR_BUFFER];*/
+	double hmin_Sstep;
+	char imposed_S_steps_filename[SIZE_STR_BUFFER];
+	int N_imposed_S_steps;
+	int NS_estimated;
 
-	int imposed_S_steps;
-        int N_imposed_S_steps;
-        double *tab_imposed_S_steps;
-        char imposed_S_steps_filename[SIZE_STR_BUFFER];
-
-	
 	double delta_h;
 	double **profil;
 	COMPLEX **n_xyz;
@@ -141,10 +155,10 @@ struct Param_struct {
 	COMPLEX **T;
 	COMPLEX **P;
 	COMPLEX **M;
-	COMPLEX *eig_values;
+/*	COMPLEX *eig_values;
 	COMPLEX **EigVectors;
 	COMPLEX *eig_buffer;
-	
+*/	
 	COMPLEX **Toep_k2;
 	COMPLEX **Toep_invk2;
 	COMPLEX **invToep_k2;
@@ -194,18 +208,6 @@ struct Param_struct {
 	COMPLEX **M_tmp21;
 	COMPLEX **M_tmp22;
 
-/*	COMPLEX **Psi_sub_TE;
-	COMPLEX **Psi_super_TE;
-	COMPLEX **invPsi_super_TE;
-	COMPLEX **Psi_sub_TM;
-	COMPLEX **Psi_super_TM;
-	COMPLEX **invPsi_super_TM;
-	COMPLEX **invEigVec;
-	COMPLEX **invVec_Psi;
-	COMPLEX **M_invVec_Psi;
-	COMPLEX **M_buffer_2vecsize;
-	COMPLEX *M_sol;*/
-	
 	COMPLEX *Ai;
 	COMPLEX *Ar;
 	COMPLEX *At;
@@ -228,12 +230,12 @@ struct Param_struct {
 	double delta_p;
 	double delta;
 
-	/* variable spécifiques pour aleat_T_ellipso */
-	double L_segment;
+	/* variable spécifiques pour aleat_T_ellipso NOT USED ANYMORE */
+/*	double L_segment;
 	double ecart_type_segment;
 	double h_total_aleat_T;
 	int *sequence_T;
-	int NS_total;
+	int NS_total;*/
 
 	/* NEAR_FIELD mode */
 /*	COMPLEX **Near_field_matrix;

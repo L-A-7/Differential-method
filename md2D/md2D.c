@@ -345,6 +345,7 @@ int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS,
 	/* z of the considered T matrix slice */
 	hmin = par->h*nS/par->NS;
 	hmax = par->h*(nS+1)/par->NS;
+printf("ns=%d, NS=%d\n",nS,par->NS);
 	if (par->tab_NS_ENABLED){
 		hmin = par->tab_NS[nS];
 		hmax = par->tab_NS[nS+1];
@@ -698,16 +699,16 @@ int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par)
 	int vec_size = par->vec_size;
 
 	COMPLEX *sigma = par->sigma;
-	COMPLEX **M12,**M21;
-	COMPLEX **M_tmp1, **M_tmp2, **M_tmp3;
-	COMPLEX **Qxx, **invQzz, **invToep_invk2, **invToep_k2, **Toep_k2;
+	COMPLEX **M12, **M_tmp2;
+	COMPLEX **invToep_invk2, **invToep_k2, **Toep_k2;
+/*	COMPLEX **Qxx, **invQzz,**M21,**M_tmp1,**M_tmp3;
 	Qxx = par->Qxx;
 	invQzz = par->Qzz_1;
-	M12 = par->M_tmp12;
-	M21 = par->M_tmp21;
 	M_tmp1 = par->M_tmp1;
-	M_tmp2 = par->M_tmp2;
 	M_tmp3 = par->M_tmp3;
+	M21 = par->M_tmp21;*/
+	M12 = par->M_tmp12;
+	M_tmp2 = par->M_tmp2;
 	Toep_k2       = par->Toep_k2;
 	invToep_invk2 = par->invToep_invk2;
 
@@ -963,14 +964,13 @@ int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn			
+/*!	\fn		int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
  *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
-	
 	int nx, n_layer=0;
 	
 	for (nx=0; nx<=par->N_x-1; nx++){
@@ -1359,37 +1359,117 @@ int md2D_save_S_matrix(double h_partial, struct Param_struct *par)
 	return 0;	
 }
 
-/*-------------------------------------------------------------------------------------*/
-/*!   \fn     int md2D_make_tab_S_steps(struct Param_struct* par)
+/*!-------------------------------------------------------------------------------------
+ *   \fn     int md2D_make_tab_S_steps(struct Param_struct* par)
  *
- *    \brief  N steps tab making, when some S steps are imposed
- */
-/*-------------------------------------------------------------------------------------*/
-int md2D_make_tab_S_steps(struct Param_struct *par){
+ *    \brief  Complete imposed S-steps by eventually adding S-step(s) so that there is at least one step every hmin_Sstep.
+ *    Note 1: S-steps correspond to the discretization used by S-matrix algorithm.
+ *    Note 2: Imposed S-steps are usefull for profiles with well defined horizontal interfaces (eg. multilayers) as opposed to profiles like rough surfaces or with sinusoidal shape for instance for which imposed S-steps are not usefull.
+ *-------------------------------------------------------------------------------------*/
+int md2D_make_tab_S_steps(struct Param_struct *par)
+{
 
-	int NSmin, num, ns, ms;
+	int N_subDiv, num, nsub, ms;
 	double eps = 1e-10;
-	/* read imposed_S_steps */
+	double *tab_imposed_S_steps = par->tab_imposed_S_steps;
+	double *tab_NS = par->tab_NS;
+	int N_imposed_S_steps = par->N_imposed_S_steps;
+	double h0, h = par->h;
+	double hmin_Ssteps=par->hmin_Sstep;
 
-	/**/
-	NSmin = CEIL(10*par->h/par->lambda);
+	/* h=0 */
+	num = 0;
+	if (fabs(tab_imposed_S_steps[0]) > eps){ /* if the first element of tab_imposed_S_steps is not 0. The first element of tabNS is set to 0 (otherwise it will be set, in the next loop, to the first element of tab_imposed_S_steps, which is also 0 */
+		tab_NS[num++] = 0;
+	}
 
-	num=0;
-	for (ns=0;ns<=NSmin;ns++){
-		par->tab_NS[num] = ns*(par->h/NSmin);
-		num++;
-		for (ms=0;ms<=par->N_imposed_S_steps-1;ms++){
-			if((par->tab_imposed_S_steps[ms] > ns*(par->h/NSmin)+eps) && (par->tab_imposed_S_steps[ms] < (ns+1)*(par->h/NSmin)-eps)){
-					par->tab_NS[num] = par->tab_imposed_S_steps[ms];
-                                       num++;
-                       }
-               }
-       }
-       par->NS=num-1;
+	/* between h>0 and max(tab_imposed_S_step) */
+	h0 = 0;
+	for (ms=0;ms<=N_imposed_S_steps-1;ms++){
+		N_subDiv=CEIL((tab_imposed_S_steps[ms]-h0)/hmin_Ssteps);
+		for (nsub=2;nsub<=N_subDiv;nsub++){
+			tab_NS[num++] = h0 + (nsub-1)*(tab_imposed_S_steps[ms]-h0)/N_subDiv;
+		}
+		tab_NS[num++]=tab_imposed_S_steps[ms];
+		h0=tab_imposed_S_steps[ms];
+	}
 
-       return 0;
+	/* Same thing between max(tab_imposed_S_steps) and h */
+	if (fabs(tab_imposed_S_steps[N_imposed_S_steps-1]-h) > eps){ /* if the last element of tab_imposed_S_steps is not h */
+		N_subDiv=CEIL((h-tab_imposed_S_steps[N_imposed_S_steps-1])/hmin_Ssteps);
+		for (nsub=2;nsub<=N_subDiv;nsub++){
+			tab_NS[num++] = tab_imposed_S_steps[N_imposed_S_steps-1] + (nsub-1)*(h-tab_imposed_S_steps[N_imposed_S_steps-1])/N_subDiv;
+		}
+		tab_NS[num++] = h;
+
+	}
+	par->NS=num;
+
+printf("\ntab_NS[par->NS-1]=%1.10f\n",tab_NS[par->NS-1]);
+printf("\npar->h=%1.10f\n",par->h);
+
+printf("\ntab_imposed_S_steps[N_imposed_S_steps-1]=%f\n",tab_imposed_S_steps[N_imposed_S_steps-1]);
+printf("\nN_subDiv=%d\n",N_subDiv);
+
+	return 0;
 }
 
+/*!-------------------------------------------------------------------------------------
+ *	\fn   int read_S_steps_from_profile(struct Param_struct *par)
+ *
+ *	\brief  Automatic determination of imposed S-steps from a profile.
+ *
+ *-------------------------------------------------------------------------------------*/
+int read_S_steps_from_profile(struct Param_struct *par)
+{
+
+	int compare_doubles (const void *a, const void *b);
+	double *tab_imposed_S_steps = par->tab_imposed_S_steps;
+	int Ntab = par->N_imposed_S_steps;
+	double **profil = par->profil;
+	int N_layers = par->N_layers;
+	int nx, n_layer, ntab, Nx = par->N_x;
+	int value_in_tab=0;
+	double eps=1e-10;
+
+	/* Select all different values in profile to constitute tab_imposed_S_steps */
+	Ntab=0;
+	for (n_layer=0;n_layer<=N_layers+2;n_layer++){
+		for (nx=0;nx<Nx;nx++){
+			value_in_tab=0;
+			for (ntab=0;ntab<Ntab;ntab++){
+				if (fabs(profil[n_layer][nx]-tab_imposed_S_steps[ntab])< eps){
+					value_in_tab=1;
+				}
+			}
+			if (value_in_tab==0){
+				tab_imposed_S_steps[Ntab]=profil[n_layer][nx];
+				Ntab++;
+			}
+		}
+	}
+
+	/* Sort tab_imposed_S_steps */
+	qsort (tab_imposed_S_steps, Ntab, sizeof(double), compare_doubles);
+
+	par->N_imposed_S_steps = Ntab;
+
+	return 0;
+}
+
+
+int compare_doubles (const void *a, const void *b)
+{
+  double* a1 = (double*) a;
+  double* b1 = (double*) b;
+  double temp = *a1 - *b1;
+  if (temp > 0)
+    return 1;
+  else if (temp < 0)
+    return -1;
+  else
+    return 0;
+}
 
 
 /*-------------------------------------------------------------------------------------*/

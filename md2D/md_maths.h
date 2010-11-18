@@ -1,1 +1,1 @@
-/home/lau/Programmes/md_libs/md_maths.h
+../md_libs/md_maths.h

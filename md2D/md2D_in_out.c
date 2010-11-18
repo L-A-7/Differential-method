@@ -12,13 +12,13 @@
 /*!	\fn		int md2D_lire_param(struct Param_struct *par){
  *	
  *	\brief	Lecture des paramètres dans un fichier
- */
-/*---------------------------------------------------------------------------------------------*/
+ *
+ *---------------------------------------------------------------------------------------------*/
 int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	FILE *fp;
 	int ret=0, argc=par->argc;
-	double n_super_re, n_super_im, n_sub_re, n_sub_im;
+	double n_super_re, n_super_im, n_sub_re, n_sub_im, tmp_dble;
 	char *erreur="NO_ERROR                     ";
 	char **argvcp=par->argvcp, str_profil[SIZE_STR_BUFFER], str_tmp[SIZE_STR_BUFFER];
 
@@ -40,81 +40,144 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	/* Lecture des paramètres, d'abord en ligne de commande, si rien en ligne de commande,
 	   lecture dans fichier_param, sinon erreur et arret du programme */
-	if (lire_str_arg(nomfichier->profile_file, "-profile_file", argc, argvcp)){
-		if (lire_string (fp, "profile_file", nomfichier->profile_file)) erreur="profile_file";}
-	if (lire_dble_arg(&par->L, "-L", argc, argvcp)){
-		if (lire_double (fp, "L", &(par->L) )) erreur="L";}
-	if (lire_str_arg(par->calcul_type, "-calcul_type", argc, argvcp)) {
-		if (lire_string (fp, "calcul_type", par->calcul_type)) erreur="calcul_type";}
-	if (lire_str_arg(par->calcul_method, "-calcul_method", argc, argvcp)) {
-		if (lire_string (fp, "calcul_method", par->calcul_method)) erreur="calcul_method";}
-	if (lire_dble_arg(&par->lambda, "-lambda", argc, argvcp)) {
-		if (lire_double (fp, "lambda", &(par->lambda) )) erreur="lambda";}
-	if (lire_str_arg(par->profile_name, "-profile_name", argc, argvcp)) {
-		if (lire_string (fp, "profile_name", par->profile_name)) erreur="profile_name";}
-	if (lire_dble_arg(&par->coef_h, "-coef_h", argc, argvcp)) {
-		if (lire_double (fp, "coef_h", &(par->coef_h) )) par->coef_h = 1;}
-	if (lire_int_arg(&par->mode_extract_S, "-mode_extract_S", argc, argvcp)) {
-		if (lire_int (fp, "mode_extract_S", &(par->mode_extract_S) )) par->mode_extract_S = 0;}
-	if (par->mode_extract_S){ 	
-	if (lire_dble_arg(&par->h_extract_S, "-h_extract_S", argc, argvcp)) {
-		if (lire_double (fp, "h_extract_S", &(par->h_extract_S) )) erreur="h_extract_S";}}	
-	if (lire_int_arg(&par->READ_MAT_S, "-READ_MAT_S", argc, argvcp)) {
-		if (lire_int (fp, "READ_MAT_S", &(par->READ_MAT_S) )) par->READ_MAT_S = 0;}
-	if (par->READ_MAT_S){ 	
-	if (lire_str_arg(par->mat_S_file, "-mat_S_file", argc, argvcp)) {
-		if (lire_string (fp, "mat_S_file", par->mat_S_file)) erreur="mat_S_file";}}	
-	if (lire_dble_arg(&par->theta_i, "-theta_i", argc, argvcp)) {
-		if (lire_double (fp, "theta_i", &(par->theta_i) )) erreur="theta_i";}
-		par->theta_i *= PI/180.0;
-	/*if (lire_dble_arg(&par->phi_i, "-phi_i", argc, argvcp)) {
-		if (lire_double (fp, "phi_i", &(par->phi_i) )) erreur="phi_i";}
-		par->phi_i *= PI/180.0;
-	if (lire_dble_arg(&par->psi, "-psi", argc, argvcp)) {
-		if (lire_double (fp, "psi", &(par->psi) )) erreur="psi";}
-		par->psi *= PI/180.0;*/
-	if (lire_str_arg(par->i_field_mode, "-i_field_mode", argc, argvcp)) {
-		if (lire_string (fp, "i_field_mode", par->i_field_mode)) erreur="i_field_mode";}
-	if (!strcmp(par->calcul_type,"ALEAT_T_ELLIPSO")){
-		if (lire_dble_arg(&par->L_segment, "-coef_h", argc, argvcp)) {
-			if (lire_double (fp, "L_segment", &(par->L_segment) )) erreur="L_segment";}
-		if (lire_dble_arg(&par->ecart_type_segment, "-ecart_type_segment", argc, argvcp)) {
-			if (lire_double (fp, "ecart_type_segment", &(par->ecart_type_segment) )) erreur="ecart_type_segment";}
-		if (lire_dble_arg(&par->h_total_aleat_T, "-h_total_aleat_T", argc, argvcp)) {
-			if (lire_double (fp, "h_total_aleat_T", &(par->h_total_aleat_T) )) erreur="h_total_aleat_T";}
+	arg_read(argc, argvcp, fp, "string", (void *) nomfichier->profile_file, "profile_file", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "string", (void *) par->calcul_type, "calcul_type", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "string", (void *) par->calcul_method, "calcul_method", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "string", (void *) par->profile_name, "profile_name", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "string", (void *) par->i_field_mode, "i_field_mode", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "string", (void *) str_tmp, "pola", EXIT_ON_ERROR);
+	if      (!strcmp(str_tmp,"TE")){
+		par->pola = TE;
+	}else if (!strcmp(str_tmp,"TM")){
+		par->pola = TM;
+	}else{
+		fprintf(stderr, "%s line %d: ERROR, pola must be either 'TE' or 'TM' (instead of %s)\n",__FILE__, __LINE__,str_tmp);
+		exit(EXIT_FAILURE);
 	}
-	if (lire_int_arg(&par->READ_tab_NS, "-READ_tab_NS", argc, argvcp)) {
-		if (lire_int (fp, "READ_tab_NS", &(par->READ_tab_NS) )) par->READ_tab_NS = 0;}
-	if (par->READ_tab_NS){
-		if (lire_str_arg(par->tab_NS_filename, "-tab_NS_filename", argc, argvcp)) {
-			if (lire_string (fp, "tab_NS_filename", par->tab_NS_filename)) erreur="tab_NS_filename";}
+	arg_read(argc, argvcp, fp, "double", (void *) &par->L, "L", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "double", (void *) &par->lambda, "lambda", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "double", (void *) &par->theta_i, "theta_i", EXIT_ON_ERROR);
+	par->theta_i *= PI/180.0;
+	if(arg_read(argc, argvcp, fp, "double", (void *) &par->coef_h, "coef_h", CONTINUE_ON_ERROR) != 0) par->coef_h = 1;
+
+/*	arg_read(argc, argvcp, fp, "complex", (void *) &par->n_super, "n_super", EXIT_ON_ERROR);
+*/
+	if (lire_dble_arg(&n_super_re, "-n_super_re", argc, argvcp)) {
+		if (lire_complex(fp, "n_super", &(par->n_super))) erreur="n_super";
+	}else{
+		if (lire_dble_arg(&n_super_im, "-n_super_im", argc, argvcp)) {
+			n_super_im =0;}
+		par->n_super = c_omplex(n_super_re, n_super_im);}
+
+	if (lire_dble_arg(&n_sub_re, "-n_sub_re", argc, argvcp)) {
+		if (lire_complex(fp, "n_sub", &(par->n_sub))) erreur="n_sub";
+	}else{
+		if (lire_dble_arg(&n_sub_im, "-n_sub_im", argc, argvcp)) {
+			n_sub_im =0;}
+		par->n_sub = c_omplex(n_sub_re, n_sub_im);}
+
+	/* imposed_Ssteps */
+	if(arg_read(argc, argvcp, fp, "string", (void *) par->imposed_S_steps, "imposed_S_steps", CONTINUE_ON_ERROR) != 0){
+		strcpy(par->imposed_S_steps,"NONE");
+	}else{
+		if(arg_read(argc, argvcp, fp, "double", (void *) &par->hmin_Sstep, "hmin_Sstep", CONTINUE_ON_ERROR) != 0) par->hmin_Sstep = SUPER_BIG_HMIN_SSTEP;
+printf("hmin_Sstep = %f\n",par->hmin_Sstep);
+		if (!strcmp(par->imposed_S_steps,"FROM_FILE")){
+			arg_read(argc, argvcp, fp, "string", (void *) par->imposed_S_steps_filename, "imposed_S_steps_filename", EXIT_ON_ERROR);
+			if (lire_tab(par->imposed_S_steps_filename, "N_imposed_S_steps", &tmp_dble, 1) != 0) {
+				fprintf(stderr, "%s line %d: ERROR, can't read N_imposed_S_steps in %s\n",__FILE__, __LINE__,par->imposed_S_steps_filename);
+				exit(EXIT_FAILURE);
+			}else{
+				par->N_imposed_S_steps = ROUND(tmp_dble);
+			}
+		}
 	}
-	if (lire_int_arg(&par->imposed_S_steps, "-imposed_S_steps", argc, argvcp)) {
+
+/*	if (lire_int_arg(&par->imposed_S_steps, "-imposed_S_steps", argc, argvcp)) {
 		if (lire_int (fp, "imposed_S_steps", &(par->imposed_S_steps) )) par->imposed_S_steps = 0;}
 	if (par->imposed_S_steps){
 		if (lire_str_arg(par->imposed_S_steps_filename, "-imposed_S_steps_filename", argc, argvcp)) {
 			if (lire_string (fp, "imposed_S_steps_filename", par->imposed_S_steps_filename)) erreur="imposed_S_steps_filename";}
 		if (lire_int_arg(&par->N_imposed_S_steps, "-N_imposed_S_steps", argc, argvcp)) {
 			if (lire_int (fp, "N_imposed_S_steps", &(par->N_imposed_S_steps) )) erreur="N_imposed_S_steps";}
-	}
-	
+	}*/
+
+
+/********************/
+/* peut être effacé */
+/********************/
+/*	if (lire_str_arg(nomfichier->profile_file, "-profile_file", argc, argvcp)){
+		if (lire_string (fp, "profile_file", nomfichier->profile_file)) erreur="profile_file";}
+	if (lire_str_arg(par->calcul_type, "-calcul_type", argc, argvcp)) {
+		if (lire_string (fp, "calcul_type", par->calcul_type)) erreur="calcul_type";}
+	if (lire_str_arg(par->calcul_method, "-calcul_method", argc, argvcp)) {
+		if (lire_string (fp, "calcul_method", par->calcul_method)) erreur="calcul_method";}
+	if (lire_str_arg(par->profile_name, "-profile_name", argc, argvcp)) {
+		if (lire_string (fp, "profile_name", par->profile_name)) erreur="profile_name";}
+	if (lire_str_arg(par->i_field_mode, "-i_field_mode", argc, argvcp)) {
+		if (lire_string (fp, "i_field_mode", par->i_field_mode)) erreur="i_field_mode";}
 	if (lire_str_arg(str_tmp, "-pola", argc, argvcp)) {
 		if (lire_string (fp, "pola", str_tmp)) erreur="pola";}
 		if      (!strcmp(str_tmp,"TE")){par->pola = TE;}
 		else if (!strcmp(str_tmp,"TM")){par->pola = TM;}
-		else                            {erreur = "pola";}	
-	if (lire_dble_arg(&n_super_re, "-n_super_re", argc, argvcp)) {
-		if (lire_COMPLEX(fp, "n_super", &(par->n_super))) erreur="n_super";
-	}else{
-		if (lire_dble_arg(&n_super_im, "-n_super_im", argc, argvcp)) {
-			n_super_im =0;}
-		par->n_super = c_omplex(n_super_re, n_super_im);}
-	if (lire_dble_arg(&n_sub_re, "-n_sub_re", argc, argvcp)) {
-		if (lire_COMPLEX(fp, "n_sub", &(par->n_sub))) erreur="n_sub";
-	}else{
-		if (lire_dble_arg(&n_sub_im, "-n_sub_im", argc, argvcp)) {
-			n_sub_im =0;}
-		par->n_sub = c_omplex(n_sub_re, n_sub_im);}
+		else                            {erreur = "pola";}*/
+/*	if (lire_dble_arg(&par->L, "-L", argc, argvcp)){
+		if (lire_double (fp, "L", &(par->L) )) erreur="L";}
+	if (lire_dble_arg(&par->lambda, "-lambda", argc, argvcp)) {
+		if (lire_double (fp, "lambda", &(par->lambda) )) erreur="lambda";}
+	if (lire_dble_arg(&par->coef_h, "-coef_h", argc, argvcp)) {
+		if (lire_double (fp, "coef_h", &(par->coef_h) )) par->coef_h = 1;}
+	if (lire_dble_arg(&par->theta_i, "-theta_i", argc, argvcp)) {
+		if (lire_double (fp, "theta_i", &(par->theta_i) )) erreur="theta_i";}
+	par->theta_i *= PI/180.0;*/
+
+/********************/
+/* NE PAS EFFACER pour l'instant(peut servir) */
+/********************/
+/*	if (lire_int_arg(&par->mode_extract_S, "-mode_extract_S", argc, argvcp)) {
+		if (lire_int (fp, "mode_extract_S", &(par->mode_extract_S) )) par->mode_extract_S = 0;}
+	if (lire_int_arg(&par->READ_MAT_S, "-READ_MAT_S", argc, argvcp)) {
+		if (lire_int (fp, "READ_MAT_S", &(par->READ_MAT_S) )) par->READ_MAT_S = 0;}
+	if (par->mode_extract_S){ 	
+		if (lire_dble_arg(&par->h_extract_S, "-h_extract_S", argc, argvcp)) {
+			if (lire_double (fp, "h_extract_S", &(par->h_extract_S) )) erreur="h_extract_S";}}	
+	if (par->READ_MAT_S){ 	
+		if (lire_str_arg(par->mat_S_file, "-mat_S_file", argc, argvcp)) {
+			if (lire_string (fp, "mat_S_file", par->mat_S_file)) erreur="mat_S_file";}}*/
+
+
+/* TabNS */
+/*	if (lire_int_arg(&par->READ_tab_NS, "-READ_tab_NS", argc, argvcp)) {
+		if (lire_int (fp, "READ_tab_NS", &(par->READ_tab_NS) )) par->READ_tab_NS = 0;}
+	if (par->READ_tab_NS){
+		if (lire_str_arg(par->tab_NS_filename, "-tab_NS_filename", argc, argvcp)) {
+			if (lire_string (fp, "tab_NS_filename", par->tab_NS_filename)) erreur="tab_NS_filename";}
+	}*/
+
+
+	
+/*	if (lire_dble_arg(&par->phi_i, "-phi_i", argc, argvcp)) {
+		if (lire_double (fp, "phi_i", &(par->phi_i) )) erreur="phi_i";}
+		par->phi_i *= PI/180.0;
+	if (lire_dble_arg(&par->psi, "-psi", argc, argvcp)) {
+		if (lire_double (fp, "psi", &(par->psi) )) erreur="psi";}
+		par->psi *= PI/180.0;*/
+
+/********************/
+/* peut être effacé */
+/********************/
+/*	if (!strcmp(par->calcul_type,"ALEAT_T_ELLIPSO")){
+		if (lire_dble_arg(&par->L_segment, "-coef_h", argc, argvcp)) {
+			if (lire_double (fp, "L_segment", &(par->L_segment) )) erreur="L_segment";}
+		if (lire_dble_arg(&par->ecart_type_segment, "-ecart_type_segment", argc, argvcp)) {
+			if (lire_double (fp, "ecart_type_segment", &(par->ecart_type_segment) )) erreur="ecart_type_segment";}
+		if (lire_dble_arg(&par->h_total_aleat_T, "-h_total_aleat_T", argc, argvcp)) {
+			if (lire_double (fp, "h_total_aleat_T", &(par->h_total_aleat_T) )) erreur="h_total_aleat_T";}
+	}*/
+
+printf("\npar->h0=%1.10f\n",par->h);
+lire_double (fp, "h", &(par->h));
+printf("\par->h1=%1.10f\n",par->h);
 	/* h */
 	if (lire_dble_arg(&par->h, "-h", argc, argvcp)) {
 		if (lire_str_arg(str_tmp, "-h", argc, argvcp)) {
@@ -132,7 +195,10 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		}else{
 			erreur = "h";
 		}
-	}	
+	}
+printf("\npar->h=%1.10f\n",par->h);
+printf("par->L=%1.10f\n",par->L);
+
 	/* delta_h */
 	if (lire_dble_arg(&par->delta_h, "-delta_h", argc, argvcp)) {
 		if (lire_str_arg(str_tmp, "-delta_h", argc, argvcp)) {
@@ -229,6 +295,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 
 	return ret;
 }
+
 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *nomfichier)
@@ -375,7 +442,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* Lecture des indices des couches et calculs des k2 et 1/k2 */
 	for (i=1; i<=N_layers; i++){
 		sprintf(nom_indice,"n%d",i);
-		if (lire_COMPLEX(fp, nom_indice, &indice)) erreur=nom_indice;
+		if (lire_complex(fp, nom_indice, &indice)) erreur=nom_indice;
 		par->k2_layer[i]    = (indice*par->k_super/par->n_super)*(indice*par->k_super/par->n_super); 
 		par->invk2_layer[i] = 1/par->k2_layer[i]; 
 	}
