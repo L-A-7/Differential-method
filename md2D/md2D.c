@@ -64,7 +64,7 @@ int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 	Nmax_sub   =  FLOOR( ( creal(k_sub) - sigma0 )/Delta_sigma );
 	Nmin_sub   = -FLOOR( ( creal(k_sub) + sigma0 )/Delta_sigma );
 	int Nlimit = MAX(MAX(Nmax_super,Nmax_sub),MAX(-Nmin_super,-Nmin_sub));
-	if (N < Nlimit) {
+	if (N < Nlimit && par->verbosity >= 1) {
 		fprintf(stderr,"WARNING, N too small to represent all propagatives orders\n");
 		fprintf(stderr,"minimum value: N = %d \n",Nlimit);
 		if (N < Nmax_super)  Nmax_super =  N;
@@ -87,7 +87,7 @@ int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
  *	\brief		Efficiencies calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct *par,  struct Efficacites_struct *eff)
+int md2D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	int n;
 	int vec_size = par->vec_size;
@@ -151,13 +151,15 @@ int md2D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct
 		fprintf(stderr, "%s, line %d: ERROR, pola = %d, must be \"TE\" or \"TM\".Exiting\n",__FILE__,__LINE__,par->pola);
 		exit(EXIT_FAILURE);
 	}
-	
+
 	/* Total incident energie */
 	sumPzi = 0;
 	for (n=Nmin_super; n<=Nmax_super; n++) {
 		Pz_i = fabs(creal(Exi[n+mid]*CONJ(Hpyi[n+mid]) - Eyi[n+mid]*CONJ(Hpxi[n+mid])));
 		sumPzi += Pz_i;
 	}
+sumPzi=1;
+fprintf(stderr,"sumPzi=%f\n",sumPzi);
 
 	/* Reflexion : efficiencies and directions */
 	for (n=Nmin_super; n<=Nmax_super; n++) {
@@ -174,7 +176,7 @@ int md2D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct
 		eff->N_eff_t[n-Nmin_sub] = (double) n;
 		eff->theta_t[n-Nmin_sub] = SIGN(sigma[n+mid])*acos(kz_sub[n+mid]/k_sub) * 180.0/PI;
 	}
-	
+
 	/* Sum of efficiencies */
 	eff->sum_eff_r = 0;
 	eff->sum_eff_t = 0;
@@ -226,9 +228,9 @@ int md2D_amplitudes(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, COMPLEX **S12, COMPLE
 	for (n=0;n<=vec_size-1;n++){
 		At[n] = par->Vt[n];
 	}
-/*SaveCplxTab2file (par->Ai, par->vec_size, "Re", "stdout", "\n");
-SaveCplxTab2file (par->Ar, par->vec_size, "Re", "stdout", "\n");
-SaveCplxTab2file (par->At, par->vec_size, "Re", "stdout", "\n");*/
+/*printf("Ai\n");SaveCplxTab2file (par->Ai, par->vec_size, "Re", "stdout", " ", 100, "\n");
+printf("Ar\n");SaveCplxTab2file (par->Ar, par->vec_size, "Re", "stdout", " ", 100, "\n");
+printf("At\n");SaveCplxTab2file (par->At, par->vec_size, "Re", "stdout", " ", 100, "\n");*/
 
 	return 0;
 }
@@ -345,7 +347,6 @@ int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS,
 	/* z of the considered T matrix slice */
 	hmin = par->h*nS/par->NS;
 	hmax = par->h*(nS+1)/par->NS;
-printf("ns=%d, NS=%d\n",nS,par->NS);
 	if (par->tab_NS_ENABLED){
 		hmin = par->tab_NS[nS];
 		hmax = par->tab_NS[nS+1];
@@ -360,10 +361,6 @@ printf("ns=%d, NS=%d\n",nS,par->NS);
 /*	M_x_M(par->T,
 			invPsi_super, M_x_M(par->M_buffer_2vecsize, par->P, Psi, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
 */
-/*printf("\nRe(par->T) :\n");
-SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
-printf("\nIm(par->T) :\n");
-SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
 	/* PPsi = P * Psi */
 	for (i=0;i<=vec_size-1;i++){
@@ -392,53 +389,10 @@ SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 			T22[i][j] = iPsi21[i]*PPsi12[i][j] + iPsi22[i]*PPsi22[i][j];
 		}
 	}
-/*--------------- DEBUG -----------------*/
-/*
-COMPLEX **Mtmp1,**Mtmp2,**Mtmp3,**Psi,**invPsi_super;
-Mtmp1 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-Mtmp2 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-Mtmp3 = allocate_CplxMatrix(2*vec_size,2*vec_size);
-Psi = allocate_CplxMatrix(2*vec_size,2*vec_size);
-if (nS==0){
-	if (par->pola == TE){
-		Psi = par->Psi_sub_TE;
-	}else{
-		Psi = par->Psi_sub_TM;}
-}else{
-	if (par->pola == TE){
-		Psi = par->Psi_super_TE;
-	}else{
-		Psi = par->Psi_super_TM;}}
-if (par->pola == TE){
-	invPsi_super = par->invPsi_super_TE;
-}else{
-	invPsi_super = par->invPsi_super_TM;}
-M_x_M(Mtmp1, P, Psi, 2*vec_size, 2*vec_size);
-M_x_M(Mtmp2, invPsi_super, Mtmp1, 2*vec_size, 2*vec_size);
-printf("\nRe(T) :\n");
-SaveMatrix2file (Mtmp2, 2*vec_size, 2*vec_size, "Re", "stdout");
-printf("\nIm(T) :\n");
-SaveMatrix2file (Mtmp2, 2*vec_size, 2*vec_size, "Im", "stdout");
-printf("\nRe(T11) :\n");
-SaveMatrix2file (T11, vec_size, vec_size, "Re", "stdout");
-printf("\nRe(T12) :\n");
-SaveMatrix2file (T12, vec_size, vec_size, "Re", "stdout");
-printf("\nRe(T21) :\n");
-SaveMatrix2file (T21, vec_size, vec_size, "Re", "stdout");
-printf("\nRe(T22) :\n");
-SaveMatrix2file (T22, vec_size, vec_size, "Re", "stdout");
-printf("\nIm(T11) :\n");
-SaveMatrix2file (T11, vec_size, vec_size, "Im", "stdout");
-printf("\nIm(T12) :\n");
-SaveMatrix2file (T12, vec_size, vec_size, "Im", "stdout");
-printf("\nIm(T21) :\n");
-SaveMatrix2file (T21, vec_size, vec_size, "Im", "stdout");
-printf("\nIm(T22) :\n");
-SaveMatrix2file (T22, vec_size, vec_size, "Im", "stdout");
-*/
-
-/*--------------- DEBUG -----------------*/
-
+/*printf("\nRe(par->T) :\n");
+SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
+printf("\nIm(par->T) :\n");
+SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
 	/*Affichage du temps restant à l'écran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
@@ -537,8 +491,8 @@ int PsiMatrixTE(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
 		}
 	}
 	for(i=0;i<=vec_size-1;i++){
-		Psi[i][i]            =  1;
-		Psi[i][i+  vec_size] =  1;
+		Psi[i][i]            = 1;
+		Psi[i][i+  vec_size] = 1;
 		Psi[i+vec_size][i]          = kz[i];
 		Psi[i+vec_size][i+vec_size] = -kz[i];
 	}
@@ -1501,29 +1455,33 @@ int md2D_save_near_field(COMPLEX **S12, COMPLEX **Z, int vec_size, int nS, struc
 int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struct *par)
 {
 	int q,i,j,n,nx, NS, N_x, vec_size;
-	COMPLEX *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, **Z_prod, **Z_prod_tmp, **Psi, k_super2;
-	double x, **Hpx2, **Hpz2,**Ex2,**Ez2, Hpx, Hpz, Ex, Ez;
+	COMPLEX *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, **Z_prod, **Z_prod_tmp, k_super2, k_super;
+	COMPLEX *Psi11, *Psi12, *Psi21, *Psi22;
+	double x, **Hpx2, **Hpy2,**Ex2,**Ey2, Hpx, Hpy, Ex, Ey;
 
 	NS = par->NS;
 	N_x = par->N_x;
 	vec_size = par->vec_size;
 	sigma = par->sigma;
 	kz_super = par->kz_super;
+	k_super = par->k_super;
 	k_super2 = par->k_super*par->k_super;
 	
 	Z_prod     = allocate_CplxMatrix(vec_size, vec_size);
 	Z_prod_tmp = allocate_CplxMatrix(vec_size, vec_size);
+	Psi11 = malloc(sizeof(COMPLEX)*vec_size); Psi12 = malloc(sizeof(COMPLEX)*vec_size);
+	Psi21 = malloc(sizeof(COMPLEX)*vec_size); Psi22 = malloc(sizeof(COMPLEX)*vec_size);
 	
 	if (par->pola == TE){
 		Ex2 = NULL;
-		Ez2 = NULL;
+		Hpy2 = NULL;
 		Hpx2 = allocate_DbleMatrix(NS,N_x);
-		Hpz2 = allocate_DbleMatrix(NS,N_x);
+		Ey2  = allocate_DbleMatrix(NS,N_x);
 	}else{ /* TM */
 		Ex2 = allocate_DbleMatrix(NS,N_x);
-		Ez2 = allocate_DbleMatrix(NS,N_x);
+		Hpy2 = allocate_DbleMatrix(NS,N_x);
 		Hpx2 = NULL;
-		Hpz2 = NULL;
+		Ey2 = NULL;
 	}
 	
 	Vi = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
@@ -1562,76 +1520,66 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 		M_x_V(Vq_p, tab_S12[q], Vq_m, vec_size, vec_size);
 
 		/* Fq = Psi*Vq */
-/*		if (par->pola == TE){
-			Psi = par->Psi_super_TE;
-		}else{
-			Psi = par->Psi_super_TM;
+		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, par->pola);
+		for (i=0;i<=vec_size-1;i++){
+			/* Eq = Psi11 * Vq_m + Psi12 * Vq_p */
+			Eq[i] = Psi11[i]*Vq_m[i] + Psi12[i]*Vq_p[i];
+			/* Hq = Psi21 * Vq_m + Psi22 * Vq_p */
+			Hq[i] = Psi21[i]*Vq_m[i] + Psi22[i]*Vq_p[i];
 		}
-		M_x_V(Fq, Psi, Vq, 2*vec_size, 2*vec_size);*/
-fprintf(stderr, "Reprogram Fq = Psi*Vq, with the new block diagonal Psi matrices. Exiting.\n");exit(EXIT_FAILURE);
 
 		/* Near field in the real space */
 		if (par->pola == TE){
 			for (nx=0;nx<=N_x-1;nx++){
 				x = nx*par->L/N_x;
+				Ey  = 0;
 				Hpx = 0;
-				Hpz = 0;
 				for (n=0;n<vec_size;n++){
-					Hpz += kz_super[n]*Eq[n]*cexp(I*sigma[n]*x);
-					Hpx += I*Hq[n]*cexp(I*sigma[n]*x);
+					Ey  += Eq[n]*cexp(I*sigma[n]*x);
+					Hpx += Hq[n]*cexp(I*sigma[n]*x);
 				}
+				Ey2[q][nx]  = cabs(Ey)*cabs(Ey);
 				Hpx2[q][nx] = cabs(Hpx)*cabs(Hpx);
-				Hpz2[q][nx] = cabs(Hpz)*cabs(Hpz);
 			}
 		}else{ /* TM */
 			for (nx=0;nx<=N_x-1;nx++){
 				x = nx*par->L/N_x;
 				Ex = 0;
-				Ez = 0;
+				Hpy = 0;
 				for (n=0;n<vec_size;n++){
-					Ex += Eq[n]*cexp(I*sigma[n]*x);
-				/*	Ez -= sigma[n]*Hq[n]*cexp(I*sigma[n]*x)/k_super2;*/
-					/* !!! Hy not Ez !!! */
-					/* !!! Hy not Ez !!! */
-					/* !!! Hy not Ez !!! */
-					Ez += Hq[n]*cexp(I*sigma[n]*x); 
-					/* !!! Hy not Ez !!! */
-					/* !!! Hy not Ez !!! */
-					/* !!! Hy not Ez !!! */
+					Ex  += Eq[n]*cexp(I*sigma[n]*x);
+					Hpy += Hq[n]*cexp(I*sigma[n]*x); 
 				}
-				Ex2[q][nx] = cabs(Ex)*cabs(Ex);
-				/*  !!!!!!!!!!!!!!!!!!!!!!!! */
-				Ez2[q][nx] = Ex*conj(Ex); 
-				/*  !!!!!!!!!!!!!!!!!!!!!!!! */
-/*				Ez2[q][nx] = cabs(Ez)*cabs(Ez);*/
+				Ex2[q][nx]  = cabs(Ex)*cabs(Ex);
+				Hpy2[q][nx] = Hpy*conj(Hpy); 
 			}
 		}
 	}
 
 	/* Writing results */
 	if (par->pola == TE){
+		fprintf(stdout,"Ey2 = \n");
+		SaveDbleTab2file (Ey2[0], NS*N_x, "stdout", " ", N_x, "\n");
 		fprintf(stdout,"Hpx2 = \n");
 		SaveDbleTab2file (Hpx2[0], NS*N_x, "stdout", " ", N_x, "\n");
-		fprintf(stdout,"Hpz2 = \n");
-		SaveDbleTab2file (Hpz2[0], NS*N_x, "stdout", " ", N_x, "\n");
 	}else{ /* TM */
 		fprintf(stdout,"Ex2 = \n");
 		SaveDbleTab2file (Ex2[0], NS*N_x, "stdout", " ", N_x, "\n");
-		fprintf(stdout,"Ez2 = \n");
-		SaveDbleTab2file (Ez2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"Hpy2 = \n");
+		SaveDbleTab2file (Hpy2[0], NS*N_x, "stdout", " ", N_x, "\n");
 	}
 
 	/* freeing memory... */
 	if (par->pola == TE){
 		free(Hpx2[0]);
 		free(Hpx2);
-		free(Hpz2[0]);
-		free(Hpz2);
+		free(Ey2[0]);
+		free(Ey2);
 	}else{ /* TM */
 		free(Ex2[0]);
 		free(Ex2);
-		free(Ez2[0]);
-		free(Ez2);
+		free(Hpy2[0]);
+		free(Hpy2);
 	}
 
 	free(Z_prod[0]);
@@ -1641,6 +1589,209 @@ fprintf(stderr, "Reprogram Fq = Psi*Vq, with the new block diagonal Psi matrices
 	free(Vi);
 	free(Vq);
 	free(Fq);
+	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_near_field_map_evanescent(struct Param_struct *par)
+ *
+ *	\brief	Map field reconstruction in case of evanescent field for guided waves simulation
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_near_field_map_evanescent(struct Param_struct *par)
+{
+	COMPLEX **T,**T11,**T12,**T21,**T22,**T_tmp,**T_local,**T_tmp2,**T11_tmp,**T12_tmp,**T21_tmp,**T22_tmp;
+	int q,i,j,n,nx, NS, N_x, vec_size;
+	COMPLEX *V1_m, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, k_super2, k_super;
+	COMPLEX *Psi11, *Psi12, *Psi21, *Psi22;
+	double x, **Hpx2, **Hpy2,**Ex2,**Ey2, Hpx, Hpy, Ex, Ey;
+
+	NS = par->NS;
+	N_x = par->N_x;
+	vec_size = par->vec_size;
+	sigma = par->sigma;
+	kz_super = par->kz_super;
+	k_super = par->k_super;
+	k_super2 = par->k_super*par->k_super;
+	
+	Psi11 = malloc(sizeof(COMPLEX)*vec_size); Psi12 = malloc(sizeof(COMPLEX)*vec_size);
+	Psi21 = malloc(sizeof(COMPLEX)*vec_size); Psi22 = malloc(sizeof(COMPLEX)*vec_size);
+	
+	if (par->pola == TE){
+		Ex2 = NULL;
+		Hpy2 = NULL;
+		Hpx2 = allocate_DbleMatrix(NS,N_x);
+		Ey2  = allocate_DbleMatrix(NS,N_x);
+	}else{ /* TM */
+		Ex2 = allocate_DbleMatrix(NS,N_x);
+		Hpy2 = allocate_DbleMatrix(NS,N_x);
+		Hpx2 = NULL;
+		Ey2 = NULL;
+	}
+	
+	V1_m = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
+	Vq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
+	Fq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
+	Vq_m = Vq;
+	Vq_p = Vq + vec_size;
+	Eq = Fq;
+	Hq = Fq + vec_size;
+
+	T = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	T11 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	T12 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	T21 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	T22 = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	for (i=0;i<=par->vec_size-1;i++){
+			T11[i] = &T[i][0];
+			T12[i] = &T[i][par->vec_size];
+			T21[i] = &T[i+par->vec_size][0];
+			T22[i] = &T[i+par->vec_size][par->vec_size];
+	}
+	T_tmp = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	T11_tmp = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	T12_tmp = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	T21_tmp = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	T22_tmp = (COMPLEX **) malloc(sizeof(COMPLEX *)*par->vec_size);
+	for (i=0;i<=par->vec_size-1;i++){
+			T11_tmp[i] = &T_tmp[i][0];
+			T12_tmp[i] = &T_tmp[i][par->vec_size];
+			T21_tmp[i] = &T_tmp[i+par->vec_size][0];
+			T22_tmp[i] = &T_tmp[i+par->vec_size][par->vec_size];
+	}
+	T_tmp2 = allocate_CplxMatrix(2*par->vec_size,2*par->vec_size);
+	T_local=T_tmp;
+
+	/* Field at bottom of structure */
+	for (i=0;i<vec_size;i++){
+		V1_m[i]=0;
+	}
+	V1_m[par->vec_middle] = 1.0;
+
+	/* T-Matrix initialisation, T= Id */
+	for (i=0; i<=2*vec_size-1; i++) {
+		for (j=0; j<=2*vec_size-1; j++) {
+			T[i][j] = 0;
+		}
+		T[i][i] = 1;
+	}
+
+	/* Iterations */
+NS--;
+	for (q=0; q<=NS-1; q++) {
+
+		/* T-Matrix calculation */
+		T_Matrix(T11_tmp, T12_tmp, T21_tmp, T22_tmp, q, par);
+
+		/* T-Matrix incrementation */
+		M_x_M(T_tmp2,T_local,T,2*vec_size, 2*vec_size);
+		M_equals(T,T_tmp2,2*vec_size, 2*vec_size);
+
+		/* Vq_m = T11*V1_m */
+		M_x_V(Vq_m, T11, V1_m, vec_size, vec_size);
+		
+		/* Vq_p = T21*V1_m */
+		M_x_V(Vq_p, T21, V1_m, vec_size, vec_size);
+
+		/* Fq = Psi*Vq */
+		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, par->pola);
+		for (i=0;i<=vec_size-1;i++){
+			/* Eq = Psi11 * Vq_m + Psi12 * Vq_p */
+			Eq[i] = Psi11[i]*Vq_m[i] + Psi12[i]*Vq_p[i];
+			Eq[i] = Psi11[i]*0 + Psi12[i]*Vq_p[i];
+			/* Hq = Psi21 * Vq_m + Psi22 * Vq_p */
+			Hq[i] = Psi21[i]*Vq_m[i] + Psi22[i]*Vq_p[i];
+		}
+
+		/* Near field in the real space */
+		if (par->pola == TE){
+			for (nx=0;nx<=N_x-1;nx++){
+				x = nx*par->L/N_x;
+				Ey  = 0;
+				Hpx = 0;
+				for (n=0;n<vec_size;n++){
+					Ey  += Eq[n]*cexp(I*sigma[n]*x);
+					Hpx += Hq[n]*cexp(I*sigma[n]*x);
+				}
+				Ey2[q][nx]  = cabs(Ey)*cabs(Ey);
+				Hpx2[q][nx] = cabs(Hpx)*cabs(Hpx);
+			}
+		}else{ /* TM */
+			for (nx=0;nx<=N_x-1;nx++){
+				x = nx*par->L/N_x;
+				Ex = 0;
+				Hpy = 0;
+				for (n=0;n<vec_size;n++){
+					Ex  += Eq[n]*cexp(I*sigma[n]*x);
+					Hpy += Hq[n]*cexp(I*sigma[n]*x); 
+				}
+				Ex2[q][nx]  = cabs(Ex)*cabs(Ex);
+				Hpy2[q][nx] = Hpy*conj(Hpy); 
+			}
+		}
+		
+	}
+
+/* ICI Calculer les amplitudes puis les efficacités, puis écrire les résultats... */
+	for (i=0;i<=vec_size-1;i++){
+		par->Ar[i]=Vq_p[i];
+		par->At[i]=V1_m[i];
+		par->Ai[i]=1;
+	}
+
+	/* Writing the sum of T11 middle column (for root searching purpose) */
+	double sumT11=0;
+	for (i=0;i<=vec_size-1;i++){
+		sumT11 += cabs(Vq_m[i]);
+	}
+	fprintf(stdout,"sumT11 = %lf\n",sumT11);
+	
+	/* Writing results */
+	if (par->pola == TE){
+		fprintf(stdout,"Ey2 = \n");
+		SaveDbleTab2file (Ey2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"Hpx2 = \n");
+		SaveDbleTab2file (Hpx2[0], NS*N_x, "stdout", " ", N_x, "\n");
+	}else{ /* TM */
+		fprintf(stdout,"Ex2 = \n");
+		SaveDbleTab2file (Ex2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"Hpy2 = \n");
+		SaveDbleTab2file (Hpy2[0], NS*N_x, "stdout", " ", N_x, "\n");
+	}
+
+	/* freeing memory... */
+	if (par->pola == TE){
+		free(Hpx2[0]);
+		free(Hpx2);
+		free(Ey2[0]);
+		free(Ey2);
+	}else{ /* TM */
+		free(Ex2[0]);
+		free(Ex2);
+		free(Hpy2[0]);
+		free(Hpy2);
+	}
+
+	free(T[0]);
+	free(T);
+	free(T_tmp[0]);
+	free(T_tmp);
+	free(T_tmp2[0]);
+	free(T_tmp2);
+	free(T11);
+	free(T12);
+	free(T21);
+	free(T22);
+	free(T11_tmp);
+	free(T12_tmp);
+	free(T21_tmp);
+	free(T22_tmp);
+	free(V1_m);
+	free(Vq);
+	free(Fq);
+	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
 
 	return 0;
 }

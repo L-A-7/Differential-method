@@ -58,6 +58,9 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	arg_read(argc, argvcp, fp, "double", (void *) &par->lambda, "lambda", EXIT_ON_ERROR);
 	arg_read(argc, argvcp, fp, "double", (void *) &par->theta_i, "theta_i", EXIT_ON_ERROR);
 	par->theta_i *= PI/180.0;
+	if (arg_read(argc, argvcp, fp, "complex", (void *) &par->sigma0_normed, "sigma0_normed", CONTINUE_ON_ERROR) != 0) par->sigma0_normed = SIGMA0_NORMED_NOT_DEFINED;
+printf("sigma0_normed = %f + i%f\n",creal(par->sigma0_normed),cimag(par->sigma0_normed));
+
 	if(arg_read(argc, argvcp, fp, "double", (void *) &par->coef_h, "coef_h", CONTINUE_ON_ERROR) != 0) par->coef_h = 1;
 
 /*	arg_read(argc, argvcp, fp, "complex", (void *) &par->n_super, "n_super", EXIT_ON_ERROR);
@@ -175,9 +178,9 @@ printf("hmin_Sstep = %f\n",par->hmin_Sstep);
 			if (lire_double (fp, "h_total_aleat_T", &(par->h_total_aleat_T) )) erreur="h_total_aleat_T";}
 	}*/
 
-printf("\npar->h0=%1.10f\n",par->h);
+/*printf("\npar->h0=%1.10f\n",par->h);
 lire_double (fp, "h", &(par->h));
-printf("\par->h1=%1.10f\n",par->h);
+printf("\npar->h1=%1.10f\n",par->h);*/
 	/* h */
 	if (lire_dble_arg(&par->h, "-h", argc, argvcp)) {
 		if (lire_str_arg(str_tmp, "-h", argc, argvcp)) {
@@ -196,8 +199,6 @@ printf("\par->h1=%1.10f\n",par->h);
 			erreur = "h";
 		}
 	}
-printf("\npar->h=%1.10f\n",par->h);
-printf("par->L=%1.10f\n",par->L);
 
 	/* delta_h */
 	if (lire_dble_arg(&par->delta_h, "-delta_h", argc, argvcp)) {
@@ -479,6 +480,10 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 		h_min = MIN(h_min,profil_tmp[i]);
 		h_max = MAX(h_max,profil_tmp[i]);
 	}
+/*	if par->SPECIAL_H_MIN_H_MAX { *//* For some special purposes, eg near field map, it is usefull to set h_min & h_max outside of the limit of the modulated zone */
+	lire_tab(nom_fichier, "h_min", &h_min, 1);
+	lire_tab(nom_fichier, "h_max", &h_max, 1);
+
 	h_tmp = h_max - h_min;
 
 	/* Vérification que h(deteminé) = h(indiqué) et attribution si h = AUTO */

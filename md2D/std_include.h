@@ -54,6 +54,7 @@
 
 #define NON_LU "Et_non_c_pas_lu"
 #define SUPER_BIG_HMIN_SSTEP 9999999999
+#define SIGMA0_NORMED_NOT_DEFINED 84997454.405487582
 /* Macros */
 #define c_omplex(a,b) (a+I*b) 
 #define CHRONO(t2,t1) ((double)(t2-t1)/CLOCKS_PER_SEC)
@@ -96,6 +97,7 @@ struct Param_struct {
 	int Ni;
 	int ni;
 	double Delta_sigma;
+	COMPLEX sigma0_normed; /* sigma0_normed: used to define evenescent incident field (replaces theta_i which value will not be taken into account). By defintion sigma0_normed=sigma0/k0, ie sigma0_normed=1 corresponds to theta_i=90° in void */ 
 	COMPLEX sigma0;
 	COMPLEX ky_0;
 	COMPLEX k_super;

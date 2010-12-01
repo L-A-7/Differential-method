@@ -31,6 +31,7 @@ int PsiMatrix(COMPLEX *Psi11, COMPLEX *Psi12, COMPLEX *Psi21, COMPLEX *Psi22, CO
 int invPsiMatrix(COMPLEX *Psi11, COMPLEX *Psi12, COMPLEX *Psi21, COMPLEX *Psi22, COMPLEX *kz, COMPLEX k, int vec_size, int pola);
 int md2D_make_tab_S_steps(struct Param_struct *par);
 int read_S_steps_from_profile(struct Param_struct *par);
+int md2D_near_field_map_evanescent(struct Param_struct *par);
 
 /* Redondants */
 /*
