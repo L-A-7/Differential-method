@@ -66,7 +66,7 @@ int main(int argc, char *argv[]){
 	lire_int_arg(&N_profil, "-N_profil", argc, argvcp);
 	strncpy(pr_name,argvcp[1],SIZE_STR);
 
-	
+
 
 	/*----- Génération d'un profil -----*/
 	if (!strcmp(pr_name,"CMINCES")){
@@ -205,7 +205,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	/* Similar to CARRE02 but the lines are inside the substrate instead of being inside the superstrate
 	   pr1 ---------------------------------  -	
-	                                          | h2 = 1 - h1
+	                                          | h2
 	   pr2 ------------------+          +---  -
 	                         |          |     |
 	                         |          |     | h1
@@ -220,9 +220,11 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 		double L1 = 0.50;
 		double h1 = 1;
+		double h2 = 0;
 
 		lire_dble_arg(&L1, "-L1", argc, argvcp);
 		lire_dble_arg(&h1, "-h1", argc, argvcp);
+		lire_dble_arg(&h2, "-h2", argc, argvcp);
 	
 	
 		if (h1>1 || L1>1) {
@@ -232,11 +234,11 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		}
 	
 		for(i=0;i<=N_profil*(1-L1)-1;i++){
-			pr[0][i] = 1;
+			pr[0][i] = h1+h2;
 			pr[1][i] = h1;
 		}
 		for(i=N_profil*(1-L1);i<=N_profil-1;i++){
-			pr[0][i] = 1;
+			pr[0][i] = h1+h2;
 			pr[1][i] = 0;
 		}
 
@@ -282,6 +284,107 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 			pr[0][i] = h1+h2+h3;
 			pr[1][i] = h2+h3;
 			pr[2][i] = 0;
+		}
+
+	}else if (!strcmp(pr_name,"RECTANGLE04")){
+	
+	/*
+	       <---- 1 - L1 ----><--- L1 ---> 
+	                   (pr1) +----------+     -
+	                         |          |     | h1
+                       (pr2) +----------+     -
+	                         |          |     | h2
+	   pr1/2-----------------+          +---  -
+	                                          | h3
+       pr3 ---------------------------------  -	
+                                              | h4
+                                              |
+	   pr4 ---------------------------------  -	
+	*/
+
+		/* Memory alocation for the profile */
+		N_layers = 3;
+		pr = allocate_DbleMatrix(N_layers+1, N_profil);
+
+		double L1 = 0.50;
+		double h1 = 1;
+		double h2 = 0;
+		double h3 = 0;
+		double h4 = 0;
+
+		lire_dble_arg(&L1, "-L1", argc, argvcp);
+		lire_dble_arg(&h1, "-h1", argc, argvcp);
+		lire_dble_arg(&h2, "-h2", argc, argvcp);
+		lire_dble_arg(&h3, "-h3", argc, argvcp);
+		lire_dble_arg(&h4, "-h4", argc, argvcp);
+	
+		if (h1<0 || h2<0 || h3<0 || h4<0 || L1>1 || L1<0) {
+			fprintf(stderr,"%s line %d, RECTANGLE04: parameter(s) problem, L1 must be between 0 and 1 and h1 to h4 must be at least 0.\n",__FILE__, __LINE__);
+			free(pr);
+			return 1;
+		}
+	
+		for(i=0;i<=N_profil*(1-L1)-1;i++){
+			pr[0][i] = h3+h4;
+			pr[1][i] = h3+h4;
+			pr[2][i] = h4;
+			pr[3][i] = 0;
+		}
+		for(i=N_profil*(1-L1);i<=N_profil-1;i++){
+			pr[0][i] = h1+h2+h3+h4;
+			pr[1][i] = h2+h3+h4;
+			pr[2][i] = h4;
+			pr[3][i] = 0;
+		}
+
+	}else if (!strcmp(pr_name,"RECTANGLE04_B")){
+	
+	/* pr1 ---------------------------------  -	
+                                              | h4
+                                              |
+	   pr2 ---------------------------------  -	
+	                                          | h3
+	   pr3/4-----------------+          +---  -
+	                         |          |     | h2
+                       (pr3) +----------+     -
+	                         |          |     | h1
+	                   (pr4) +----------+     -
+	       <---- 1 - L1 ----><--- L1 ---> 
+	*/
+
+		/* Memory alocation for the profile */
+		N_layers = 3;
+		pr = allocate_DbleMatrix(N_layers+1, N_profil);
+
+		double L1 = 0.50;
+		double h1 = 1;
+		double h2 = 0;
+		double h3 = 0;
+		double h4 = 0;
+
+		lire_dble_arg(&L1, "-L1", argc, argvcp);
+		lire_dble_arg(&h1, "-h1", argc, argvcp);
+		lire_dble_arg(&h2, "-h2", argc, argvcp);
+		lire_dble_arg(&h3, "-h3", argc, argvcp);
+		lire_dble_arg(&h4, "-h4", argc, argvcp);
+	
+		if (h1<0 || h2<0 || h3<0 || h4<0 || L1>1 || L1<0) {
+			fprintf(stderr,"%s line %d, RECTANGLE04_B: parameter(s) problem, L1 must be between 0 and 1 and h1 to h4 must be at least 0.\n",__FILE__, __LINE__);
+			free(pr);
+			return 1;
+		}
+	
+		for(i=0;i<=N_profil*(1-L1)-1;i++){
+			pr[0][i] = h1+h2+h3+h4;
+			pr[1][i] = h1+h2+h3;
+			pr[2][i] = h1+h2;
+			pr[3][i] = h1+h2;
+		}
+		for(i=N_profil*(1-L1);i<=N_profil-1;i++){
+			pr[0][i] = h1+h2+h3+h4;
+			pr[1][i] = h1+h2+h3;
+			pr[2][i] = h1;
+			pr[3][i] = 0;
 		}
 
 	}else if (!strcmp(pr_name,"FINITE_GRATING_B")){

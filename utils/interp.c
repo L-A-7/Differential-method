@@ -1,5 +1,5 @@
 /*
- *	refractive_index.c
+ *	interp.c
  *
  *
  */
@@ -19,7 +19,7 @@
 #define CHAR_COMMENT '#'
 
 void err_message(){
-	fprintf(stderr,	"usage : refractive_index filename lambda [Cauchy/Lookup]\n where 'filename' points to a file");
+	fprintf(stderr,	"interp returns the linearly interpolated value f(x) from an array of x[1st column] f(x)[2nd column] given in a file.\nUsage: interp filename x, where 'filename' points to a file\n");
 }
 
 char *label_search(char *str,const char *label);
@@ -27,14 +27,13 @@ void skip_comment(char *str_in_out);
 int lire_ligne(FILE *fp, char *line);
 int lire_tab(const char *nom_fichier, const char *label, double *tab, int N);
 int count_tab(const char *nom_fichier, const char *label);
-complex refractive_index(char* name,double lambda, char* method);
+double interp(char* name,double x);
 
 int main(int argc, char *argv[]){
 	
 	int i;
-	complex ind;
-	double lambda;
-	char filename[STR_SIZE], method[STR_SIZE], *endptr;
+	double x,f;
+	char filename[STR_SIZE], *endptr;
 	
 	/* Copie des arguments de la ligne de commande */
 	char **argvcp; 
@@ -53,109 +52,71 @@ int main(int argc, char *argv[]){
 	
 	/* Reading the arguments */
 	strncpy(filename, argvcp[1],STR_SIZE);
-	lambda = strtod(argvcp[2], &endptr);
+	x = strtod(argvcp[2], &endptr);
 	if (argvcp[2] == endptr){
-		fprintf(stderr,"ERROR, %s can't read argument lambda. Exiting.",__FILE__);
+		fprintf(stderr,"ERROR, %s can't read argument x. Exiting.",__FILE__);
 		exit(EXIT_FAILURE);
 	}
-	strncpy(method, "Lookup",STR_SIZE);
 
 /*	strncpy(method, argvcp[3],STR_SIZE);*/ /*Ajouter verifications, etc..*/
 	
-	/* index determination */
-	ind = refractive_index(filename,lambda, method);
+	/* f(x) determination */
+	f = interp(filename,x);
 	
-	fprintf(stdout,"%f +i%f",creal(ind),cimag(ind));
+	fprintf(stdout,"%.16f",f);
 
 	
 	return 0;
 }
 
-complex refractive_index(char* filename,double lambda, char* method)
+double interp(char* filename,double x)
 {
-	double lambda_angstrom = 10*lambda;
-	double cauchy_n[5],cauchy_k[5],n_power[6],k_power[6],index_n,index_k;
-	complex index;
-	int i,Nb_cauchy = 5;
-	
-	/* Cauchy method */
-	if (!strcmp(method,"Cauchy")){
-		lire_tab(filename, "CAUCHY_N", cauchy_n, Nb_cauchy);
-		lire_tab(filename, "CAUCHY_K", cauchy_k, Nb_cauchy);
-		lire_tab(filename, "N_POWERS", n_power, Nb_cauchy+1);
-		lire_tab(filename, "K_POWERS", k_power, Nb_cauchy+1);
-/*SaveDbleTab2file (cauchy_n,  Nb_cauchy,"stdout", " ");printf("\n");
-SaveDbleTab2file (n_power, Nb_cauchy,"stdout", " ");printf("\n");
-SaveDbleTab2file (cauchy_k,  Nb_cauchy,"stdout", " ");printf("\n");
-SaveDbleTab2file (k_power, Nb_cauchy,"stdout", " ");printf("\n");*/
+	int i;
 
-		index_n = 0;
-		index_k = 0;
-		for (i=0;i<=Nb_cauchy-1;i++){
-			index_n += cauchy_n[i]*pow(lambda_angstrom,n_power[i]);
-			index_k += cauchy_k[i]*pow(lambda_angstrom,k_power[i]);
-		}
-/*printf("Milieu: %s, lambda = %f, n = %f, k = %f\n",filename,lambda,index_n,index_k);
-*/				
-		index = index_n + I*index_k; 
-		return index;
-		
-	}
-	/* Lookup-Table method */
-	if (!strcmp(method,"Lookup")){
-		double *tab_n, *tab_k, *tab_lambda, *table_tmp;
-		int npoints;
-		npoints = ROUND((double) count_tab(filename, "")/3);
-		table_tmp= (double *) malloc(sizeof(double)*3*((int)npoints));
-		tab_lambda= (double *) malloc(sizeof(double)*((int)npoints));
-		tab_n= (double *) malloc(sizeof(double)*((int)npoints));
-		tab_k= (double *) malloc(sizeof(double)*((int)npoints));
-		lire_tab(filename, "", table_tmp, 3*(int)npoints);
+	double *tab_x, *tab_f, *table_tmp, f;
+	int npoints;
+	npoints = ROUND((double) count_tab(filename, "")/2);
+	table_tmp= (double *) malloc(sizeof(double)*2*((int)npoints));
+	tab_x= (double *) malloc(sizeof(double)*((int)npoints));
+	tab_f= (double *) malloc(sizeof(double)*((int)npoints));
+	lire_tab(filename, "", table_tmp, 2*(int)npoints);
 		/* Réarrangement en plusieurs tableaux */
 		for (i=0; i<=(int)npoints -1;i++){
-			tab_lambda[i] = table_tmp[3*i];
-			tab_n[i] = table_tmp[3*i+1];
-			tab_k[i] = table_tmp[3*i+2];
+			tab_x[i] = table_tmp[2*i];
+			tab_f[i] = table_tmp[2*i+1];
 		}
-		/* Recherche de l'indice de tableau pour lambda */
+		/* Recherche de l'indice de tableau pour x */
 		int num_min = 0;
 		int num_max = (int) npoints-1;
 		int numero = num_max>>1;
-		while(!(tab_lambda[numero] <= lambda && lambda < tab_lambda[numero+1])){
+		while(!(tab_x[numero] <= x && x < tab_x[numero+1])){
 			numero=num_min+((num_max-num_min)>>1);
-			if (lambda < tab_lambda[numero]){
+			if (x < tab_x[numero]){
 				num_max=numero;
 			}
-			if (tab_lambda[numero+1] <= lambda){
+			if (tab_x[numero+1] <= x){
 				num_min=numero;
 			}
 			if (num_min == num_max){
-				fprintf(stderr,"refractive_index, look-up table incompatible with lambda = %f for %s",lambda,filename);
+				fprintf(stderr,"interp incompatible with x = %f for %s",x,filename);
 				exit(EXIT_FAILURE);
 			}
 		}
 		/* Interpolation linéaire */
-		double l1 = tab_lambda[numero];
-		double l2 = tab_lambda[numero+1];
-		double n1 = tab_n[numero];
-		double n2 = tab_n[numero+1];
-		double k1 = tab_k[numero];
-		double k2 = tab_k[numero+1];
-		index_n= (lambda-l1)*(n2-n1)/(l2-l1) + n1;
-		index_k= (lambda-l1)*(k2-k1)/(l2-l1) + k1;
+		double x1 = tab_x[numero];
+		double x2 = tab_x[numero+1];
+		double f1 = tab_f[numero];
+		double f2 = tab_f[numero+1];
+		f= (x-x1)*(f2-f1)/(x2-x1) + f1;
 
-		free(tab_lambda);
-		free(tab_n);
-		free(tab_k);
+		free(tab_x);
+		free(tab_f);
 		free(table_tmp);
 		
-/*printf("lambda= %f, lambda1= %f, lambda2= %f\n",lambda,tab_lambda[numero],tab_lambda[numero+1]);
-printf("lambda= %f, n = %f, k= %f\n",lambda,index_n,index_k);
-*/		index = index_n + I*index_k; 
-
-		return index;
-	}
-	return -1;/* ERREUR, ne devrait pas arriver là ... */
+/*printf("x= %f, x1= %f, x2= %f\n",x,tab_x[numero],tab_x[numero+1]);
+printf("x= %f, n = %f, k= %f\n",x,index_n,index_k);
+*/
+		return f;
 }
 
 
