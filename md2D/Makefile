@@ -1,16 +1,27 @@
 #
 #
 #
-ACML_INCLUDE_DIR = /opt/acml4.4.0/gfortran32/include 
-ACML_LIB_DIR = /opt/acml4.4.0/gfortran32/lib
-ATLAS_INCLUDE_DIR = /usr/include/atlas
-ATLAS_LIB_DIR = /usr/lib32/atlas
+
+HOME = /home/arnaud
+#ATLAS_INCLUDE_DIR = /usr/include/atlas
+#ATLAS_LIB_DIR = /usr/lib64/atlas
+ICC_DIR = /apps/intel/Compiler/default/bin/intel64
+MKL = /apps/intel/mkl/10.1.1.019
+MKL_LIB = $(MKL)/lib/em64t
+MKL_INC = $(MKL)/include
+FFTW_PATH = /opt/scilibs/FFTW/fftw-3.2.1_Bull.9010
+FFTW_LIB = $(FFTW_PATH)/lib
+FFTW_INC = $(FFTW_PATH)/include
+LOCAL_INC = $(HOME)/include
+LOCAL_LIB = $(HOME)/lib
 
 HAVE_ACML=0
-HAVE_BLAS=1
+HAVE_MKL=1
+HAVE_BLAS=0
 HAVE_CBLAS=0
-HAVE_LAPACK=1
+HAVE_LAPACK=0
 HAVE_ATLAS=0
+COMPIL=ICC
 
 NAME = md2D
 STD_H = std_include.h
@@ -22,15 +33,19 @@ MATHS = md_maths
 ODE = md_odesolve
 
 #LIB1 = -static -lfftw3
-# LIB+= /usr/lib/libfftw3.a
-LIB+= /usr/lib/x86_64-linux-gnu/libfftw3.a
-INC=
+LIB= -L$(LOCAL_LIB) $(LOCAL_LIB)/libfftw3.a
+INC= -I$(LOCAL_INC) -I$(FFTW_INC)
 DEFS=
+
+ifeq ($(HAVE_MKL),1)
+INC+= -I$(MKL_INC)
+LIB+= -L$(MKL_LIB) $(MKL_LIB)/libmkl_solver_lp64.a -Wl,--start-group $(MKL_LIB)/libmkl_intel_lp64.a $(MKL_LIB)/libmkl_intel_thread.a $(MKL_LIB)/libmkl_core.a -Wl,--end-group -openmp -lpthread
+DEFS+= -D_BLAS -D_LAPACK
+endif
 
 ifeq ($(HAVE_ACML),1)
 INC+= -I$(ACML_INCLUDE_DIR)
-#LIB+= -L$(ACML_LIB_DIR) -lacml
-LIB+= $(ACML_LIB_DIR)/libacml.a
+LIB+= -L$(ACML_LIB_DIR) -lacml
 DEFS+= -D_ACML
 endif
 
@@ -63,25 +78,20 @@ DEFS+= -D_BLAS -D_LAPACK
 endif
 
 ifeq ($(COMPIL),ICC)
-CC=/opt/intel/cce/9.1.047/bin/icc
-LIB3 = -L/opt/intel/cce/9.1.047/lib
+#CC=$(ICC_DIR)/icc -wd981
+CC = $(ICC_DIR)/icc
+#LIB3 = -L/opt/intel/cce/9.1.047/lib
 else
 CC=gcc
 endif
 
-#ifeq ($(SCHED),FIFO)
-#OPTIM_FLAGS+=-DSCHED_FIFO=1
-#endif
-
-#LIB+= -lf2c -lm
-LIB+= -lm -lgfortran
-#LIB+= -lm
+LIB+= -lm
 
 all : $(NAME)
 
 # Options de compilation :
 #CFLAGS = -g -Wall -ansi $(DEFS)
-CFLAGS = -O3 -Wall -ansi $(DEFS)
+CFLAGS = -O3 -ansi $(DEFS)
 
 # Profiling
 #PG = -pg
@@ -139,8 +149,10 @@ zip :
 	zip $(NAME) ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./doc/*
 
 
-# Nettoyage du répertoire de travail	
+# Nettoyage du rÃ©pertoire de travail	
 clean :
 	rm -f ./*.o
 	rm -f ./*~
+
+
 
