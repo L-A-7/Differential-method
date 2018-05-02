@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------*/
 /*!	\file		md2D_pilot.c
  *
- * 	\brief		Pilotage de md2D 
+ * 	\brief		Piloting md2D 
  */
 /*---------------------------------------------------------------------------------------------*/
 #include "md2D_pilot.h"
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
 
 	/*param.verbosity =1;*/
 	
-	/* Copie des arguments de la ligne de commande */
+	/* Command line arguments copy */
 	int i;
 	char **argvcp; 
 	argvcp = (char **) malloc(sizeof(char*)*argc);
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
 	param.argc = argc;
 	param.argvcp = argvcp;
 
-	/* Initialisation du programme : lecture des données, allocation de mémoire, etc. */
+	/* Program initialisation: inputs reading, memory allocations, etc. */
 	md2D_init(&param, &effic, &nomfichier);
 
 /*********************************** DEBUG *************************************************************/
@@ -96,7 +96,7 @@ printf("\nIm(S22)\n");SaveMatrix2file (param.S22, vec_size, vec_size, "Im", "std
 /*return 0;*/
 /*******************************************************************************************************/
 
-	/* Choix du type de calcul */
+	/* Calcul type. Use STD or NEAR_FIELD unless you know what you're doing */
 	if (!strcmp(param.calcul_type,"STD")){
 		md2D_classical_FFF (&param, &effic, &nomfichier);
 	}else if (!strcmp(param.calcul_type,"GUIDED")){
@@ -230,10 +230,10 @@ int md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,st
 	par->tab_S12 = allocate_CplxMatrix_3(par->vec_size, par->vec_size, par->NS);
 	COMPLEX *V0m;
 
-	/* Calcul des limites des modes propagatifs */
+	/* Propagative modes limits calculation */
 	md2D_propagativ_limits(par, eff);
 
-	/* Amplitude du champ incident */
+	/* Incident field amplitudes */
 	md2D_incident_field(par,eff);
 
 	S_matrix(par);
@@ -354,31 +354,31 @@ SaveDbleTab2file (eff->eff_r,  par->vec_size,"stdout", " ",10000000,"");*/
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
  *
- *	\brief	Initialisation du programme
+ *	\brief	Program nitialisation
  */
 /*---------------------------------------------------------------------------------------------*/
 int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
 {
 
-	/* Lecture des paramètres par defaut dans fichier_param */
+	/* Reading default parameters in fichier_param */
 	md2D_lire_param(nomfichier, par);
 
-	/* Allocation de mémoire pour le profil */
+	/* Memory allocation for the profile */
 	md2D_alloc_init_profil(par);
 
-	/* Lecture du profil h(x) décrivant la surface */
+	/* Reading the profile h(x) of the surface */
 	(*par->md2D_lire_profil)(nomfichier->profile_file, par);
 
-	/* Initialisations de certaines variables */
+	/* Initialisating some variables */
 	md2D_variables_init(par, eff);
 
-	/* Allocation de mémoire pour les tableaux */
+	/* Allocating memory for arrays */
 	md2D_alloc(par, eff);
 
 	/* Initialising some arrays */
 	md2D_arrays_init(par, eff);
 	
-	/* Affichage des paramètres lus et calculés */
+	/* Showing on screen some calculated and initial parameters */
 	md2D_affiche_valeurs_param(par, nomfichier);
 
 	return 0;
@@ -393,7 +393,7 @@ int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct N
 /*---------------------------------------------------------------------------------------------*/
 int md2D_alloc_init_profil(struct Param_struct *par)
 {
-	/* Initilisation de variables */
+	/* Variable initilisation */
 	par->k_super = 2*PI*par->n_super/par->lambda;
 	par->k_sub = 2*PI*par->n_sub/par->lambda;
 	par->Delta_sigma = 2*PI/par->L;
@@ -415,7 +415,7 @@ int md2D_alloc_init_profil(struct Param_struct *par)
 	}
 
 
-	/* Alignement des pointeurs de fonction */
+	/* Function's pointers alignement */
 /*	par->matrice_T = (par->pola == TE ? matrice_T_TE : matrice_T_TM);
 */	switch (par->type_profil) {
 		case H_X          : 
@@ -443,18 +443,18 @@ int md2D_alloc_init_profil(struct Param_struct *par)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff)
  *
- *	\brief	Initialisations des variables
+ *	\brief	Variable initialisations
  */
 /*---------------------------------------------------------------------------------------------*/
 int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff)
 {
 	double K,sig0;
-	par->clock0 = clock(); /* Initialisation des chronomètres                  */
-	time(&(par->time0));   /* clock0 (courte durées) et time0 (longues durées) */
+	par->clock0 = clock(); /* Initialisation of chronometers                  */
+	time(&(par->time0));   /* clock0 (short duration) and time0 (long durations) */
 	par->last_clock = clock();
 	time(&(par->last_time)); 
 
-	/* Initialisation des variables en mode "AUTO" */
+	/* Initialisating variables in mode "AUTO" */
 	/* delta_h = lambda x (n_re + n_im) / 1000 */
 	if (par->delta_h == AUTO) {
 		par->delta_h = par->lambda/(cabs(par->n_sub)*1000);
@@ -463,7 +463,7 @@ int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 	if (par->NS == AUTO) {
 		par->NS = CEIL( (par->h / par->lambda)*cabs(par->n_sub)*5 );
 	}
-	/* N : on ajoute 10% de modes evanescents (3 au minimum) */
+	/* N : we add 10% of evanescent modes (and 3 at minimum) */
 	if (par->N == AUTO) {
 		K = 2.0*PI/par->L;
 		fprintf(stderr, "WARNING, Automatic N determination");
@@ -478,7 +478,7 @@ int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 			exit(EXIT_FAILURE);
 		}
 		int N_limit =  FLOOR(( MAX(creal(par->k_super),creal(par->k_sub)) + fabs(sig0))/par->Delta_sigma);
-		/* On ajoute 10% de modes evanescents (3 au minimum) */
+		/* we add 10% of evanescent modes (and 3 at minimum) */
 		int N_evanesc = ROUND(MAX(3,0.1*N_limit));
 		par->N = N_limit + N_evanesc; 
 	}
@@ -493,9 +493,9 @@ int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 		
 	/* ni et Ni, pour compteurs en angle_i */
 	par->ni = 0;
-	par->Ni = 1; /* Pour compatibilité (une autre valeur sera affectée par les fonctions var_i_... )*/
+	par->Ni = 1; /* Pour compatibilite (une autre valeur sera affectee par les fonctions var_i_... )*/
 	
-	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier à chaque étape Matrice-S*/
+	/* Calculation of the value of delta_h so that there is an integer value of S-Matrix steps */
 	par->N_steps = 0; /* Counter initialisation */
 /*	par->Nstep_S = ROUND(ceil((par->h/par->NS)/par->delta_h));
 	par->delta_h = (par->h/par->NS)/par->Nstep_S;
@@ -729,7 +729,7 @@ printf("pointer par->tab_imposed_S_steps = %p\n",par->tab_imposed_S_steps);
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
  *
- *	\brief	Libération de la mémoire
+ *	\brief	Freeing memory
  */
 /*---------------------------------------------------------------------------------------------*/
 int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
@@ -882,7 +882,7 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn	int md2D_read_mat_S(struct Param_struct *par)
  *
- *	\brief	Lecture de matrices S
+ *	\brief	Reading of S-Matrices
  */
 /*---------------------------------------------------------------------------------------------*/
 int md2D_read_mat_S(struct Param_struct *par)
@@ -910,13 +910,13 @@ int md2D_read_mat_S(struct Param_struct *par)
 	if (lire_double (fp, "sigma0", &(par->sigma0) )) erreur="sigma0";
 	if (lire_int (fp, "N", &(par->N) )) erreur="N";
 */	fclose(fp);
-	/* Vérification de l'absence d'erreurs de lecture */
+	/* Verifying absence of reading errors */
 	if (strcmp(erreur,"NO_ERROR                     ")){
 		fprintf(stderr, "%s : Erreur, probleme de lecture de \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 	
-	/* Lecture des éléments de matrice S */	
+	/* Reading elements of the S-Matrix */	
 	re_tmp = allocate_DbleMatrix(2*par->N+1,2*par->N+1);
 	im_tmp = allocate_DbleMatrix(2*par->N+1,2*par->N+1);
 	/* S12 */
