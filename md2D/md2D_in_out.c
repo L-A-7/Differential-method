@@ -32,7 +32,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		exit(EXIT_FAILURE);
 	}
 	
-	/* Verbosity level reading */
+	/* Verbosity level reading. Values should be:0,1 or 2 */
 	if (lire_int_arg(&par->verbosity, "-verbosity", argc, argvcp)) {
 		if (lire_int (fp, "verbosity", &(par->verbosity) )) par->verbosity = 2;}
 	if (par->verbosity >=2 ) fprintf(stdout,"Reading parameters in %s\n",nomfichier->fichier_param);
@@ -309,7 +309,9 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 /*---------------------------------------------------------------------------------------------*/
 int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 {
-
+	FILE *fp;
+	int argc=par->argc;
+	char **argvcp=par->argvcp;
 	int i;
 	int N_x = par->N_x;
 	double h_tmp, *profil = par->profil[0];
@@ -337,25 +339,28 @@ int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 		h_min = MIN(h_min,profil[i]);
 		h_max = MAX(h_max,profil[i]);
 	}
-/*	if par->SPECIAL_H_MIN_H_MAX { *//* For some special purposes, eg near field map, it is usefull to set h_min & h_max outside of the limit of the modulated zone */
-	lire_tab(nom_fichier, "h_min", &h_min, 1);
-	lire_tab(nom_fichier, "h_max", &h_max, 1);
-	if (par->verbosity > 0) {
-		fprintf(stdout,"SPECIAL_H_MIN_H_MAX, h_min=%f, h_max=%f\n",h_min, h_max);
+
+	/* For some special purposes, eg near field map, it is usefull to set h_min & h_max outside of the limit of the modulated zone */
+	if (!(fp = fopen(nom_fichier,"r"))){
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier);
+		exit(EXIT_FAILURE);
 	}
-/*	}*/
-	h_tmp = h_max - h_min;
+	arg_read(argc, argvcp, fp, "double", (void *) &h_min, "h_min", CONTINUE_ON_ERROR);
+	arg_read(argc, argvcp, fp, "double", (void *) &h_max, "h_max", CONTINUE_ON_ERROR);
+	fclose(fp);
+
+	if (par->verbosity >= 2) {
+		fprintf(stdout,"h_min & h_max: h_min=%f, h_max=%f\n",h_min, h_max);
+	}
+		h_tmp = h_max - h_min;
 
 	/* Checking that h(determined) = h(indicated) and setting par->h to determined value if h = AUTO */
 	if (par->h == AUTO) {
 		par->h = h_tmp;
 	}else if (fabs(par->h - h_tmp) > eps*par->h && par->verbosity >= 2) {
-		fprintf(stdout,  "+---------------------------------------------------------------------\
-				\n|                        CAUTION !\
-				\n| h determined for %s is %f and h indicated %f !\
-				\n+---------------------------------------------------------------------\
-				\n",nom_fichier,h_tmp, par->h);
+		fprintf(stdout,  "h read from profile %s is %f\n",nom_fichier,h_tmp);
 	}
+
 	/* Normalising beetween 0 and h (instead of [h0,h0+h]*/
 	for (i=0; i<=N_x-1; i++) {
 		profil[i] -= h_min;
@@ -367,9 +372,6 @@ int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 			profil[i] *= par->h / h_tmp;
 		}
 	}
-
-	if (par->verbosity >= 2) fprintf(stdout,"Profile normalisation between 0 and h : OK\n");
-
 
 	return 0;
 }
@@ -384,7 +386,8 @@ int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 /*---------------------------------------------------------------------------------------------*/
 int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 {
-
+	int argc=par->argc;
+	char **argvcp=par->argvcp;
 	int i, nx, n_layer;
 	char nom_indice[SIZE_STR_BUFFER];
 	char *erreur="NO_ERROR                     ";
@@ -441,21 +444,25 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 		h_min = MIN(h_min,profil_tmp[i]);
 		h_max = MAX(h_max,profil_tmp[i]);
 	}
-/*	if par->SPECIAL_H_MIN_H_MAX { *//* For some special purposes, eg near field map, it is usefull to set h_min & h_max outside of the limit of the modulated zone */
-	lire_tab(nom_fichier, "h_min", &h_min, 1);
-	lire_tab(nom_fichier, "h_max", &h_max, 1);
+	/* For some special purposes, eg near field map, it is usefull to set h_min & h_max outside of the limit of the modulated zone */
+	if (!(fp = fopen(nom_fichier,"r"))){
+		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nom_fichier);
+		exit(EXIT_FAILURE);
+	}
+	arg_read(argc, argvcp, fp, "double", (void *) &h_min, "h_min", CONTINUE_ON_ERROR);
+	arg_read(argc, argvcp, fp, "double", (void *) &h_max, "h_max", CONTINUE_ON_ERROR);
+	fclose(fp);
 
+	if (par->verbosity >= 2) {
+		fprintf(stdout,"h_min & h_max: h_min=%f, h_max=%f\n",h_min, h_max);
+	}
 	h_tmp = h_max - h_min;
 
 	/* Vérification que h(deteminé) = h(indiqué) et attribution si h = AUTO */
 	if (par->h == AUTO) {
 		par->h = h_tmp;
-	}else if (fabs(par->h - h_tmp) > eps*par->h) {
-		fprintf(stderr,  "+---------------------------------------------------------------------\
-				\n|                        WARNING !\
-				\n| h determined for %s is %f while h indicated is %f !\
-				\n+---------------------------------------------------------------------\
-				\n",nom_fichier,h_tmp, par->h);
+	}else if (fabs(par->h - h_tmp) > eps*par->h && par->verbosity >= 2) {
+		fprintf(stderr,  "h read from profile %s is %f\n",nom_fichier,h_tmp);
 	}
 	/* Normalisation entre 0 et h (au lieu de [h0,h0+h]*/
 	for (i=0; i<=N_x*(N_layers+1)-1; i++) {
@@ -470,35 +477,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 			profil_tmp[i] *= par->h / h_tmp;
 		}
 	}
-	
-	if (par->verbosity >= 2) fprintf(stdout,"Normalisation of profile between 0 and h: OK\n");
 
-/**************************************************/
-
-/*	double max = profil_tmp[0];
-	double min = profil_tmp[0];
-	for (i=1; i<=N_x*(N_layers+1)-1; i++) {
-		max = MAX(max, profil_tmp[i]);
-		min = MIN(min, profil_tmp[i]);
-	}
-	double eps = 1.0e-10; 
-	if ((max<1-eps && min>=-eps) || (max<=1+eps && min>eps)) {
-		fprintf(stderr,"ATTENTION, le profil %s varie dans l'intervale [%f %f] et non [0 1] ! \n",nom_fichier,min,max);
-	}
-	if (max > 1+eps || min < -eps) {
-		fprintf(stderr,"ATTENTION, le profil %s varie dans l'intervale [%f %f] et non [0 1] ! \n",nom_fichier,min,max);
-		fprintf(stderr,"=> Normalisation entre 0 et 1\n");
-		for (i=0; i<=N_x*(N_layers+1)-1; i++) {
-			profil_tmp[i] = (profil_tmp[i]-min)/(max-min);
-		}
-	}
-	for (i=0; i<=N_x*(N_layers+1)-1; i++) {
-		profil_tmp[i] *= h;
-	}
-	if (par->verbosity) fprintf(stdout,"Normalisation du profil entre 0 et h : OK\n");
-*/
-/**************************************************/
-	
 	/* Réarrangement en plusieurs tableaux */
 	double eps2 = 0*par->h*1e-10;
 	for (nx=0; nx<=N_x-1;nx++){
