@@ -9,17 +9,19 @@
 #include <ctype.h>
 #include <time.h>
 
-#if defined (_ACML) || defined (_BLAS) || defined (_CBLAS)
+
+/* TODO: CARREFULL!!! There is a problem her. Should be fixed. Not robust */
+#if defined (_MKL) || defined (_BLAS) || defined (_CBLAS)
 #define _LOWLEVEL_MAT_LIB
 #else
 #define _NO_LOWLEVEL_MAT_LIB
 #endif
 
-#ifdef _ACML
+/*#ifdef _ACML
 #undef _BLAS
 #undef _CBLAS
 #undef _LAPACK
-#endif
+#endif*/
 
 #ifdef _BLAS
 /*#include <blas.h>*/
@@ -30,8 +32,8 @@
 #ifdef _LAPACK
 #include <clapack.h>
 #endif
-#ifdef _ACML
-#include <acml.h>
+#ifdef _MKL
+#include <mkl.h>
 #endif
 
 #define COMPLEX double complex
@@ -85,7 +87,6 @@ struct Param_struct {
 	double L;
 	double h;
 	double h_layer;
-	double coef_h;
 	double lambda;
 	double theta_i;
 	double phi_i;

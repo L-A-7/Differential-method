@@ -58,9 +58,8 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	arg_read(argc, argvcp, fp, "double", (void *) &par->theta_i, "theta_i", EXIT_ON_ERROR);
 	par->theta_i *= PI/180.0;
 	if (arg_read(argc, argvcp, fp, "complex", (void *) &par->sigma0_normed, "sigma0_normed", CONTINUE_ON_ERROR) != 0) par->sigma0_normed = SIGMA0_NORMED_NOT_DEFINED;
-printf("sigma0_normed = %f + i%f\n",creal(par->sigma0_normed),cimag(par->sigma0_normed));
+/*printf("sigma0_normed = %f + i%f\n",creal(par->sigma0_normed),cimag(par->sigma0_normed));*/
 
-	if(arg_read(argc, argvcp, fp, "double", (void *) &par->coef_h, "coef_h", CONTINUE_ON_ERROR) != 0) par->coef_h = 1;
 
 /*	arg_read(argc, argvcp, fp, "complex", (void *) &par->n_super, "n_super", EXIT_ON_ERROR);
 */
@@ -114,35 +113,6 @@ printf("hmin_Sstep = %f\n",par->hmin_Sstep);
 			if (lire_int (fp, "N_imposed_S_steps", &(par->N_imposed_S_steps) )) erreur="N_imposed_S_steps";}
 	}*/
 
-
-/********************/
-/* peut être effacé */
-/********************/
-/*	if (lire_str_arg(nomfichier->profile_file, "-profile_file", argc, argvcp)){
-		if (lire_string (fp, "profile_file", nomfichier->profile_file)) erreur="profile_file";}
-	if (lire_str_arg(par->calcul_type, "-calcul_type", argc, argvcp)) {
-		if (lire_string (fp, "calcul_type", par->calcul_type)) erreur="calcul_type";}
-	if (lire_str_arg(par->calcul_method, "-calcul_method", argc, argvcp)) {
-		if (lire_string (fp, "calcul_method", par->calcul_method)) erreur="calcul_method";}
-	if (lire_str_arg(par->profile_name, "-profile_name", argc, argvcp)) {
-		if (lire_string (fp, "profile_name", par->profile_name)) erreur="profile_name";}
-	if (lire_str_arg(par->i_field_mode, "-i_field_mode", argc, argvcp)) {
-		if (lire_string (fp, "i_field_mode", par->i_field_mode)) erreur="i_field_mode";}
-	if (lire_str_arg(str_tmp, "-pola", argc, argvcp)) {
-		if (lire_string (fp, "pola", str_tmp)) erreur="pola";}
-		if      (!strcmp(str_tmp,"TE")){par->pola = TE;}
-		else if (!strcmp(str_tmp,"TM")){par->pola = TM;}
-		else                            {erreur = "pola";}*/
-/*	if (lire_dble_arg(&par->L, "-L", argc, argvcp)){
-		if (lire_double (fp, "L", &(par->L) )) erreur="L";}
-	if (lire_dble_arg(&par->lambda, "-lambda", argc, argvcp)) {
-		if (lire_double (fp, "lambda", &(par->lambda) )) erreur="lambda";}
-	if (lire_dble_arg(&par->coef_h, "-coef_h", argc, argvcp)) {
-		if (lire_double (fp, "coef_h", &(par->coef_h) )) par->coef_h = 1;}
-	if (lire_dble_arg(&par->theta_i, "-theta_i", argc, argvcp)) {
-		if (lire_double (fp, "theta_i", &(par->theta_i) )) erreur="theta_i";}
-	par->theta_i *= PI/180.0;*/
-
 /********************/
 /* NE PAS EFFACER pour l'instant(peut servir) */
 /********************/
@@ -175,21 +145,7 @@ printf("hmin_Sstep = %f\n",par->hmin_Sstep);
 		if (lire_double (fp, "psi", &(par->psi) )) erreur="psi";}
 		par->psi *= PI/180.0;*/
 
-/********************/
-/* peut être effacé */
-/********************/
-/*	if (!strcmp(par->calcul_type,"ALEAT_T_ELLIPSO")){
-		if (lire_dble_arg(&par->L_segment, "-coef_h", argc, argvcp)) {
-			if (lire_double (fp, "L_segment", &(par->L_segment) )) erreur="L_segment";}
-		if (lire_dble_arg(&par->ecart_type_segment, "-ecart_type_segment", argc, argvcp)) {
-			if (lire_double (fp, "ecart_type_segment", &(par->ecart_type_segment) )) erreur="ecart_type_segment";}
-		if (lire_dble_arg(&par->h_total_aleat_T, "-h_total_aleat_T", argc, argvcp)) {
-			if (lire_double (fp, "h_total_aleat_T", &(par->h_total_aleat_T) )) erreur="h_total_aleat_T";}
-	}*/
 
-/*printf("\npar->h0=%1.10f\n",par->h);
-lire_double (fp, "h", &(par->h));
-printf("\npar->h1=%1.10f\n",par->h);*/
 	/* h */
 	if (lire_dble_arg(&par->h, "-h", argc, argvcp)) {
 		if (lire_str_arg(str_tmp, "-h", argc, argvcp)) {
@@ -324,7 +280,6 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 		fprintf(stdout,"theta_i = %f rad (%f deg)\n",par->theta_i,par->theta_i*180.0/PI);
 		fprintf(stdout,"L       = %f\n",par->L);
 		fprintf(stdout,"h       = %f\n",par->h);
-		fprintf(stdout,"coef_h  = %f\n",par->coef_h);
 		fprintf(stdout,"delta_h = %f\n",par->delta_h);
 		fprintf(stdout,"N       = %d\n",par->N);
 		fprintf(stdout,"NS      = %d\n",par->NS);
@@ -350,7 +305,6 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
  *
  *	\brief	Reads the h(x) profile, determine the height h, gives an alert in case it is
  * 			different from the indicated value, the indicated values is prioritary.
- * 			The profile and h arer also multiplied by an eventually !=1 coef_h 
  */
 /*---------------------------------------------------------------------------------------------*/
 int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
@@ -386,16 +340,16 @@ int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 /*	if par->SPECIAL_H_MIN_H_MAX { *//* For some special purposes, eg near field map, it is usefull to set h_min & h_max outside of the limit of the modulated zone */
 	lire_tab(nom_fichier, "h_min", &h_min, 1);
 	lire_tab(nom_fichier, "h_max", &h_max, 1);
-/*		if (par->verbosity > 0) {
-			fprintf(stdout,"SPECIAL_H_MIN_H_MAX, h_min=%f, h_max=%f\n",h_min, h_max);
-		}
-	}*/
+	if (par->verbosity > 0) {
+		fprintf(stdout,"SPECIAL_H_MIN_H_MAX, h_min=%f, h_max=%f\n",h_min, h_max);
+	}
+/*	}*/
 	h_tmp = h_max - h_min;
 
-	/* Checking that h(detemined) = h(indicated) and setting par->h to determined value if h = AUTO */
+	/* Checking that h(determined) = h(indicated) and setting par->h to determined value if h = AUTO */
 	if (par->h == AUTO) {
 		par->h = h_tmp;
-	}else if (fabs(par->h - h_tmp) > eps*par->h && par->verbosity >= 0) {
+	}else if (fabs(par->h - h_tmp) > eps*par->h && par->verbosity >= 2) {
 		fprintf(stdout,  "+---------------------------------------------------------------------\
 				\n|                        CAUTION !\
 				\n| h determined for %s is %f and h indicated %f !\
@@ -407,16 +361,14 @@ int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 		profil[i] -= h_min;
 	}
 
-	/* Multiplication by coef_h x h_wanted / h_determined */
+	/* Multiplication by h_wanted / h_determined */
 	if (h_tmp != 0.0) {
 		for (i=0; i<=N_x-1; i++) {
-			profil[i] *= par->coef_h * par->h / h_tmp;
+			profil[i] *= par->h / h_tmp;
 		}
 	}
-	/* Multiplication of par->h by coef_h */
-	par->h *= par->coef_h;
 
-	if (par->verbosity >= 2) fprintf(stdout,"Profile normalisation between 0 and (h x coef_h) : OK\n");
+	if (par->verbosity >= 2) fprintf(stdout,"Profile normalisation between 0 and h : OK\n");
 
 
 	return 0;
@@ -512,16 +464,14 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* Vérification que les profils ne se chevauchent pas */
 
 			
-	/* Multiplication par coef_h x h_voulu / h_mesuré */
+	/* Multiplication par h_voulu / h_mesuré */
 	if (h_tmp != 0.0) {
 		for (i=0; i<=N_x*(N_layers+1)-1; i++) {
-			profil_tmp[i] *= par->coef_h * par->h / h_tmp;
+			profil_tmp[i] *= par->h / h_tmp;
 		}
 	}
-	/* Multiplication de par->h par coef_h */
-	par->h *= par->coef_h;
 	
-	if (par->verbosity >= 2) fprintf(stdout,"Normalisation of profile between 0 and (h x coef_h): OK\n");
+	if (par->verbosity >= 2) fprintf(stdout,"Normalisation of profile between 0 and h: OK\n");
 
 /**************************************************/
 
@@ -647,7 +597,6 @@ int md2D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"n_sub   = %f + i%f\n", creal((par->n_sub)), cimag((par->n_sub)));
 	fprintf(fp,"L       = %f\n",par->L);
 	fprintf(fp,"h       = %f\n",par->h);
-	fprintf(fp,"coef_h  = %f\n",par->coef_h);
 	fprintf(fp,"lambda  = %f\n",par->lambda);
 	fprintf(fp,"N       = %d\n",par->N);
 	fprintf(fp,"NS      = %d\n",par->NS);
