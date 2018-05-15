@@ -538,9 +538,7 @@ printf("i2 = %d\n",i2);fflush(stdout);
            / |      | \
 		    /--|      |--\
 	------+   |      |   +---
-
 		  alpha 1    alpha2
-
 	*/
 fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
 		/* Allocation de mémoire pour le profil*/
@@ -607,6 +605,51 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 				pr[0][i] = 0;
 			}
 
+		}
+	}else if (!strcmp(pr_name,"ORIGAMI")){
+	
+	/* 
+	                .          +
+	               / \         |
+	              /   \        |     
+	             /     \       | h2 (height of one triangle)
+ 	       +    /   .   \      |
+	       |   /   / \   \     |
+	       |  /   /   \   \    +    
+	    h2 |     /     \       |
+ 	       |    /       \      | h1 (height between both shapes)
+	       |   /         \     |
+          +  /           \    +
+
+	*/
+		/* Allocating memory */
+		N_layers = 2;
+		pr = allocate_DbleMatrix(N_layers+1, N_profil);
+		double h1 = 0.5;
+		double h2 = 0.5;
+
+		lire_dble_arg(&h1, "-h1", argc, argvcp);
+		lire_dble_arg(&h2, "-h2", argc, argvcp);
+
+		double hstep = h2/ROUND(0.5*N_profil);
+
+		int hlf_Nprofil = ROUND(0.5*N_profil);
+fprintf(stderr, "hlf_Nprofil=%d \n", hlf_Nprofil);
+
+		if (2*(int)(0.5*N_profil) != N_profil) {
+			fprintf(stderr, "%s line %d: ERROR, ORIGAMI: N_profil=%d. Should be an even number\n",__FILE__, __LINE__, N_profil);
+			free(pr[0]);free(pr);
+			return 1;
+		}
+
+		/* Origami profile */	
+		for(i=0;i<=hlf_Nprofil;i++){
+			pr[0][i] = i*hstep + h1;
+			pr[1][i] = i*hstep;
+		}
+		for(i=hlf_Nprofil+1;i<=N_profil-1;i++){
+			pr[0][i] = h2-(i-hlf_Nprofil)*hstep + h1;
+			pr[1][i] = h2-(i-hlf_Nprofil)*hstep;
 		}
 	}else if (!strcmp(pr_name,"ALEAT01")){
 	/*    
