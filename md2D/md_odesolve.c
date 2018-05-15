@@ -69,6 +69,7 @@ int zinvar_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *
 /*!	int rk4_P_matrix(COMPLEX **p, double z, double Delta_z, struct Param_struct *par)
  *
  *	\brief P_matrix calculation with 4th order Runge Kutta vectorized method
+ *        integration occurs between z-dz/2 and z+dz/2
  */
 /*-------------------------------------------------------------------------------------*/
 int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
@@ -87,9 +88,9 @@ int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 	double dz_2 = 0.5*dz;
 
 	/* M matrix calculation */
-	(*par->M_matrix)(Mz,   z,         par);
-	(*par->M_matrix)(Mzd,  z+dz_2	, par);
-	(*par->M_matrix)(Mzdd, z+dz,      par);
+	(*par->M_matrix)(Mz,   z-dz_2, par);
+	(*par->M_matrix)(Mzd,  z,      par);
+	(*par->M_matrix)(Mzdd, z+dz_2, par);
 
 	/* M1 = Mz */
 
@@ -317,146 +318,4 @@ int euler2_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 	return 0;
 }
 
-
-
-#if 0
-/*-------------------------------------------------------------------------------------*/
-/*!	int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
- *
- *	\brief P_matrix calculation in the cas of z invariance
- */
-/*-------------------------------------------------------------------------------------*/
-int shooting_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
-{
-	int n,j, Nstep, vec_size = par->vec_size;
-	COMPLEX *F1,*F2;
-	F1 = par->M_buffer_2vecsize[0];
-	F2 = par->M_buffer_2vecsize[1];
-	
-	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier*/
-	double eps = -1e-10; /* Pour s'affranchir des erreurs d'arrondi */
-	Nstep = CEIL(eps + Delta_z/par->delta_h);
-	/* dz = Delta_z/Nstep; */
-
-	/* Shooting method */
-	for (n=0; n<=2*vec_size-1; n++){
-
-		/* Construction des vecteurs de base */	
-		for (j=0;j<=2*vec_size-1;j++){
-			F1[j] = 0;
-		}
-		F1[n] = 1;
-		
-   	/* Intégration des grandeurs pour une couche */
-		ode_solve((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);
-/*		eq_diff((double *)F1,  (double *)F2, 4*vec_size, z, z+Delta_z, Nstep, fun, (void *) par);*/
-
-		/* Construction de la matrice P */
-		for(j=0;j<=2*vec_size-1;j++){
-			P[j][n] = F2[j];
-		}
-		
-		/*Affichage du temps restant à l'écran */
-		/*md1D_affichTemps(n,N,nS,NS,par->ni,par->Ni,par);*/
-	}
-	
-	par->N_steps += Nstep;
-		
-	return 0;
-}
-
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn		int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
- *
- *		\brief	used by shooting_P_matrix
- */
-/*-------------------------------------------------------------------------------------*/
-int fun (double z, const double *F_reel, double *dF_reel, void *param_void)
-{
-	struct Param_struct *par = (struct Param_struct *) param_void;
-	COMPLEX *F, *dF;
-
-	F = (COMPLEX *) F_reel;
-	dF = (COMPLEX *) dF_reel;
-	
-	(*par->M_matrix)(par->M, z, par);
-	M_x_V(dF, par->M, F, 2*par->vec_size, 2*par->vec_size);
-
-	return 0;	
-}
-
-
-#endif
-
-#if 0
-/*-------------------------------------------------------------------------------------*/
-/*!	int old_rk4_P_matrix(COMPLEX **P, double z, double Delta_z, struct Param_struct *par)
- *
- *	\brief P_matrix calculation with 4th order Runge Kutta vectorized method
- */
-/*-------------------------------------------------------------------------------------*/
-int old_rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
-{
-	int i,j, vec_size = par->vec_size;
-	COMPLEX **Mz, **Mzd, **Mzdd, **M2, **M3, **M4, **rkM_tmp;
-	Mz = par->rkMz;
-	Mzd = par->rkMzd;
-	Mzdd = par->rkMzdd;
-	M2 = par->rkM2;
-	M3 = par->rkM3;
-	M4 = par->rkM4;
-	rkM_tmp = par->rkMtmp1;
-
-	double dz_2 = 0.5*dz;
-
-	/* M matrix calculation */
-	(*par->M_matrix)(Mz,   z,         par);
-	(*par->M_matrix)(Mzd,  z+dz_2	, par);
-	(*par->M_matrix)(Mzdd, z+dz,      par);
-
-	/* M1 = Mz */
-
-	/* M2 = Mzd*(Id + M1*dz/2) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			rkM_tmp[i][j] = dz_2 * Mz[i][j]; 
-		}
-		rkM_tmp[i][i] += 1; 
-	}
-	M_x_M(M2, Mzd, rkM_tmp, 2*vec_size, 2*vec_size);
-
-	/* M3 = Mzd*(Id + M2*dz/2) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			rkM_tmp[i][j] = dz_2 * M2[i][j]; 
-		}
-		rkM_tmp[i][i] += 1; 
-	}
-	M_x_M(M3, Mzd, rkM_tmp, 2*vec_size, 2*vec_size);
-
-	
-	/* M4 = Mzdd*(Id + M3*dz) */
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			rkM_tmp[i][j] = dz * M3[i][j]; 
-		}
-		rkM_tmp[i][i] += 1; 
-	}
-	M_x_M(M4, Mzdd, rkM_tmp, 2*vec_size, 2*vec_size);
-
-	/* P = Id + (h/6)M1 + (h/3)M2 + (h/3)M3 + (h/6)M4 */
-	double dz_6 = dz/6.0;
-	double dz_3 = dz/3.0;
-	for (i=0;i<=2*vec_size-1;i++){
-		for (j=0;j<=2*vec_size-1;j++){
-			P[i][j] = dz_6*(Mz[i][j] + M4[i][j]) + dz_3*(M2[i][j] + M3[i][j]);
-		}
-		P[i][i] += 1; 
-	}
-
-	par->N_steps++;
-		
-	return 0;
-}
-#endif
 
