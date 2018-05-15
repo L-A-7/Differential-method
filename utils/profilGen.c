@@ -609,6 +609,15 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	}else if (!strcmp(pr_name,"ORIGAMI")){
 	
 	/* 
+
+   _.-°¨°-._                   _.-°¨°-._
+-°¨         ¨°-._         _.-°¨         ¨°-._         _.-
+   _.-°¨°-._     ¨°-._.-°¨     _.-°¨°-._     ¨°-._.-°¨
+-°¨         ¨°-._         _.-°¨         ¨°-._         _.-
+                 ¨°-._.-°¨                   ¨°-._.-°¨
+
+
+
 	                .          +
 	               / \         |
 	              /   \        |     
