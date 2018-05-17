@@ -233,6 +233,7 @@ printf("hmin_Sstep = %f\n",par->hmin_Sstep);
 	if (par->verbosity >= 2) fprintf(stdout,"Reading parameters in %s\n",nomfichier->profile_file);
 	if (!(fp = fopen(nomfichier->profile_file,"r"))){
 		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nomfichier->profile_file);
+		fprintf(stderr, "errno: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 	erreur="NO_ERROR                     ";
