@@ -652,6 +652,7 @@ int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS,
 	}
 	Delta_z = hmax - hmin;
 	z = (hmax + hmin)/2;
+/*	z = hmin;*/
 
 	/* P_matrix calculation */
 	(*par->P_matrix)(P, z, Delta_z, par);
@@ -693,7 +694,7 @@ SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
 printf("\nIm(par->T) :\n");
 SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
-	/*Affichage du temps restant à l'écran */
+	/*Affichage du temps restant Ã  l'Ã©cran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
 	
 	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
@@ -1387,7 +1388,7 @@ int md2D_zinvarQMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, str
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©
  *
  */
 /*-------------------------------------------------------------------------------------*/
@@ -1410,17 +1411,18 @@ int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné, pour un multicouches
+ *	\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	int nx, n_layer=0;
-	
+	double eps = EPS*par->h;
+
 	for (nx=0; nx<=par->N_x-1; nx++){
 		do{
-			if (z <= par->profil[n_layer][nx]){
-				if (z >= par->profil[n_layer+1][nx]){
+			if (z <= par->profil[n_layer][nx] + eps){
+				if (z >= par->profil[n_layer+1][nx] - eps){
 					k2_1D[nx] = par->k2_layer[n_layer];
 					break;
 				}else{
@@ -1439,17 +1441,18 @@ int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn			
  *
- *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné, pour un multicouches
+ *	\brief	DÃ©termine le tableau de COMPLEXes 1/k^2(x) pour un z donnÃ©, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	int nx, n_layer=0;
-	
+	double eps = EPS*par->h;
+
 	for (nx=0; nx<=par->N_x-1; nx++){
 		do{
-			if (z <= par->profil[n_layer][nx]){
-				if (z >= par->profil[n_layer+1][nx]){
+			if (z <= par->profil[n_layer][nx] + eps){
+				if (z >= par->profil[n_layer+1][nx] - eps){
 					invk2_1D[nx] = par->invk2_layer[n_layer];
 					break;
 				}else{
@@ -1467,7 +1470,7 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)	
  *
- *		\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
+ *		\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©
  */
 /*-------------------------------------------------------------------------------------*/
 int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
@@ -1491,7 +1494,7 @@ int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)	
  *
- *	\brief	Détermine le tableau de COMPLEXes invk^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes invk^2(x) pour un z donnÃ©
  */
 /*-------------------------------------------------------------------------------------*/
 int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -1515,10 +1518,10 @@ int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int invk_2(COMPLEX *invk2_1D, double *profil, struct Param_struct *par, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes 1/k^2(x) pour un z donnÃ©
  *
  *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
- *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
+ *			Doit Ãªtre plus polyvalent : accepter aussi les profils de type n(x,z)
  */
 /*-------------------------------------------------------------------------------------*/
 int invk2_H_X(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -1557,16 +1560,16 @@ int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *N
 {
 	int i;
 	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
-								/* while 'Nx2', corresponds to the x component^2 of the normal to the surface */
+								/* while 'Nx2', corresponds to the square of the surface normal x component */
 	double dhdx, norm_x, norm_z;
 	double two_dx = 2*par->L/Nx;
 
 	double *profil = par->profil[0];
 
 	if (par->HX_Normal_CALCULATED == 1){
-		Nx2  = par->Nx2;
+/*		Nx2  = par->Nx2;
 		NxNz = par->NxNz;
-		Nz2  = par->Nz2;
+		Nz2  = par->Nz2;*/
 		return 0;
 	}else{		
 		dhdx = (profil[1] - profil[Nx-1])/two_dx;
@@ -1594,6 +1597,82 @@ int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *N
 	}
 	return 0;
 }
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *k2_1D, double z)
+ *
+ *		\brief	Determine the Nx2, Nz2 and NxNz arrays, defined as \n
+ * 				Nx2  = norm_x^2,  											\n
+ * 				Nz2  = norm_z^2,  											\n
+ * 				NxNz = norm_x norm_z 										\n
+ * 				norm_x = -dhdx/(csqrt(1+dgdx^2)),      	   		\n
+ * 				norm_z = 1/(csqrt(1+dgdx^2)),         					\n
+ * 				dhdx being the h(x) derivative calculated as 		\n
+ * 				dhdx = [h(x+dx)-h(x-dx)]/2dx
+ *
+ * 	\todo 	The PRECISION can be IMPROVED with a HIGHER ORDER calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z)
+{
+	int nx, nx_left, nx_right;
+	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
+								/* while 'Nx2', corresponds to the square of the surface normal x component */
+	double dhdx, norm_x, norm_z, z1, z2, dhdx1, dhdx2;
+	double two_dx = 2*par->L/Nx;
+
+	double **profil = par->profil;
+
+/* Arrays of Normal vector for each layer */
+
+/* interpolation */
+	int n_layer=0;
+	double eps = EPS*par->h;
+
+	for (nx=0; nx<=Nx-1; nx++){
+		do{
+			if (z <= profil[n_layer][nx] + eps){
+				if (z >= profil[n_layer+1][nx] - eps){
+
+					z1=profil[n_layer+1][nx];
+					z2=profil[n_layer][nx];
+					/* Slope calculated with (f(x+dx)-f(x-dx))/2dx */	
+					/* Because of periodicity: indices Nx+1=0 and 0-1=Nx */	
+					if (nx==0){
+						nx_left  = Nx;
+						nx_right = nx+1;
+					}else if (nx==Nx-1){
+						nx_left  = nx-1;
+						nx_right = 0;
+					}else{
+						nx_left  = nx-1;
+						nx_right = nx+1;
+					} 
+					/* Slopes of profiles surrounding the point under consideraiton */
+					dhdx1 = (profil[n_layer+1][nx_right] - profil[n_layer+1][nx_left])/two_dx;
+					dhdx2 = (profil[n_layer][nx_right] - profil[n_layer][nx_left])/two_dx;
+					/* Interpolation of both slopes */	
+					if (fabs(z2-z1) <= EPS*par->h){ /* in the particular case where z2==z1, use the average of the two slopes */
+						dhdx = dhdx2/2 + dhdx1/2;
+					}else{
+						dhdx = (1/(z2-z1)) * ((z-z1)*dhdx2+(z2-z)*dhdx1); /* Otherwise, Linear interpolation */
+					}
+					norm_x = -dhdx/(csqrt(1+dhdx*dhdx));
+					norm_z = 1.0/(csqrt(1+dhdx*dhdx));
+					Nx2[nx] = norm_x*norm_x;
+					NxNz[nx]= norm_x*norm_z;
+					Nz2[nx] = norm_z*norm_z;
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+
+	return 0;
+}
 
 
 /*-------------------------------------------------------------------------------------*/
@@ -1613,7 +1692,7 @@ COMPLEX *FFT_k2_directe(double z, COMPLEX *TF_k2, struct Param_struct *par)
 	int N_tf = 2*par->N;
 	double coefnorm = 1.0/N_x;
 
-	/* Calcul de k^2(x) à z fixé, à partir du profil */
+	/* Calcul de k^2(x) Ã  z fixÃ©, Ã  partir du profil */
 	(*par->k_2)(par, par->k2, z);
 
 	/* Calcul de la TF de k2, avec N_x points */
@@ -1652,7 +1731,7 @@ printf("\nIm(TF_k2)\n");SaveCplxTab2file (TF_k2, 2*N_tf+1, "Im", "stdout", " ", 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par)
  *
- *	\brief	Calcule la TF de 1/k^2(x) pour un z donné et la tronque entre -N et +N
+ *	\brief	Calcule la TF de 1/k^2(x) pour un z donnÃ© et la tronque entre -N et +N
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par)
@@ -1666,7 +1745,7 @@ COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par
 	int N_tf = 2*par->N;
 	double coefnorm = 1.0/N_x;
 
-	/* Calcul de 1 / k^2(x) à z fixé, à partir du profil */
+	/* Calcul de 1 / k^2(x) Ã  z fixÃ©, Ã  partir du profil */
 	(*par->invk_2)(par, par->invk2, z);
 
 	/* Calcul de la TF de invk2, avec N_x points */
@@ -1692,7 +1771,7 @@ COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
  *
- *	\brief	Affichage du temps restant estimé en cours de calculs
+ *	\brief	Affichage du temps restant estimÃ© en cours de calculs
  */
 /*-------------------------------------------------------------------------------------*/
 int md2D_affichTemps(int n, int N, int nS, int NS, int ni, int Ni, struct Param_struct *par)
@@ -1701,7 +1780,7 @@ int md2D_affichTemps(int n, int N, int nS, int NS, int ni, int Ni, struct Param_
 	/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
 	if (CHRONO(clock(), par->last_clock) < 5){
 		return 0;
-	/* Sinon, estimation et affichage de la durée restante */
+	/* Sinon, estimation et affichage de la durÃ©e restante */
 	}else /*if (par->VERBOSE >= 1)*/{
 		int i, n_total;
 		time(&par->last_time);
@@ -1957,7 +2036,7 @@ printf("function not implemented. Uncomment following lines\n");
 	int i, j;
 	for (i=0;i<vec_size;i++){
 		for (j=0;j<vec_size;j++){
-			par->saved_T[nS][i]         [j]            = T11[i][j]; /* A VERIFIER : Attention à ne pas inverser ligne et col */
+			par->saved_T[nS][i]         [j]            = T11[i][j]; /* A VERIFIER : Attention Ã  ne pas inverser ligne et col */
 			par->saved_T[nS][i]         [j+vec_size]   = T12[i][j];
 			par->saved_T[nS][i+vec_size][j]            = T21[i][j];
 			par->saved_T[nS][i+vec_size][j+vec_size]   = T22[i][j];
@@ -2300,7 +2379,7 @@ int md2D_local_field_map_by_T_products(COMPLEX *V0m, struct Param_struct *par)
 		}
 	}
 
-/* ICI Calculer les amplitudes puis les efficacités, puis écrire les résultats... */
+/* ICI Calculer les amplitudes puis les efficacitÃ©s, puis Ã©crire les rÃ©sultats... */
 	for (i=0;i<=vec_size-1;i++){
 		par->Ar[i]=Vq_p[i];
 		par->At[i]=V1_m[i];
@@ -2436,7 +2515,7 @@ printf("\nIm(par->T) :\n");
 SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
 
-	/*Affichage du temps restant à l'écran */
+	/*Affichage du temps restant Ã  l'Ã©cran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
 	
 	return 0;
