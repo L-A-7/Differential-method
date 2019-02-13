@@ -595,10 +595,12 @@ int md2D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"\ntheta_r = "); ecrire_dble_tab(fp, eff->theta_r, eff->Nmax_super-eff->Nmin_super+1, " ", LMAX,"\n");
 	fprintf(fp,"\nN_eff_r = "); ecrire_dble_tab(fp, eff->N_eff_r, eff->Nmax_super-eff->Nmin_super+1, " ", LMAX,"\n");
 	fprintf(fp,"\neff_r = "); ecrire_dble_tab(fp, eff->eff_r, eff->Nmax_super-eff->Nmin_super+1, " ", LMAX,"\n");
+	fprintf(fp,"\narg_Ar = "); ecrire_dble_tab(fp, eff->arg_Ar, eff->Nmax_super-eff->Nmin_super+1, " ", LMAX,"\n");
 	fprintf(fp,"\ntheta_t = "); ecrire_dble_tab(fp, eff->theta_t, eff->Nmax_sub-eff->Nmin_sub+1, " ", LMAX,"\n");
 	fprintf(fp,"\nN_eff_t = "); ecrire_dble_tab(fp, eff->N_eff_t, eff->Nmax_sub-eff->Nmin_sub+1, " ", LMAX,"\n");
 	fprintf(fp,"\neff_t = "); ecrire_dble_tab(fp, eff->eff_t, eff->Nmax_sub-eff->Nmin_sub+1, " ", LMAX,"\n");
-
+	fprintf(fp,"\narg_At = "); ecrire_dble_tab(fp, eff->arg_At, eff->Nmax_sub-eff->Nmin_sub+1, " ", LMAX,"\n");
+	fprintf(fp,"\n");
 
 	fclose(fp);
 	return 0;

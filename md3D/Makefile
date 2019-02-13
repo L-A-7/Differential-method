@@ -1,20 +1,29 @@
 #
 #
 #
-ACML_INCLUDE_DIR = /opt/acml4.4.0/gfortran32/include 
-ACML_LIB_DIR = /opt/acml4.4.0/gfortran32/lib
+
+#HOME = /home/arnaud
 ATLAS_INCLUDE_DIR = /usr/include/atlas
-ATLAS_LIB_DIR = /usr/lib64/atlas
+ATLAS_LIB_DIR = /usr/lib/atlas-base
+LAPACK_INCLUDE_DIR = /usr/include/atlas
+ICC_DIR = /opt/intel/compilers_and_libraries/linux/bin/intel64/
 
-#BUILD=ACML
-#BUILD=Lapack
-#BUILD=Lapack_ATLAS
-HAVE_ACML=1
-HAVE_BLAS=0
+MKL = /opt/intel/mkl
+MKL_LIB = $(MKL)/lib/em64t
+MKL_INC = $(MKL)/include
+#FFTW_PATH = /opt/scilibs/FFTW/fftw-3.2.1_Bull.9010
+#FFTW_LIB = $(FFTW_PATH)/lib
+#FFTW_INC = $(FFTW_PATH)/include
+#LOCAL_INC = $(HOME)/include
+#LOCAL_LIB = $(HOME)/lib
+
+HAVE_MKL=0
+HAVE_BLAS=1
 HAVE_CBLAS=0
-HAVE_LAPACK=0
+HAVE_LAPACK=1
 HAVE_ATLAS=0
-
+#COMPIL=ICC
+COMPIL=GCC
 
 NAME = md3D
 STD_H = std_include.h
@@ -24,55 +33,66 @@ IO_UTILS = md_io_utils
 PILOT = $(NAME)_pilot
 MATHS = md_maths
 
-LIB1 = -lfftw3
+######## FFTW ###########
+#LIB1 = -static -lfftw3
+#LIB= -L$(LOCAL_LIB) $(LOCAL_LIB)/libfftw3.a
+#INC= -I$(LOCAL_INC) -I$(FFTW_INC)
+LIB= -lfftw3
+DEFS=
 
-ifeq ($(HAVE_ACML),1)
-INC2= -I$(ACML_INCLUDE_DIR)
-#LIB2 = -L$(ACML_LIB_DIR) -lacml
-LIB2 = $(ACML_LIB_DIR)/libacml.a
-OPTIM_FLAGS= -D_ACML
+ifeq ($(HAVE_MKL),1)
+INC+= -I$(MKL_INC) -I$(LAPACK_INCLUDE_DIR)
+#LIB+= -L$(MKL_LIB) $(MKL_LIB)/libmkl_solver_lp64.a -Wl,--start-group $(MKL_LIB)/libmkl_intel_lp64.a $(MKL_LIB)/libmkl_intel_thread.a $(MKL_LIB)/libmkl_core.a -Wl,--end-group -openmp -lpthread
+LIB+=  -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_gnu_thread.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lgomp -lpthread -lm -ldl
+#LIB+= -mkl
+DEFS+= -D_BLAS -D_LAPACK  -m64
+
 endif
 
-ifeq ($(BUILD),Lapack)
-INC2 = -I$(ATLAS_INCLUDE_DIR)
-LIB2 = -llapack -lblas 
+ifeq ($(HAVE_BLAS),1)
+#INC+= -I$(BLAS_INCLUDE_DIR)
+#LIB+= -L$(BLAS_LIB_DIR) -lblas
+LIB+= -lblas
+DEFS+= -D_BLAS
+endif
+
+ifeq ($(HAVE_CBLAS),1)
+#INC+= -I$(BLAS_INCLUDE_DIR)
+#LIB+= -L$(BLAS_LIB_DIR) -lcblas
+LIB+= -lcblas
+DEFS+= -D_CBLAS
+endif
+
+ifeq ($(HAVE_LAPACK),1)
+INC+= -I$(LAPACK_INCLUDE_DIR)
+#LIB+= -L$(LAPACK_LIB_DIR) -llapack
+LIB+= -llapack
+DEFS+= -D_LAPACK
+endif
+
+ifeq ($(HAVE_ATLAS),1)
+INC+= -I$(ATLAS_INCLUDE_DIR)
+LIB+= -L$(ATLAS_LIB_DIR) -latlas -llapack -lblas 
 XERBLA=xerbla.o
-OPTIM_FLAGS=-D_LAPACK
-endif
-
-ifeq ($(BUILD),Lapack_ATLAS)
-INC2 = -I$(ATLAS_INCLUDE_DIR)
-LIB2 = -L$(ATLAS_LIB_DIR) -latlas -llapack -lblas 
-XERBLA=xerbla.o
-OPTIM_FLAGS=-D_BLAS -D_LAPACK
-endif
-
-ifeq ($(BUILD),ACML)
-INC2= -I$(ACML_INCLUDE_DIR)
-LIB2 = -L$(ACML_LIB_DIR) -lacml
-OPTIM_FLAGS= -D_ACML
+DEFS+= -D_BLAS -D_LAPACK
 endif
 
 ifeq ($(COMPIL),ICC)
-CC=/opt/intel/cce/9.1.047/bin/icc
-LIB3 = -L/opt/intel/cce/9.1.047/lib
+#CC=$(ICC_DIR)/icc -wd981
+CC = $(ICC_DIR)/icc
+#LIB3 = -L/opt/intel/cce/9.1.047/lib
 else
 CC=gcc
 endif
 
-ifeq ($(SCHED),FIFO)
-OPTIM_FLAGS+=-DSCHED_FIFO=1
-endif
-
-INC =$(INC1) $(INC2) $(INC3)
-#LIB =$(LIB1) $(LIB2) -lf2c -lm
-LIB =$(LIB1) $(LIB2) -lm -lgfortran
+LIB+= -lm
 
 all : $(NAME)
 
 # Options de compilation :
-CFLAGS = -g -Wall -ansi $(OPTIM_FLAGS)
-#CFLAGS = -O3 -Wall -ansi $(OPTIM_FLAGS)
+CFLAGS = -g -Wall -ansi $(DEFS)
+#CFLAGS = -O3 -ansi $(DEFS)
+
 
 # Profiling
 #PG = -pg
@@ -109,7 +129,7 @@ $(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(MATHS).o
 # Archivage du projet en .tar
 tar :  
 #	tar -cvf $(NAME).tar ./*.c ./*.h  ./Makefile ./*.txt
-	tar -cvf $(NAME).tar ./*.c ./*.h ./*.txt
+	tar -cvf $(NAME).tar ./*.c ./*.h 
 
 # Archivage et Compression du projet en .tar.bz2
 bz2 : tar
@@ -126,8 +146,10 @@ zip :
 	zip $(NAME) ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./doc/*
 
 
-# Nettoyage du répertoire de travail	
+# Nettoyage du rÃ©pertoire de travail	
 clean :
 	rm -f ./*.o
 	rm -f ./*~
+
+
 

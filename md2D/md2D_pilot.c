@@ -56,7 +56,7 @@ printf("\ntab_NS\n");SaveDbleTab2file (param.tab_NS, param.NS, "stdout", " ", 10
 read_S_steps_from_profile(&param);
 md2D_make_tab_S_steps(&param);
 printf("\ntab_imposed_S_steps\n");SaveDbleTab2file (param.tab_imposed_S_steps, param.N_imposed_S_steps, "stdout", " ", 100, "\n");
-printf("\ntab_NS\n");SaveDbleTab2file (param.tab_NS, param.NS, "stdout", " ", 100, "\n");*/
+printf("\ntab_NS\n");SaveDbleTab2file (param.tab_NS, param.NS, "stdout", " ", 100, "\n");
 
 int vec_size=param.vec_size;
 
@@ -105,8 +105,6 @@ printf("\nIm(S22)\n");SaveMatrix2file (param.S22, vec_size, vec_size, "Im", "std
 		md2D_swifts (&param, &effic, &nomfichier);
 	}else if (!strcmp(param.calcul_type,"NEAR_FIELD")){
 		md2D_near_field (&param, &effic, &nomfichier);
-	}else if (!strcmp(param.calcul_type,"VAR_I")){
-		md2D_var_i (&param, &effic, &nomfichier);
 	}else{
 		fprintf(stderr, "%s, line %d : ERROR, unknown calculation type (\"%s\")\n",__FILE__,__LINE__,param.calcul_type);
 		exit(EXIT_FAILURE);
@@ -243,8 +241,8 @@ int md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,st
 	md2D_ecrire_results(nomfichier->fichier_results, par, eff);
 
 	V0m=par->At; /* because h0=0 */
-/*	md2D_local_field_map(par->tab_S12, par->tab_Z, par);*/ /* Normal configuration (far field incident) */
-	md2D_local_field_map_by_T_products(V0m, par); /* for configuration with waveguide */
+	md2D_local_field_map(par->tab_S12, par->tab_Z, par); /* Normal configuration (far field incident) */
+/*	md2D_local_field_map_by_T_products(V0m, par);*/ /* for configuration with waveguide */
 /*	md2D_near_field_map_evanescent(par);*/
 
 
@@ -259,97 +257,6 @@ int md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,st
 	return 0;
 }
 
-
-/*---------------------------------------------------------------------------------------------*/
-/*!	\fn		md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
- *
- *		\brief	vary incidence and record specular variation as a function of theta_i.
- */
-/*---------------------------------------------------------------------------------------------*/
-int md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier)
-{
-	FILE *fp;
-	double i_min = 0;
-	double i_max = 89;
-	double delta_i = 1;
-	par->Ni = ROUND((i_max - i_min + 1)/delta_i); 
-	int Ni = par->Ni;
-	double *var_i_angle, *var_i_effR, *var_i_effR_p1, *var_i_effR_m1, *var_i_effR_m2, *var_i_modR, *var_i_argR;
-
-	var_i_angle = (double *) malloc(sizeof(double)*Ni);
-	var_i_effR  = (double *) malloc(sizeof(double)*Ni);
-	var_i_effR_p1  = (double *) malloc(sizeof(double)*Ni);
-	var_i_effR_m1  = (double *) malloc(sizeof(double)*Ni);
-	var_i_effR_m2  = (double *) malloc(sizeof(double)*Ni);
-	var_i_modR  = (double *) malloc(sizeof(double)*Ni);
-	var_i_argR  = (double *) malloc(sizeof(double)*Ni);
-
-
-	/* Boucle sur l'angle d'incidence */
-	for (par->ni=0; par->ni<=Ni-1; (par->ni)++){
-	
-		par->theta_i = (i_min + delta_i*(double)par->ni)*PI/180.0;
-		par->sigma0 = par->k_super*sin(par->theta_i)*cos(par->phi_i);
-		par->ky_0   = par->k_super*sin(par->theta_i)*sin(par->phi_i);
-		var_i_angle[par->ni] = (i_min + delta_i*(double)par->ni);
-			
-/*		fprintf(stdout,"\r i = %3.0f   ",par->theta_i*180.0/PI);fflush(stdout);
-*/		par->verbosity = 0;
-	
-	/* Initialising some arrays */
-	md2D_arrays_init(par, eff);
-	/* Affichage des paramètres lus et calculés */
-	md2D_affiche_valeurs_param(par, nomfichier);
-		/* Propagative orders limits calculation */
-		md2D_propagativ_limits(par, eff);
-		/* Incident field amplitude */
-		md2D_incident_field(par,eff);
-		/* S matrix */
-		S_matrix(par);
-		/* Amplitudes calculation */
-		md2D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
-		/* Efficiencies calculation */
-		md2D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
-			
-		/* Récupération de la grandeur */
-/*printf("Nmin_super = %d\n",eff->Nmin_super);
-printf("theta_i = %f\n",par->theta_i);
-printf("sigma0 = %f\n",creal(par->sigma0));
-printf("eff->eff_r[-eff->Nmin_super] = %f\n",eff->eff_r[-eff->Nmin_super]);
-SaveDbleTab2file (eff->eff_r,  par->vec_size,"stdout", " ",10000000,"");*/
-		var_i_effR[par->ni] = eff->eff_r[-eff->Nmin_super];       /* Efficacité faisceau réfléchi */
-		var_i_effR_p1[par->ni] = eff->eff_r[-eff->Nmin_super+1];       /* Efficacité ordre 1 */
-		var_i_effR_m1[par->ni] = eff->eff_r[-eff->Nmin_super-1];       /* Efficacité ordre -1 */
-		var_i_effR_m2[par->ni] = eff->eff_r[-eff->Nmin_super-2];       /* Efficacité ordre -2 */
-		var_i_modR[par->ni] = cabs(par->S12[par->N][par->N]);     /* module du facteur de réflexion du spéculaire */
-		var_i_argR[par->ni] = carg(par->S12[par->N][par->N]); /* argument du facteur de réflexion complexe du spéculaire */
-
-	}
-	
-	/* Writting results in fichier_results */
-	md2D_genere_nom_fichier_results(nomfichier->fichier_results, par);
-	md2D_ecrire_results(nomfichier->fichier_results, par, eff);
-
-	/* Ajout d'une ligne contenant var_i */
-	if (!(fp = fopen(nomfichier->fichier_results,"a"))){
-		fprintf(stderr, "%s ligne %d : Erreur, impossible d'ouvrir %s\n",__FILE__, __LINE__,nomfichier->fichier_results);
-		exit(EXIT_FAILURE);
-	}
-	int LMAX = 1000; /* NORMALEMENT UNE MACRO */
-	
-	fprintf(fp,"\nvar_i_angle = "); ecrire_dble_tab(fp, var_i_angle, par->Ni, " ", LMAX,"\n");
-	fprintf(fp,"\nvar_i_effR  = "); ecrire_dble_tab(fp, var_i_effR, par->Ni, " ", LMAX,"\n");
-	fprintf(fp,"\nvar_i_effR_p1  = "); ecrire_dble_tab(fp, var_i_effR_p1, par->Ni, " ", LMAX,"\n");
-	fprintf(fp,"\nvar_i_effR_m1  = "); ecrire_dble_tab(fp, var_i_effR_m1, par->Ni, " ", LMAX,"\n");
-	fprintf(fp,"\nvar_i_effR_m2  = "); ecrire_dble_tab(fp, var_i_effR_m2, par->Ni, " ", LMAX,"\n");
-	fprintf(fp,"\nvar_i_modR  = "); ecrire_dble_tab(fp, var_i_modR, par->Ni, " ", LMAX,"\n");
-	fprintf(fp,"\nvar_i_argR  = "); ecrire_dble_tab(fp, var_i_argR, par->Ni, " ", LMAX,"\n");
-		
-	fclose(fp);
-
-
-	return 0;
-}
 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
@@ -428,6 +335,7 @@ int md2D_alloc_init_profil(struct Param_struct *par)
 			par->md2D_lire_profil = md2D_lire_profil_MULTI;
 			par->k_2 = k2_MULTI;
 			par->invk_2 = invk2_MULTI;
+			par->Normal_function = Normal_H_X_Multi;
 			break;
 		case N_XYZ        : 
 			par->md2D_lire_profil = md2D_lire_profil_N_XYZ;
@@ -701,6 +609,8 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 
 	eff->eff_r   = (double *) malloc(sizeof(double)*(par->vec_size));
 	eff->eff_t   = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->arg_Ar   = (double *) malloc(sizeof(double)*(par->vec_size));
+	eff->arg_At   = (double *) malloc(sizeof(double)*(par->vec_size));
 	eff->N_eff_r = (double *) malloc(sizeof(double)*(par->vec_size));
 	eff->N_eff_t = (double *) malloc(sizeof(double)*(par->vec_size));
 	eff->theta_r = (double *) malloc(sizeof(double)*(par->vec_size));
@@ -866,6 +776,8 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 
 	free(eff->eff_r);
 	free(eff->eff_t);
+	free(eff->arg_Ar);
+	free(eff->arg_At);
 	free(eff->N_eff_r);
 	free(eff->N_eff_t);
 	free(eff->theta_r);

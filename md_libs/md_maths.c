@@ -1,7 +1,7 @@
 /*!	\file		md_maths.c
  *
  * 	\brief		Mathematics operations
- *				Mainly matrices operations and FFT, using libraries, BLAS, LAPACK, FFTW, ACML
+ *				Mainly matrices operations and FFT, using libraries, BLAS, LAPACK, FFTW
  */
 
 #include "md_maths.h"
@@ -20,9 +20,7 @@ COMPLEX **M_x_M(COMPLEX **matrix_out, COMPLEX **matrix_1, COMPLEX **matrix_2, in
 		fprintf (stderr, "%s : Error, M_x_M. nline must equals ncol\n", __FILE__); 
 		exit (EXIT_FAILURE);
 	}
-#ifdef _ACML
-	acml_MxM(matrix_out, matrix_1, matrix_2, ncol);
-#elif defined _BLAS
+#ifdef _BLAS
 	blas_MxM(matrix_out, matrix_1, matrix_2, ncol);
 #elif defined _CBLAS
 	cblas_MxM(matrix_out, matrix_1, matrix_2, ncol);
@@ -34,52 +32,6 @@ COMPLEX **M_x_M(COMPLEX **matrix_out, COMPLEX **matrix_1, COMPLEX **matrix_2, in
 #endif
 	return matrix_out;
 }
-
-
-#ifdef _ACML
-/* Shakti */
-int acml_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
-{
-  int i,j;
-  COMPLEX *A_tmp, *B_tmp, tmp1;
-  doublecomplex alpha;
-  doublecomplex beta;
-
-  alpha.real = 1.0;
-  alpha.imag = 0.0;
-  beta.real = 0.0;
-  beta.imag = 0.0;
-
-  A_tmp = malloc(sizeof(COMPLEX) * N * N);
-  B_tmp = malloc(sizeof(COMPLEX) * N * N);
-
-  /* Copying A and B into col major (Fortran style) */
-  for(i=0;i<N;i++){
-    for(j=0;j<N;j++){
-      A_tmp[i + N * j] = A[i][j];
-      B_tmp[i + N * j] = B[i][j];
-    }
-  }
-
-  /* Computing the matrix product */
-  zgemm('N', 'N', N, N, N, &alpha, (doublecomplex *)A_tmp, N, 
-	(doublecomplex *)B_tmp, N, &beta, (doublecomplex *)M_out[0], N);
-
-  /* Transforming M_out in row major (C style) */
-  for(i=0;i<N-1;i++){
-    for(j=i+1;j<N;j++){
-      tmp1 = M_out[i][j];
-      M_out[i][j] = M_out[j][i];
-      M_out[j][i] = tmp1;
-    }
-  }
-
-  free(A_tmp);
-  free(B_tmp);
-
-  return 0;
-}
-#endif
 
 
 /*!------------------------------------------------------------------------------------
@@ -210,40 +162,14 @@ int nolib_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *M_x_V(COMPLEX *vector_out, COMPLEX **matrix, COMPLEX *vector_in, int nlign, int ncol)
 {
-#ifdef _CBLAS
   if (nlign != ncol){
     fprintf (stderr, "%s : Error, M_x_V nline must equals ncol (edit the source to change this)", __FILE__); 
     exit (EXIT_FAILURE);
   }
+#ifdef _CBLAS
   cblas_MxV(vector_out, matrix, vector_in, ncol);
 #else
-	#ifdef _ACML
-  int i, j;
-  doublecomplex alpha;
-  doublecomplex beta;
-  doublecomplex *m1;
-
-  alpha.real = 1.0;
-  alpha.imag = 0.0;
-
-  beta.real = 0.0;
-  beta.imag = 0.0;
-
-  m1 = malloc(sizeof(doublecomplex) * nlign * ncol);
-
-  /* Copie de la matrice */
-  for(i=0;i<nlign;i++){
-    for(j=0;j<ncol;j++){
-      m1[i + ncol * j].real = creal(matrix[i][j]);
-      m1[i + ncol * j].imag = cimag(matrix[i][j]);
-    }
-  }
-
-  zgemv('N', nlign, ncol, &alpha, m1, nlign, (doublecomplex *)vector_in, 1, &beta, (doublecomplex *)vector_out, 1);
-
-  free(m1);
-	#else
-printf("MxV");
+  printf("MxV");
   int i,j;
   for (i=0;i<=nlign-1;i++){
     vector_out[i] = 0;
@@ -252,7 +178,6 @@ printf("MxV");
     }
   }
 
-	#endif
 #endif	
   return vector_out;
 }
@@ -331,12 +256,8 @@ int eigen_values(COMPLEX **A, COMPLEX *eig_values, COMPLEX **EigVectors, COMPLEX
 #ifdef _LAPACK
   lapack_eigen_values(A, eig_values, EigVectors, eig_buffer, N);
 #else
-	#ifdef _ACML
-  acml_eigen_values(A, eig_values, EigVectors, eig_buffer, N);
-	#else
-  printf("%s, line %d : ERROR, function not available, either lapack or acml must be implemented",__FILE__,__LINE__);
+  printf("%s, line %d : ERROR, function not available, either lapack or MKL must be implemented",__FILE__,__LINE__);
   exit(EXIT_FAILURE);
-	#endif
 #endif
   return 0;
 
@@ -520,68 +441,6 @@ int lapack_eigen_values(COMPLEX **A, COMPLEX *eig_values, COMPLEX **EigVectors, 
   */
 }					
 
-
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn	int acml_eigen_values(COMPLEX **A, COMPLEX *eig_values, COMPLEX **EigVectors, COMPLEX *eig_buffer, int N)	
- *
- *	\brief	Eigen values & eigen vector of a COMPLEX matrix A
- * 			uses ACML zgeev function
- * 			eig_values : eigen values tab
- *				EigVectors : matrix containing the eigen vectors
- *				eig_buffer : (not used in this function)
- *				N : size of the matrix
- */
-/*-------------------------------------------------------------------------------------*/
-#ifdef _ACML
-int acml_eigen_values(COMPLEX **A, COMPLEX *eig_values, COMPLEX **EigVectors, COMPLEX *eig_buffer, int N)
-{
-  COMPLEX tmp;
-  int i,j,info;
-
-  /* Transforming A in col major (Fortran style) */
-  for(i=0;i<N;i++){
-    for(j=i;j<N;j++){
-      tmp = A[i][j];
-      A[i][j] = A[j][i];
-      A[j][i] = tmp;
-    }
-  }
-
-  /* Computing A * v(j) = lambda(j) * v(j) */	
-  zgeev(
-	'N', 
-	'V', 
-	N, 
-	(doublecomplex *) A[0], 
-	N, 
-	(doublecomplex *) eig_values, 
-	NULL, 
-	N,
-	(doublecomplex *) EigVectors[0],
-	N, 
-	&info);
-
-  if (info != 0){
-    printf("ERROR, %s, line %d, can't compute eigen values, error_code info = %d\n",__FILE__,__LINE__,info);
-    exit(EXIT_FAILURE);
-  }
-
-  /* Transforming EigVectors in row major (C style) */
-  for(i=0;i<=N-1;i++){
-    for(j=i;j<=N-1;j++){
-      tmp = EigVectors[i][j];
-      EigVectors[i][j] = EigVectors[j][i];
-      EigVectors[j][i] = tmp;
-    }
-  }
-			
-  return 0;
-
-
-}					
-#endif
-
-
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		COMPLEX **invM(COMPLEX **inv, COMPLEX **A, int N)
  *
@@ -592,12 +451,8 @@ COMPLEX **invM(COMPLEX **inv, COMPLEX **A, int N)
 {
 #ifdef _LAPACK
   lapack_invM(inv, A, N);
-#else	
-	#ifdef _ACML
-  acml_invM(inv, A, N);
-	#else
+#else
   nolib_invM(inv, A, N);
-	#endif
 #endif
 
   return inv;
@@ -673,65 +528,6 @@ int lapack_invM(COMPLEX **inv, COMPLEX **A, int N)
   }
 
   free(work);
-  free(ipiv);
-	
-  return 0;
-}					
-#endif
-
-/*-------------------------------------------------------------------------------------*/
-/*!	\fn	int acml_invM(COMPLEX **inv, COMPLEX **A, int N)
- *
- *		\brief	Inverse Matrix calculation using LU factorisation
- * 			uses ACML zgetrf & zgetri
- *				A : COMPLEX N x N matrix to invert (input)
- *				inv : COMPLEX N x N inverse matrix (output)  
- *				N : size of the matrix
- */
-/*-------------------------------------------------------------------------------------*/
-#ifdef _ACML
-int acml_invM(COMPLEX **inv, COMPLEX **A, int N)
-{
-  /*	extern void zgetri_(int *n, COMPLEX *a, int *lda, int *ipiv, COMPLEX *work, int *lwork, int *info);
-	extern void zgetrf_(int *m, int *n, COMPLEX *a,	int *lda, int *ipiv, int *info);
-  */	
-  int i,j,info, *ipiv;
-  COMPLEX tmp;
-
-  ipiv = (int *) malloc(sizeof(int)*N);
-
-  /* Copying A to inv and transforming it in col major (Fortran style) */
-  for(i=0;i<N;i++){
-    for(j=0;j<N;j++){
-      inv[i][j] = A[j][i];
-    }
-  }
-	
-  /* LU factorization */
-  zgetrf(N, N, (doublecomplex *) inv[0], N, ipiv, &info);
-
-  if (info != 0){
-    printf("ERROR, %s, line %d, can't compute LU factorization, error_code info = %d\n",__FILE__,__LINE__,info);
-    exit(EXIT_FAILURE);
-  }
-	
-  /* Matrix inversion */
-  zgetri(N, (doublecomplex *) inv[0], N, ipiv, &info);
-
-  if (info != 0){
-    printf("ERROR, %s, line %d, can't invert matrix, error_code info = %d\n",__FILE__,__LINE__,info);
-    exit(EXIT_FAILURE);
-  }
-
-  /* Transforming inv in row major (C style) */
-  for(i=0;i<N;i++){
-    for(j=i;j<N;j++){
-      tmp = inv[i][j];
-      inv[i][j] = inv[j][i];
-      inv[j][i] = tmp;
-    }
-  }
-
   free(ipiv);
 	
   return 0;

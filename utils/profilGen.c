@@ -68,8 +68,8 @@ int main(int argc, char *argv[]){
 
 
 
-	/*----- Génération d'un profil -----*/
-	if (!strcmp(pr_name,"CMINCES")){
+	/*----- Generating a profile -----*/
+	if (!strcmp(pr_name,"LAYERS")){
 	
 	/*     ---------------------------------  -
 	                                          |
@@ -150,19 +150,46 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	        `.      '       `.      '
 	         `.___,'         `.___,'  
 	*/
-fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
-		/* Allocation de mémoire pour le profil*/
+		/* Memory allocation for profile */
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 		
 		double l;
-		int N_periods = 16;
+		int N_periods = 1;
 		
 		lire_int_arg(&N_periods, "-N_periods", argc, argvcp);
 		
 		for(i=0;i<=N_profil-1;i++){
 			l = 2*PI*((double)(N_periods*i)) / ((double) N_profil);
 			pr[0][i] = 0.5*sin(l) + 0.5;
+		}
+	}else if (!strcmp(pr_name,"SINUS02")){
+	
+	/*                
+	    --.           .---.           - 
+	       `.        '     `.         |
+	        `.      '       `.      ' | h1
+	         `.___,'         `.___,'  -
+                                     | h2
+	    ----------------------------- -    
+	*/
+		/* Memory allocation for profile */
+		N_layers = 1;
+		pr = allocate_DbleMatrix(N_layers+1, N_profil);
+		
+		double l;
+		int N_periods = 1;
+		double h1 = 1.0;
+		double h2 = 0.0;
+
+		lire_dble_arg(&h1, "-h1", argc, argvcp);
+		lire_dble_arg(&h2, "-h2", argc, argvcp);
+		lire_int_arg(&N_periods, "-N_periods", argc, argvcp);
+		
+		for(i=0;i<=N_profil-1;i++){
+			l = 2*PI*((double)(N_periods*i)) / ((double) N_profil);
+			pr[0][i] = (0.5*sin(l) + 0.5)*h1+h2;
+			pr[1][i] = 0.0;
 		}
 	}else if (!strcmp(pr_name,"CARRE02")){
 	
@@ -241,6 +268,87 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 			pr[0][i] = h1+h2;
 			pr[1][i] = 0;
 		}
+
+	}else if (!strcmp(pr_name,"CARRE02_IS")){
+	
+	/* Similar to CARRE02_B but the lateral position can be adjusted */
+	/* lines are inside the substrate instead of being inside the superstrate
+
+          <-------- 1-pos -------><- pos ->
+	   pr1 ---------------------------------  -	
+	                                          | h2
+	   pr2 ------------------+          +---  -
+	                         |          |     |
+	                         |          |     | h1
+	                         +----------+     -
+	       <---- 1 - L1 ----><--- L1 ---> 
+
+	*/
+
+		/* Allocation de mémoire pour le profil*/
+		N_layers = 1;
+		pr = allocate_DbleMatrix(N_layers+1, N_profil);
+
+		double L1 = 0.50;
+		double h1 = 1;
+		double h2 = 0;
+		double pos = 0.5;
+		lire_dble_arg(&L1, "-L1", argc, argvcp);
+		lire_dble_arg(&h1, "-h1", argc, argvcp);
+		lire_dble_arg(&h2, "-h2", argc, argvcp);
+		lire_dble_arg(&pos, "-pos", argc, argvcp);
+	
+	
+		if (h1>1 || L1>1 || pos>1 || pos<0) {
+			fprintf(stderr,"CARRE02_IS: parameter problem  h1,L1, or pos has a forbidden value\n");
+			free(pr);
+			return 1;
+		}
+	
+		int p1=(int)((pos-0.5*L1)*N_profil);
+		int p2=(int)((pos+0.5*L1)*N_profil);
+		if (p1>=0 && p2<N_profil){
+			for(i=0;i<=p1;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = h1;
+			}
+			for(i=p1;i<=p2-1;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = 0;
+			}
+			for(i=p2;i<N_profil;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = h1;
+			}
+		}else if (p1>=0 && p2>=N_profil){
+			for(i=0;i<=p1;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = h1;
+			}
+			for(i=p1;i<=N_profil-1;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = 0;
+			}
+			for(i=0;i<=p2-N_profil-1;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = 0;
+			}
+		}else if (p1<0 && p2<N_profil){
+			for(i=0;i<=p2-1;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = 0;
+			}
+			for(i=p2;i<N_profil;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = h1;
+			}
+			for(i=p1+N_profil;i<N_profil;i++){
+				pr[0][i] = h1+h2;
+				pr[1][i] = 0;
+			}
+		}
+
+
 
 	}else if (!strcmp(pr_name,"CARRE03")){
 	
@@ -643,7 +751,6 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		double hstep = h2/ROUND(0.5*N_profil);
 
 		int hlf_Nprofil = ROUND(0.5*N_profil);
-fprintf(stderr, "hlf_Nprofil=%d \n", hlf_Nprofil);
 
 		if (2*(int)(0.5*N_profil) != N_profil) {
 			fprintf(stderr, "%s line %d: ERROR, ORIGAMI: N_profil=%d. Should be an even number\n",__FILE__, __LINE__, N_profil);

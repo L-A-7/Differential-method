@@ -287,7 +287,10 @@ struct Efficacites_struct {
 
 	double *eff_r;
 	double *eff_t;
-	
+
+	double *arg_Ar;
+	double *arg_At;
+
 	double *N_eff_r;	
 	double *N_eff_t;
 	
@@ -295,7 +298,7 @@ struct Efficacites_struct {
 	double *theta_t;
 	double *phi_r;
 	double *phi_t;
-	
+
 	double sum_eff_r;
 	double sum_eff_t;
 	double sum_eff;

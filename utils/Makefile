@@ -21,3 +21,5 @@ clean :
 	rm -f ./*.o
 	rm -f ./*~
 
+tar :
+	tar -cvf utils.tar ./*.c Makefile

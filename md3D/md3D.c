@@ -44,7 +44,7 @@ int md3D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff
 		par->Ai[vec_mid+vec_size] = Hpyi;
 		 
 	}else{
-		fprintf(stderr, "%s, ligne %d : ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
+		fprintf(stderr, "%s, line %d : ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
 		exit(EXIT_FAILURE);
 	}
 
@@ -1944,9 +1944,7 @@ int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, 
 
 /*	double *profil = par->profil[0];*/
 
-	if (par->HXY_Normal_CALCULATED == 1139876){
-		return 0;
-	}else{		
+	if (Npry >= 2){ /* 2D Profile (general case) */
 		for (i=1;i<=Npry-2;i++){
 			for (j=1;j<=Nprx-2;j++){
 				dhdx = (profil[Nprx*i+j+1]-profil[Nprx*i+j-1])/two_dx;
@@ -1986,22 +1984,39 @@ int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, 
 		norm_y[0][0] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[0][0] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		dhdx = (profil[(Npry-1)*Nprx]-profil[(Npry-1)*Nprx+Nprx-2])/two_dx;
-		dhdy = (profil[Nprx-1]-profil[(Npry-2)*Nprx+Nprx-1])/two_dx;
+		dhdy = (profil[Nprx-1]-profil[(Npry-2)*Nprx+Nprx-1])/two_dy;
 		norm_x[Npry-1][Nprx-1] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_y[Npry-1][Nprx-1] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[Npry-1][Nprx-1] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		dhdx = (profil[0]-profil[Nprx-2])/two_dx;
-		dhdy = (profil[2*Nprx-1]-profil[(Nprx-1)*Nprx+Nprx-1])/two_dx;
+		dhdy = (profil[2*Nprx-1]-profil[(Npry-1)*Nprx+Nprx-1])/two_dy;
 		norm_x[0][Nprx-1] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_y[0][Nprx-1] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[0][Nprx-1] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		dhdx = (profil[(Npry-1)*Nprx+1]-profil[(Npry-1)*Nprx+Nprx-1])/two_dx;
-		dhdy = (profil[0]-profil[(Npry-2)*Nprx])/two_dx;
+		dhdy = (profil[0]-profil[(Npry-2)*Nprx])/two_dy;
 		norm_x[Npry-1][0] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_y[Npry-1][0] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[Npry-1][0] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
+	}else if (Npry == 1){ /* Particular case of treatment of 1D profile (useful if you don't have the specific code but slower) */
+		for (j=1;j<=Nprx-2;j++){
+			dhdx = (profil[j+1]-profil[j-1])/two_dx;
+			norm_x[0][j] = -dhdx/(csqrt(1+dhdx*dhdx));
+			norm_y[0][j] = 0.0;
+			norm_z[0][j] = 1.0/(csqrt(1+dhdx*dhdx));
+		}
+		dhdx = (profil[1]-profil[Nprx-1])/two_dx;
+		norm_x[0][0] = -dhdx/(csqrt(1+dhdx*dhdx));
+		norm_y[0][0] = 0.0;
+		norm_z[0][0] = 1.0/(csqrt(1+dhdx*dhdx));
+		dhdx = (profil[0]-profil[Nprx-2])/two_dx;
+		norm_x[0][Nprx-1] = -dhdx/(csqrt(1+dhdx*dhdx));
+		norm_y[0][Nprx-1] = 0.0;
+		norm_z[0][Nprx-1] = 1.0/(csqrt(1+dhdx*dhdx));
+	}else{ /* We should not be here... */
+		fprintf(stderr, "%s, line %d : ERROR, Impossible value for Npry.\n",__FILE__,__LINE__);
+		exit(EXIT_FAILURE);
 	}
-	par->HXY_Normal_CALCULATED = 1;
 
 #if 0
 /********************************************************/
@@ -2046,15 +2061,15 @@ int Normal_MULTI(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z,
 {
 	int nx,ny,nxy, n_layer=0;
 	double zb,zt,dz,ct,cb, check_norm;
-	COMPLEX ***tab_normx, ***tab_normy, ***tab_normz;
 
+	COMPLEX ***tab_normx, ***tab_normy, ***tab_normz;
 	tab_normx = allocate_CplxMatrix_3(par->Npry,par->Nprx, par->N_layers+3);
 	tab_normy = allocate_CplxMatrix_3(par->Npry,par->Nprx, par->N_layers+3);
 	tab_normz = allocate_CplxMatrix_3(par->Npry,par->Nprx, par->N_layers+3);
 	
 	/* Calculation of normal vectors of each interface */
 	for (n_layer=0; n_layer<=par->N_layers+2; n_layer++){
-		Normal_H_XY(tab_normx[n_layer], tab_normy[n_layer], tab_normz[n_layer], z, par->profil[n_layer], par);
+		Normal_H_XY(tab_normx[n_layer], tab_normy[n_layer], tab_normz[n_layer], 0, par->profil[n_layer], par);
 	}
 
 	/* Linear interpolation (since most points are situated beetwen 2 interfaces and a continuous variation is desired) */
@@ -2093,7 +2108,7 @@ int Normal_MULTI(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z,
 		}
 	}
 
-/*	free(tab_normx[0][0]);
+	free(tab_normx[0][0]);
 	free(tab_normx[0]);
 	free(tab_normx);
 	free(tab_normy[0][0]);
@@ -2101,7 +2116,7 @@ int Normal_MULTI(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z,
 	free(tab_normy);
 	free(tab_normz[0][0]);
 	free(tab_normz[0]);
-*/	free(tab_normz);
+	free(tab_normz);
 
 	return 0;
 }
@@ -2181,14 +2196,13 @@ int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
 	if (CHRONO(clock(), par->last_clock) < 5){
 		return 0;
 	/* Sinon, estimation et affichage de la durée restante */
-	}else /*if (par->VERBOSE >= 1)*/{
-		int i, n_total;
+	}else if (par->verbosity >= 1){
+		int i;
 		time(&par->last_time);
 		par->last_clock = clock();
 		float t_ecoule = difftime(par->last_time,par->time0);
 		float t_total; 
 
-		n_total = 4*(2*N+1);
 		t_total = t_ecoule*NS/(nS+1);
 		
 		float t_restant = t_total - t_ecoule;

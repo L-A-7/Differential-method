@@ -37,6 +37,9 @@ int md2D_energy_flux(struct Param_struct *par, struct Efficacites_struct *eff);
 int monolayer_S_matrix(COMPLEX n_guide, double h_guide, struct Param_struct *par);
 int swifts_md2D_energy_flux(double h_guide, struct Param_struct *par, struct Efficacites_struct *eff);
 int S_matrix_init(struct Param_struct *par);
+COMPLEX *FFT_1D(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx);
+
+
 
 /* Redondants */
 /*

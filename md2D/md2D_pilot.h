@@ -55,6 +55,7 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int k2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z);
+int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z);
 int M_matrix_TE(COMPLEX **M, double z, struct Param_struct *par);
 int M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
 int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
