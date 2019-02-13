@@ -1211,11 +1211,40 @@ COMPLEX *FFT_1D(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx)
 	}
 	TF [2*N_tf] = tmp_fx [N_tf] * coefnorm;
 
-	/* Optional filtering */
+	/* Freeing memory */
+	fftw_destroy_plan(plan_TF);
+
+	return TF;
+}
+
+COMPLEX *FFT_1D_filter(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx, struct Param_struct *par)
+{
+	int i, N_tf = 2*N;
+	fftw_plan plan_TF;
+
+	/* Creating the 'plan' for FFTW */
+	plan_TF = fftw_plan_dft_1d(Nx, (fftw_complex *)fx, (fftw_complex *)tmp_fx, FFTW_FORWARD, FFTW_ESTIMATE);	
+
+	/* Calculating the FFT */
+	fftw_execute(plan_TF); 
+
+	/* Keeping only the components between -N_tf & +N_tf and normalizing by 1/Nx */
+	double coefnorm = 1.0/Nx;
+	for (i=0;i<=N_tf-1;i++){
+		TF [i]      = tmp_fx [Nx-N_tf+i] * coefnorm;
+		TF [i+N_tf] = tmp_fx [i] * coefnorm;
+	}
+	TF [2*N_tf] = tmp_fx [N_tf] * coefnorm;
+
+	/* Filtering */
 	double filter_coeff;
-	for (i=-N_tf;i<=N_tf;i++){
-		filter_coeff=0.54+0.46*cos(2*PI*i/(2*N_tf));
-		TF [i+N_tf] *= filter_coeff;		
+	if (!strcmp(par->fft_filter,"HAMMING")){
+		for (i=-N_tf;i<=N_tf;i++){
+			filter_coeff=0.54+0.46*cos(2*PI*i/(2*N_tf));
+			TF [i+N_tf] *= filter_coeff;		
+		}
+	}else if(!strcmp(par->fft_filter,"NONE")){
+		/* Leave the TF as it is */
 	}
 
 	/* Freeing memory */
@@ -1266,8 +1295,8 @@ printf("\nIm(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Im", "stdout"," ")
 */	(*par->Normal_function)(par, par->Nx2, par->NxNz, par->Nz2, z);
 	
 	/* Calculating FFTs */
-	FFT_1D(par->TF_k2,    par->k2,    par->tmp_tf_k2,    N, N_x);
-	FFT_1D(par->TF_invk2, par->invk2, par->tmp_tf_invk2, N, N_x);
+	FFT_1D_filter(par->TF_k2,    par->k2,    par->tmp_tf_k2,    N, N_x, par);
+	FFT_1D_filter(par->TF_invk2, par->invk2, par->tmp_tf_invk2, N, N_x, par);
 	FFT_1D(par->TF_Nx2,   par->Nx2,   par->tmp_tf_Nx2,   N, N_x);
 	FFT_1D(par->TF_Nz2,   par->Nz2,   par->tmp_tf_Nz2,   N, N_x);
 	FFT_1D(par->TF_NxNz,  par->NxNz,  par->tmp_tf_NxNz,  N, N_x);

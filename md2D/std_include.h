@@ -82,6 +82,7 @@ struct Param_struct {
 	char calcul_method[SIZE_STR_BUFFER];
 	char calculation_on_layer[SIZE_STR_BUFFER]; /* if value is ON_1_LAYER the initial S matrix value is set to the one of a homogeneous layer */
 	char S_matrix_blocks_calculation[SIZE_STR_BUFFER]; /* by default: only S12 and S22 are calculated (enough for illumination from top) ALL_4_S_MATRIX_BLOCKS: all blocks are calculated (necessary for illumination from top and below) */
+	char fft_filter[SIZE_STR_BUFFER];
 	COMPLEX n_super;
 	COMPLEX n_sub;
 	COMPLEX nu_layer;
