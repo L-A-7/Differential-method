@@ -44,6 +44,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	arg_read(argc, argvcp, fp, "string", (void *) par->calcul_method, "calcul_method", EXIT_ON_ERROR);
 	arg_read(argc, argvcp, fp, "string", (void *) par->profile_name, "profile_name", EXIT_ON_ERROR);
 	arg_read(argc, argvcp, fp, "string", (void *) par->i_field_mode, "i_field_mode", EXIT_ON_ERROR);
+	arg_read(argc, argvcp, fp, "string", (void *) par->fft_filter, "fft_filter", EXIT_ON_ERROR);
 	arg_read(argc, argvcp, fp, "string", (void *) str_tmp, "pola", EXIT_ON_ERROR);
 	if      (!strcmp(str_tmp,"TE")){
 		par->pola = TE;
