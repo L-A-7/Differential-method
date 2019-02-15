@@ -104,6 +104,8 @@ struct Param_struct {
 	int Ni;
 	int ni;
 	double Delta_sigma;
+	int smoothing;
+	double l_smooth;
 	COMPLEX sigma0_normed; /* sigma0_normed: used to define evenescent incident field (replaces theta_i which value will not be taken into account). By defintion sigma0_normed=sigma0/k0, ie sigma0_normed=1 corresponds to theta_i=90° in void */ 
 	COMPLEX sigma0;
 	COMPLEX ky_0;
@@ -149,6 +151,7 @@ struct Param_struct {
 	COMPLEX **tab_TF_invk2;
 	
 	COMPLEX *k2;
+	COMPLEX *k2_tmp;
 	COMPLEX *invk2;
 	COMPLEX *Nx2;
 	COMPLEX *Nz2;

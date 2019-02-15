@@ -92,8 +92,10 @@ printf("\nIm(S12)\n");SaveMatrix2file (param.S12, vec_size, vec_size, "Im", "std
 printf("\nRe(S22)\n");SaveMatrix2file (param.S22, vec_size, vec_size, "Re", "stdout");
 printf("\nIm(S22)\n");SaveMatrix2file (param.S22, vec_size, vec_size, "Im", "stdout");
 */
-
-/*return 0;*/
+/*	(param.k_2)(&param, param.k2, param.h/2);
+	(param.invk_2)(&param, param.invk2, param.h/2);
+	printf("\nRe(k2)\n");SaveCplxTab2file (param.k2, param.N_x, "Re", "stdout", "\n", 10000, "\n");*/
+/*	return 0;*/
 /*******************************************************************************************************/
 
 	/* Calcul type. Use STD or NEAR_FIELD unless you know what you're doing */
@@ -519,6 +521,8 @@ int md2D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 	par->Nx2       = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
 	par->Nz2       = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
 	par->NxNz      = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);
+	if (par->smoothing){
+		par->k2_tmp = (COMPLEX *) malloc(sizeof(COMPLEX)*par->N_x);}
 
 	par->sigma    = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
 	par->kz_super = (COMPLEX *) malloc(sizeof(COMPLEX)*par->vec_size);
@@ -668,6 +672,8 @@ int md2D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 	free(par->Nx2);
 	free(par->Nz2);
 	free(par->NxNz);
+	if (par->smoothing){
+		free(par->k2_tmp);}
 
 	free(par->sigma);
 	free(par->kz_super);

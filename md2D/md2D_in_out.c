@@ -58,6 +58,11 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	arg_read(argc, argvcp, fp, "double", (void *) &par->lambda, "lambda", EXIT_ON_ERROR);
 	arg_read(argc, argvcp, fp, "double", (void *) &par->theta_i, "theta_i", EXIT_ON_ERROR);
 	par->theta_i *= PI/180.0;
+	arg_read(argc, argvcp, fp, "int", (void *) &par->smoothing, "smoothing", CONTINUE_ON_ERROR);
+	if (par->smoothing == 1){
+		arg_read(argc, argvcp, fp, "double", (void *) &par->l_smooth, "l_smooth", EXIT_ON_ERROR);
+	}
+	
 	if (arg_read(argc, argvcp, fp, "complex", (void *) &par->sigma0_normed, "sigma0_normed", CONTINUE_ON_ERROR) != 0) par->sigma0_normed = SIGMA0_NORMED_NOT_DEFINED;
 /*printf("sigma0_normed = %f + i%f\n",creal(par->sigma0_normed),cimag(par->sigma0_normed));*/
 

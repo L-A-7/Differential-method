@@ -1458,7 +1458,37 @@ int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 			}	
 		}while (1);
 	}
-	
+
+	/* Optional smoothing ot the profile permittivity. For better convergence purpose, useful for metallic structures */
+	/* Doing a linear interpolation by averaging on N_avg consecutive points */
+	if (par->smoothing){
+		int n_avg, n_i;
+		int N_avg = ROUND(par->N_x * par->l_smooth / par->L);
+		int n_avg1 = -FLOOR(N_avg/2);
+		if (N_avg>0){
+			for (nx=0; nx<=par->N_x-1; nx++){
+				par->k2_tmp[nx] = 0;
+				for (n_avg=n_avg1; n_avg<=n_avg1+N_avg-1; n_avg++){
+					if(n_avg+nx<0){
+						n_i = nx + n_avg + par->N_x;
+					}else if (n_avg+nx >= 0 && n_avg+nx <= par->N_x-1){
+						n_i = nx + n_avg;
+					}else if (n_avg+nx > par->N_x-1){
+						n_i = nx + n_avg - par->N_x;
+					}else{
+						fprintf(stderr, "%s, line %d, ERROR: unauthorized value for n_i\n",__FILE__,__LINE__);
+						exit(EXIT_FAILURE);
+					}
+					/*if(n_i > par->N_x) fprintf(stdout,"n_i=%d , n_avg=%d, nx=%d\n",n_i,n_avg,nx);*/
+					par->k2_tmp[nx] += k2_1D[n_i]/N_avg;
+				}
+			}		
+			for (nx=0; nx<=par->N_x-1; nx++){
+				k2_1D[nx] = par->k2_tmp[nx];
+			}
+		}
+	}
+
 	return 0;
 }
 
@@ -1474,7 +1504,7 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 	int nx, n_layer=0;
 	double eps = EPS*par->h;
 
-	for (nx=0; nx<=par->N_x-1; nx++){
+/*	for (nx=0; nx<=par->N_x-1; nx++){
 		do{
 			if (z <= par->profil[n_layer][nx] + eps){
 				if (z >= par->profil[n_layer+1][nx] - eps){
@@ -1487,8 +1517,13 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 				n_layer--;
 			}	
 		}while (1);
-	}
+	}*/
 	
+	/* Replacement of previous function */
+	for (nx=0; nx<=par->N_x-1; nx++){
+		invk2_1D[nx] = 1/par->k2[nx];
+	}
+
 	return 0;
 }
 
