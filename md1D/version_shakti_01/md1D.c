@@ -1,0 +1,859 @@
+/*!	\file		md1D.c
+ *
+ * 	\brief		Méthode différentielle 1D \n
+ *				cas TE et TM \n
+ *				algorithme Matrice-S
+ *	\version	0.1
+ *
+ *	\date		../../2004
+ *	\authors	Laurent ARNAUD
+ *  \todo		ARRETER QUAND ERREUR LECTURE PROFIL
+ */
+
+
+#include "md1D.h"
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md1D_efficacites(complex *Ai, complex *A0, complex *Ah, 
+                                 struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *	\brief	Calcul des efficacités
+ */
+/*-------------------------------------------------------------------------------------*/
+int md1D_efficacites(complex *Ai, complex *A0, complex *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
+{
+	int n;
+	double coef_eff_T = 0;
+	double K = 2.0*PI/par->L;
+	int N = par->N;
+	complex alpha_nh, alpha_n0;
+	complex k0 = par->k0;
+	complex kh = par->kh;
+	complex kh2 = kh*kh;
+	complex k02 = k0*k0;
+	double delta_sigma = par->delta_sigma;
+	double sigma0 = par->sigma0;
+	int Nmin_super, Nmax_super, Nmin_sub, Nmax_sub;
+
+	/* Calcul des limites des modes propagatifs */
+	Nmax_super =  FLOOR( ( creal(k0) - sigma0 )/K );
+	Nmin_super = -FLOOR( ( creal(k0) + sigma0 )/K );
+	Nmax_sub   =  FLOOR( ( creal(kh) - sigma0 )/K );
+	Nmin_sub   = -FLOOR( ( creal(kh) + sigma0 )/K );
+	int Nlimit = MAX(MAX(Nmax_super,Nmax_sub),MAX(-Nmin_super,-Nmin_sub));
+	if (N < Nlimit) {
+		fprintf(stderr,"ATTENTION, N trop petit pour représenter l'ensemble des modes propagatifs\n");
+		fprintf(stderr,"valeur minimale : N = %d \n",Nlimit);
+		if (N < Nmax_super)  Nmax_super =  N;
+		if (N < Nmax_sub)    Nmax_sub   =  N;
+		if (Nmin_super < -N) Nmin_super = -N;
+		if (Nmin_sub   < -N) Nmin_sub   = -N;
+	}
+	eff->Nmin_super = Nmin_super;
+	eff->Nmax_super = Nmax_super;
+	eff->Nmin_sub = Nmin_sub;
+	eff->Nmax_sub = Nmax_sub;
+
+
+	/* Calcul de l'énergie incidente */
+	double Ei = 0.0;
+	for (n=-N; n<=N; n++) {
+		/*alpha_n0 = csqrt(k02 - n*n*delta_sigma2);*/ /* SANS angle_i */
+		alpha_n0 = csqrt(k02 - (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+		Ei += creal(Ai[n+N]*conj(Ai[n+N])*alpha_n0);
+	}
+
+	/* Calcul des efficacités, ordres et angles en réflexion */
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		/*alpha_n0 = csqrt(k02 - n*n*delta_sigma2);*/ /* SANS angle_i */
+		alpha_n0 = csqrt(k02 - (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+		eff->eff_R[n-Nmin_super] = creal( A0[n+N]*conj(A0[n+N])*alpha_n0/Ei );
+		eff->N_eff_R[n-Nmin_super] = (double) n;
+		eff->theta_eff_R[n-Nmin_super] = (180.0/PI)*asin((sigma0+n*K)/k0);
+	}
+	
+	/* Calcul des efficacités, ordres et angles en transmission */
+	if (par->pola == TM) coef_eff_T = creal((par->n_super/par->n_sub)*(par->n_super/par->n_sub));
+	if (par->pola == TE) coef_eff_T = 1;
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		/*alpha_nh = csqrt(kh2 - n*n*delta_sigma2);*/ /* SANS angle_i */
+		alpha_nh = csqrt(kh2 - (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+		eff->eff_T[n-Nmin_sub] = creal( Ah[n+N]*conj(Ah[n+N])*alpha_nh/Ei )*coef_eff_T;
+		eff->N_eff_T[n-Nmin_sub] = (double) n;
+		eff->theta_eff_T[n-Nmin_sub] = (180.0/PI)*asin((sigma0 +n*K)/kh);
+	}
+
+	/* Calcul des sommes des efficacités */
+	eff->somm_eff_R = 0;
+	eff->somm_eff_T = 0;
+	for (n=eff->Nmin_super; n<=eff->Nmax_super; n++) {
+		eff->somm_eff_R += eff->eff_R[n-eff->Nmin_super];
+	}
+	for (n=eff->Nmin_sub; n<=eff->Nmax_sub; n++) {
+		eff->somm_eff_T += eff->eff_T[n-eff->Nmin_sub];
+	}
+	eff->somm_eff = eff->somm_eff_R + eff->somm_eff_T;
+
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md1D_amplitudes(complex *Ai, complex *A0, complex *Ah, complex **S12, 
+                                complex **S22, struct Param_struct *par)
+ *
+ *	\brief	Calcul des amplitudes
+ */
+/*-------------------------------------------------------------------------------------*/
+int md1D_amplitudes(complex *Ai, complex *A0, complex *Ah, complex **S12, complex **S22, struct Param_struct *par)
+{
+	int N = par->N;
+	
+	/* Calcul de A0 */
+	A0 = M_x_V (A0, S12, Ai, 2*N+1, 2*N+1);
+
+	/* Calcul de Ah */	
+	Ah = M_x_V (Ah, S22, Ai, 2*N+1, 2*N+1);
+
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int matrice_S(struct Param_struct *par)
+ *
+ *	\brief	Calcul de la matrice S
+ */
+/*-------------------------------------------------------------------------------------*/
+int matrice_S(struct Param_struct *par){
+
+	if (par->verbose) fprintf(stdout,"Calcul de la matrice S\n");
+	
+	int N = par->N;
+	int NS = par->NS;
+	complex **S12, **S22;
+	S12 = par->S12;
+	S22 = par->S22;
+
+	int i, j, nS;
+	complex **T11, **T12, **T21, **T22, **Z, **tmp, **tmp2;
+	complex *F_plus, *F_moins, *F_plus2, *F_moins2;
+	
+	/* Allocations */
+	T11 = allocate_CplxMatrix(2*N+1, 2*N+1);
+	T12 = allocate_CplxMatrix(2*N+1, 2*N+1);
+	T21 = allocate_CplxMatrix(2*N+1, 2*N+1);
+	T22 = allocate_CplxMatrix(2*N+1, 2*N+1);
+	Z   = allocate_CplxMatrix(2*N+1, 2*N+1);
+	tmp = allocate_CplxMatrix(2*N+1, 2*N+1);
+	tmp2= allocate_CplxMatrix(2*N+1, 2*N+1);
+	F_plus   = (complex *) malloc(sizeof(complex)*(4*N+2));
+	F_moins  = (complex *) malloc(sizeof(complex)*(4*N+2));
+	F_plus2  = (complex *) malloc(sizeof(complex)*(4*N+2));
+	F_moins2 = (complex *) malloc(sizeof(complex)*(4*N+2));
+	
+	/* Initialisations */
+	for (i=-N; i<=N; i++) {
+		for (j=-N; j<=N; j++) {
+			S12[i+N][j+N] = 0;
+			S22[i+N][j+N] = (i==j);
+		}
+	}
+	
+	/* Itérations */
+	for (nS=NS; nS>=1; nS--) {
+
+		/* Calcul de la matrice T */
+		(*par->matrice_T)(T11, T12, T21, T22, F_plus, F_moins, F_plus2, F_moins2, nS, par);
+
+		/* Z = inv(T11 + T12*S12) */
+		invM(Z, add_M(tmp2, 
+			T11, M_x_M(tmp,
+				T12,S12,	2*N+1,2*N+1),2*N+1,2*N+1),2*N+1);
+		/* S12 = (T21 +T22*S12)*Z */
+		M_x_M(S12,
+			add_M(tmp2, T21, M_x_M(tmp,
+					T22,S12,2*N+1,2*N+1),2*N+1,2*N+1),
+			Z,2*N+1, 2*N+1);
+		/* S22 = S22*Z */
+		copy_M(tmp,S22,2*N+1,2*N+1);
+		M_x_M(S22,tmp,Z,2*N+1,2*N+1);
+	}
+	
+	if(par->verbose >0) {fprintf(stdout,"\n");}
+	
+	/* Libération de la mémoire */
+	free(T11[0]); free(T11); free(T12[0]); free(T12);
+	free(T21[0]); free(T21); free(T22[0]); free(T22);
+	free(Z[0]); free(Z); free(tmp[0]); free(tmp);
+	free(tmp2[0]); free(tmp2);
+	free(F_plus); free(F_moins); free(F_plus2); free(F_moins2);
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int matrice_T_TE(complex **T11, complex **T12, complex **T21, complex **T22,
+				complex *F_plus, complex *F_moins, complex *F_plus2, complex *F_moins2,
+				int nS, struct Param_struct *par)
+ *
+ *	\brief Calcul de la matrice T
+ */
+/*-------------------------------------------------------------------------------------*/
+int matrice_T_TE(complex **T11, complex **T12, complex **T21, complex **T22,
+				complex *F_plus, complex *F_moins, complex *F_plus2, complex *F_moins2,
+				int nS, struct Param_struct *par)
+{
+	
+
+	int N = par->N;
+	int NS = par->NS;
+	double h = par->h;
+	complex k02 = par->k0*par->k0;
+	complex kh2 = par->kh*par->kh;
+	/*double delta_sigma2 = par->delta_sigma*par->delta_sigma;*/
+	double delta_sigma = par->delta_sigma;
+	double sigma0 = par->sigma0;
+	
+	int j, n;
+	double hmin, hmax;
+	complex L0, alpha_n;
+	complex *E_plus, *dE_plus, *E_moins, *dE_moins;
+	complex *E_plus2, *dE_plus2, *E_moins2, *dE_moins2;
+	
+	/* Les vecteurs F sont constitués de la superposition des vecteurs E et dE */
+	E_plus   =  F_plus;
+	dE_plus  = &F_plus[2*N+1];
+	E_moins  =  F_moins;
+	dE_moins = &F_moins[2*N+1];
+	
+	E_plus2   =  F_plus2;
+	dE_plus2  = &F_plus2[2*N+1];
+	E_moins2  =  F_moins2;
+	dE_moins2 = &F_moins2[2*N+1];
+
+		
+	for (n=-N; n<=N; n++){
+
+		/* Valeur de alpha_n */
+		if (nS==NS){ /* 1ere itération Matrice S : On est dans le substrat */
+			/*alpha_n = csqrt(kh2- n*n*delta_sigma2);*/ /* SANS angle_i */
+			alpha_n = csqrt(kh2- (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+		}else{     /* Itérations suivantes : Meme materiau que le superstrat */
+			/*alpha_n = csqrt(k02- n*n*delta_sigma2);*/ /* SANS angle_i */
+			alpha_n = csqrt(k02- (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+		}
+
+		/* Construction des vecteurs E_plus et E_moins */	
+		for (j=-N;j<=N;j++){
+			E_plus[j+N]   = 0;
+			dE_plus[j+N]  = 0;
+			E_moins[j+N]  = 0;
+			dE_moins[j+N] = 0;
+		}
+		E_plus[n+N]   =  1;
+		dE_plus[n+N]  =  I*alpha_n;
+		E_moins[n+N]  =  1;
+		dE_moins[n+N] =  -I*alpha_n;
+
+		
+   		/* Intégration des grandeurs pour une couche */
+		hmin = h*(nS-1)/NS;
+		hmax = h*nS/NS;
+/*		
+eq_diff((double *)F_plus,  (double *)F_plus2,  8*N+4, hmax, hmin, par->Nstep_S, fun_TE, (void *) par);
+eq_diff((double *)F_moins, (double *)F_moins2, 8*N+4, hmax, hmin, par->Nstep_S, fun_TE, (void *) par);
+*/
+
+ode_solve((double *)F_plus,  (double *)F_plus2,  8*N+4, hmax, hmin, par->Nstep_S, fun_TE, (void *) par);
+ode_solve((double *)F_moins, (double *)F_moins2, 8*N+4, hmax, hmin, par->Nstep_S, fun_TE, (void *) par);
+
+		/* Construction des matrices T11, T21, T12 et T22*/
+		for(j=-N;j<=N;j++){
+			L0 = 1.0/(I*csqrt(k02 - (j*delta_sigma + sigma0)*(j*delta_sigma + sigma0)));
+			T11[j+N][n+N] = ( E_plus2[j+N]  + L0*dE_plus2[j+N] )*0.5;
+			T21[j+N][n+N] = ( E_plus2[j+N]  - L0*dE_plus2[j+N] )*0.5;
+			T12[j+N][n+N] = ( E_moins2[j+N] + L0*dE_moins2[j+N] )*0.5;
+			T22[j+N][n+N] = ( E_moins2[j+N] - L0*dE_moins2[j+N] )*0.5;
+		}
+		
+		/*Affichage du temps restant à l'écran */
+		md1D_affichTemps(n,N,nS,NS,par);
+	}
+	
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int matrice_T_TM(complex **T11, complex **T12, complex **T21, complex **T22,
+				complex *F_plus, complex *F_moins, complex *F_plus2, complex *F_moins2,
+				int nS, struct Param_struct *par)
+ *
+ *	\brief Calcul de la matrice T
+ */
+/*-------------------------------------------------------------------------------------*/
+int matrice_T_TM(complex **T11, complex **T12, complex **T21, complex **T22,
+				complex *F_plus, complex *F_moins, complex *F_plus2, complex *F_moins2,
+				int nS, struct Param_struct *par)
+{
+	
+
+	int N = par->N;
+	int NS = par->NS;
+	double h = par->h;
+	complex k02 = par->k0*par->k0;
+	complex kh2 = par->kh*par->kh;
+	complex k0h2;
+	/*double delta_sigma2 = par->delta_sigma*par->delta_sigma;*/
+	double delta_sigma = par->delta_sigma;
+	double sigma0 = par->sigma0;
+		
+	int j, n;
+	double hmin, hmax;
+	complex L0, alpha_n;
+	complex *Eb_plus, *H_plus, *Eb_moins, *H_moins;
+	complex *Eb_plus2, *H_plus2, *Eb_moins2, *H_moins2;
+	
+	/* Les vecteurs [F] sont constitués de la superposition des vecteurs [E'] et [H] : [F] = |[E']| */
+	/* avec [E'] = [E]/(i.w.mu)                                                              |[H ]| */
+	Eb_plus   =  F_plus;
+	H_plus  = &F_plus[2*N+1];
+	Eb_moins  =  F_moins;
+	H_moins = &F_moins[2*N+1];
+	
+	Eb_plus2   =  F_plus2;
+	H_plus2  = &F_plus2[2*N+1];
+	Eb_moins2  =  F_moins2;
+	H_moins2 = &F_moins2[2*N+1];
+
+		
+	for (n=-N; n<=N; n++){
+		
+		/* Valeur de alpha_n */
+		if (nS==NS){ /* 1ere itération Matrice S : On est dans le substrat */
+			/*alpha_n = csqrt(kh2- n*n*delta_sigma2);*/ /* SANS angle_i */
+			alpha_n = csqrt(kh2- (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+			k0h2 = kh2;
+		}else{     /* Itérations suivantes : Meme materiau que le superstrat */
+			/*alpha_n = csqrt(k02- n*n*delta_sigma2);*/ /* SANS angle_i */
+			alpha_n = csqrt(k02- (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0));
+			k0h2 = k02;
+		}
+
+		/* Construction des vecteurs E_plus et E_moins */	
+		for (j=-N;j<=N;j++){
+			Eb_plus[j+N]  = 0;
+			H_plus[j+N]   = 0;
+			Eb_moins[j+N] = 0;
+			H_moins[j+N]  = 0;
+		}
+		Eb_plus[n+N]  = -I*alpha_n/k0h2;
+		H_plus[n+N]   =  1;
+		Eb_moins[n+N] =  I*alpha_n/k0h2;
+		H_moins[n+N]  =  1;
+
+		
+   		/* Intégration des grandeurs pour une couche */
+		hmin = h*(nS-1)/NS;
+		hmax = h*nS/NS;
+/*		
+eq_diff((double *)F_plus,  (double *)F_plus2,  8*N+4, hmax, hmin, par->Nstep_S, fun_TM, (void *) par);
+eq_diff((double *)F_moins, (double *)F_moins2, 8*N+4, hmax, hmin, par->Nstep_S, fun_TM, (void *) par);
+*/
+
+ode_solve((double *)F_plus,  (double *)F_plus2,  8*N+4, hmax, hmin, par->Nstep_S, fun_TM, (void *) par);
+ode_solve((double *)F_moins, (double *)F_moins2, 8*N+4, hmax, hmin, par->Nstep_S, fun_TM, (void *) par);
+
+		/* Construction des matrices T11, T21, T12 et T22*/
+		for(j=-N;j<=N;j++){
+			L0 = I*k02/csqrt(k02 - (j*delta_sigma + sigma0)*(j*delta_sigma + sigma0));
+			T11[j+N][n+N] = ( H_plus2[j+N]  + L0*Eb_plus2[j+N] )*0.5;
+			T21[j+N][n+N] = ( H_plus2[j+N]  - L0*Eb_plus2[j+N] )*0.5;
+			T12[j+N][n+N] = ( H_moins2[j+N] + L0*Eb_moins2[j+N] )*0.5;
+			T22[j+N][n+N] = ( H_moins2[j+N] - L0*Eb_moins2[j+N] )*0.5;
+		}
+		
+		/*Affichage du temps restant à l'écran */
+		md1D_affichTemps(n,N,nS,NS,par);
+	}
+	
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int fun_TE (double z, const double *F_reel, double *dF_reel, void *param_void)
+ *
+ *	\brief	Calcul la dérivée de F
+ */
+/*-------------------------------------------------------------------------------------*/
+int fun_TE (double z, const double *F_reel, double *dF_reel, void *param_void)
+{
+	int n, m, sizeE;
+	struct Param_struct *par = (struct Param_struct *) param_void;
+	
+	int N = par->N;
+	/*double delta_sigma2 = par->delta_sigma*par->delta_sigma;*/
+	double delta_sigma = par->delta_sigma;
+	double sigma0 = par->sigma0;
+	
+	complex *F, *dF;
+	complex *TF_k2 = par->TF_k2;
+
+	CAST_COMPLEX(F, F_reel, 2*N+1);
+	CAST_COMPLEX(dF, dF_reel, 2*N+1);
+
+	if (par->STOCKER_TF) {
+		FFT_k2_stockee(z, TF_k2, par);
+	}else{
+		TF_k2 = FFT_k2_directe(z, TF_k2, par);
+	}
+
+	sizeE = 2*N+1;
+	
+	/* Calcul de [dF] à partir de [F] */
+	for (n=-N; n<=N; n++) {
+		dF[n+N] = F[n+N+sizeE];
+		/*dF[n+N+sizeE] = n*n*delta_sigma2*F[n+N];*/ /* SANS angle_i */
+		dF[n+N+sizeE] = (n*delta_sigma + sigma0)*(n*delta_sigma + sigma0)*F[n+N];
+		for (m=-N; m<=N; m++) {
+			dF[n+N+sizeE] -= TF_k2[n-m+2*N]*F[m+N];
+		}
+	}
+
+	FREE_IF_CPP(F);
+	UNCAST_COMPLEX(dF, dF_reel);
+		
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int fun_TM (double z, const double *F_reel, double *dF_reel, void *param_void)
+ *
+ *	\brief	Calcul la dérivée de F dans le cas TM
+ *	\todo RAJOUTER FFT_inv_stockee
+ */
+/*-------------------------------------------------------------------------------------*/
+int fun_TM (double z, const double *F_reel, double *dF_reel, void *param_void)
+{
+	int n, m, sizeE;
+	struct Param_struct *par = (struct Param_struct *) param_void;
+	
+	int N = par->N;
+	/*double delta_sigma2 = par->delta_sigma*par->delta_sigma;*/
+	double delta_sigma = par->delta_sigma;
+	double sigma0 = par->sigma0;
+	
+	complex *F, *dF;
+	complex *TF_k2    = par->TF_k2;
+	complex *TF_invk2 = par->TF_invk2;
+	
+	CAST_COMPLEX(F, F_reel, 2*N+1);
+	CAST_COMPLEX(dF, dF_reel, 2*N+1);
+
+	/* ESSAYER AVEC POINTEUR DE FONCTION POUR GAGNER DU TEMPS*/
+	if (par->STOCKER_TF) {
+		FFT_k2_et_invk2_stockee(z, TF_k2, TF_invk2, par);
+	}else{
+		TF_k2 = FFT_k2_directe(z, TF_k2, par);
+		TF_invk2 = FFT_invk2_directe(z, TF_invk2, par);
+	}
+
+	sizeE = 2*N+1;
+	
+	/* Calcul de [dF] à partir de [F] */
+	for (n=-N; n<=N; n++) {
+		dF[n+N] = F[n+N+sizeE];
+		dF[n+N+sizeE] = 0;
+		for (m=-N; m<=N; m++) {
+			/*dF[n+N] -= n*m*delta_sigma2*TF_invk2[n-m+2*N]*F[m+N+sizeE];*/ /* SANS angle_i */
+			dF[n+N] -= (n*delta_sigma + sigma0)*(m*delta_sigma + sigma0)*TF_invk2[n-m+2*N]*F[m+N+sizeE];
+			dF[n+N+sizeE] -= TF_k2[n-m+2*N]*F[m+N];
+		}
+		/* OPTIMISATION : multiplier ici dF[n+N] par n puis ajouter F[n+N+sizeE] */
+	}
+
+	FREE_IF_CPP(F);
+	UNCAST_COMPLEX(dF, dF_reel);
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		
+ *
+ *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné
+ *
+ *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
+ *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
+ */
+/*-------------------------------------------------------------------------------------*/
+int k2_H_X(complex *k2_1D, double **profil, int N_profil, complex *k2_layer, double z)
+{
+	int i;
+	
+	for (i=0;i<=N_profil-1;i++){
+		if (z < profil[0][i]) 
+			k2_1D[i] = k2_layer[0]; /* Superstrat */
+		else
+			k2_1D[i] = k2_layer[1]; /* Substrat */
+	}
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn			
+ *
+ *	\brief	Détermine le tableau de complexes k^2(x) pour un z donné, pour un multicouches
+ */
+/*-------------------------------------------------------------------------------------*/
+int k2_MULTI(complex *k2_1D, double **profil, int Nx, complex *k2_layer, double z)
+{
+	
+	int nx, n_layer=0;
+	
+	for (nx=0; nx<=Nx-1; nx++){
+		do{
+			if (z >= profil[n_layer][nx]){
+				if (z <= profil[n_layer+1][nx]){
+					k2_1D[nx] = k2_layer[n_layer];
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int invk_2(complex *invk2_1D, double *profil, struct Param_struct *par, double z)
+ *
+ *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné
+ *
+ *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
+ *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
+ */
+/*-------------------------------------------------------------------------------------*/
+int invk2_H_X(complex *invk2_1D, double **profil, int N_profil, complex *invk2_layer, double z)
+{
+	
+	int i;
+	
+	for (i=0;i<=N_profil-1;i++){
+		if (z < profil[0][i]) 
+			invk2_1D[i] = invk2_layer[0]; /* Superstrat */
+		else
+			invk2_1D[i] = invk2_layer[1]; /* Substrat */
+	}
+	
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn			
+ *
+ *	\brief	Détermine le tableau de complexes 1/k^2(x) pour un z donné, pour un multicouches
+ */
+/*-------------------------------------------------------------------------------------*/
+int invk2_MULTI(complex *invk2_1D, double **profil, int Nx, complex *invk2_layer, double z)
+{
+	
+	int nx, n_layer=0;
+	
+	for (nx=0; nx<=Nx-1; nx++){
+		do{
+			if (z >= profil[n_layer][nx]){
+				if (z <= profil[n_layer+1][nx]){
+					invk2_1D[nx] = invk2_layer[n_layer];
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+	
+	return 0;
+}
+
+
+
+/*____________________________________________________________________________________*/
+/*!	\fn		complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
+ *
+ *	\brief	Calcule la TF de k^2(x) pour un z donné et la tronque entre -N et +N
+ */
+/*_____________________________________________________________________________________*/
+complex *FFT_k2_directe(double z, complex *TF_k2, struct Param_struct *par)
+{
+
+	int i;
+	complex *tmp;
+	fftw_plan plan_TFk2;
+
+	int N_profil = par->N_profil;
+	int N_tf = 2*par->N;
+	double coefnorm = 1.0/N_profil;
+
+	/* Calcul de k^2(x) à z fixé, à partir du profil */
+	(*par->k_2)(par->k2, par->profil, par->N_profil, par->k2_layer, z);
+
+	/* Calcul de la TF de k2, avec N_profil points */
+	
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+/*!!!!!!!!!!!!!!!!!!!!!!!   ALLOUER A L'EXTERIEUR   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+	tmp = (complex *) malloc(sizeof(complex) * N_profil);
+/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+
+	plan_TFk2 = fftw_plan_dft_1d(N_profil, (fftw_complex *)par->k2, (fftw_complex *)tmp, FFTW_FORWARD, FFTW_ESTIMATE);	
+	fftw_execute(plan_TFk2); 
+
+	/* On ne garde que les composantes entre -N_tf et +N_tf */ 
+	/* et on normalise par 1/N_profil */
+	for (i=0;i<=N_tf-1;i++){
+		TF_k2[i]   = tmp[N_profil-N_tf+i] * coefnorm;
+		TF_k2[i+N_tf] = tmp[i] * coefnorm;
+	}
+	TF_k2[2*N_tf] = tmp[N_tf] * coefnorm;
+
+	fftw_destroy_plan(plan_TFk2);
+	free(tmp);
+	
+	return TF_k2;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par)
+ *
+ *	\brief	Calcule la TF de 1/k^2(x) pour un z donné et la tronque entre -N et +N
+ */
+/*-------------------------------------------------------------------------------------*/
+complex *FFT_invk2_directe(double z, complex *TF_invk2, struct Param_struct *par)
+{
+
+	int i;
+	complex *tmp;
+	fftw_plan plan_TFk2;
+
+	int N_profil = par->N_profil;
+	int N_tf = 2*par->N;
+	double coefnorm = 1.0/N_profil;
+
+	/* Calcul de 1 / k^2(x) à z fixé, à partir du profil */
+	(*par->invk_2)(par->invk2, par->profil, par->N_profil, par->invk2_layer, z);
+
+	/* Calcul de la TF de invk2, avec N_profil points */
+	tmp = (complex *) malloc(sizeof(complex) * N_profil); /*TODO : ALLOUER A L'EXTERIEUR */
+	plan_TFk2 = fftw_plan_dft_1d(N_profil, (fftw_complex *)par->invk2, (fftw_complex *)tmp, FFTW_FORWARD, FFTW_ESTIMATE);	
+	fftw_execute(plan_TFk2); 
+
+	/* On ne garde que les composantes entre -N_tf et +N_tf */ 
+	/* et on normalise par 1/N_profil */
+	for (i=0;i<=N_tf-1;i++){
+		TF_invk2[i]   = tmp[N_profil-N_tf+i] * coefnorm;
+		TF_invk2[i+N_tf] = tmp[i] * coefnorm;
+	}
+	TF_invk2[2*N_tf] = tmp[N_tf] * coefnorm;
+
+	fftw_destroy_plan(plan_TFk2);
+	free(tmp);
+	
+	return TF_invk2;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		complex *FFT_k2_stockee(double z, complex *TF_k2, struct Param_struct *par)
+ *
+ *	\brief	Calcule la TF de k^2(x) pour un z donné. Si le calcul à déja été fait, FFT_k2_stockee \n
+ *          retourne l'adresse de la ligne du tableau tab_TF_k2 où les valeurs ont été stockées \n
+ *          sinon le calcul est effectué par FFT_k2_directe et stocké dans tab_TF_k2.
+ */
+/*-------------------------------------------------------------------------------------*/
+int FFT_k2_stockee(double z, complex *TF_k2, struct Param_struct *par)
+{
+	long int **z2n = par->z2n;
+	
+	/* z est convertit en long int afin de permettre la comparaison == entre deux z */
+	long int z_int = (long int)((z/par->h)*DBLE_CMP_EXIGEANCE);
+
+	/* Recherche de z dans z2n pour voir si le calcul à déja été fait */
+	long int *adr = cherche(z_int, z2n[0], par->N_z2n);
+	if (adr != NULL) {
+	/* z trouvé : On renvoie la ligne n indiquée par z2n du tableau tab_FFT_k2 */
+		TF_k2 = par->tab_TF_k2[z2n[1][adr-z2n[0]]];
+		return 0;
+	}
+
+	/* z non touvé : On calcule la TF qu'on ajoute au tableau tab_FFT_k2 et on met à jour z2n */
+	/* Réallocation éventuelle de mémoire */
+	if (par->N_z2n+1 > par->TAILLE_z2n) {
+		/* ROUJOUTER : VERIF que pas trop de memoire allouée */
+printf("REALLOCATION DE MEMOIRE\n");	
+		par->TAILLE_z2n += par->BLOC_TAILLE_z2n;	
+		par->tab_TF_k2 = reallocate_CplxMatrix(par->tab_TF_k2,(par->TAILLE_z2n + par->BLOC_TAILLE_z2n),4*par->N+1);
+		z2n[0] = (long int *) realloc(z2n[0], sizeof(long int)*(par->TAILLE_z2n + par->BLOC_TAILLE_z2n));
+		z2n[1] = (long int *) realloc(z2n[1], sizeof(long int)*(par->TAILLE_z2n + par->BLOC_TAILLE_z2n));
+	}
+	/* Mise à jour de z2n : insertion de z et de n dans le tableau décroissant en z */
+	int k = par->N_z2n;
+	par->N_z2n++; 
+	while(z_int > z2n[0][k-1] && k>0){
+		z2n[0][k] = z2n[0][k-1];
+		z2n[1][k] = z2n[1][k-1];
+		k--;
+	}
+	z2n[0][k] = z_int;
+	z2n[1][k] = par->N_z2n-1;
+	/* Calcul de la TF de k2(z) et mise à jour de tab_FFT_k2 */
+	FFT_k2_directe(z, par->tab_TF_k2[par->N_z2n-1], par);
+
+	TF_k2 = par->tab_TF_k2[par->N_z2n-1];
+	return 0;
+}
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int FFT_invk2_stockee(double z, complex *TF_k2, struct Param_struct *par)
+ *
+ *	\brief	Calcule la TF de 1 / k^2(x) pour un z donné. Si le calcul à déja été fait, FFT_invk2_stockee \n
+ *          retourne l'adresse de la ligne du tableau tab_TF_invk2 où les valeurs ont été stockées \n
+ *          sinon le calcul est effectué par FFT_invk2_directe et stocké dans tab_TF_invk2.
+ */
+/*-------------------------------------------------------------------------------------*/
+int FFT_k2_et_invk2_stockee(double z, complex *TF_k2, complex *TF_invk2, struct Param_struct *par)
+{
+	long int **z2n = par->z2n;
+	
+	/* z est convertit en long int afin de permettre la comparaison == entre deux z */
+	long int z_int = (long int)((z/par->h)*DBLE_CMP_EXIGEANCE);
+
+	/* Recherche de z dans z2n pour voir si le calcul à déja été fait */
+	long int *adr = cherche(z_int, z2n[0], par->N_z2n);
+	if (adr != NULL) {
+	/* z trouvé : On renvoie la ligne n indiquée par z2n du tableau tab_FFT_k2 */
+		TF_k2    = par->tab_TF_k2[z2n[1][adr-z2n[0]]];
+		TF_invk2 = par->tab_TF_invk2[z2n[1][adr-z2n[0]]];
+		return 0;		
+	}
+
+	/* z non touvé : On calcule la TF qu'on ajoute au tableau tab_FFT_k2 et on met à jour z2n */
+	/* Réallocation éventuelle de mémoire */
+	if (par->N_z2n+1 > par->TAILLE_z2n) {
+		/* ROUJOUTER : VERIF que pas trop de memoire allouée */
+		printf("REALLOCATION DE MEMOIRE pour tab_TF_invk2\n");	
+		par->TAILLE_z2n += par->BLOC_TAILLE_z2n;	
+		par->tab_TF_k2    = reallocate_CplxMatrix(par->tab_TF_k2,(par->TAILLE_z2n + par->BLOC_TAILLE_z2n),4*par->N+1);
+		par->tab_TF_invk2 = reallocate_CplxMatrix(par->tab_TF_invk2,(par->TAILLE_z2n + par->BLOC_TAILLE_z2n),4*par->N+1);
+		z2n[0] = (long int *) realloc(z2n[0], sizeof(long int)*(par->TAILLE_z2n + par->BLOC_TAILLE_z2n));
+		z2n[1] = (long int *) realloc(z2n[1], sizeof(long int)*(par->TAILLE_z2n + par->BLOC_TAILLE_z2n));
+	}
+	/* Mise à jour de z2n : insertion de z et de n dans le tableau décroissant en z */
+	int k = par->N_z2n;
+	par->N_z2n++; 
+	while(z_int > z2n[0][k-1] && k>0){
+		z2n[0][k] = z2n[0][k-1];
+		z2n[1][k] = z2n[1][k-1];
+		k--;
+	}
+	z2n[0][k] = z_int;
+	z2n[1][k] = par->N_z2n-1;
+	/* Calcul de la TF de k2(z) et mise à jour de tab_FFT_k2 */
+	FFT_k2_directe(z, par->tab_TF_k2[par->N_z2n-1], par);
+	FFT_invk2_directe(z, par->tab_TF_invk2[par->N_z2n-1], par);
+
+	/* Renvoie des résultats */
+	TF_k2    = par->tab_TF_k2[par->N_z2n-1];
+	TF_invk2 = par->tab_TF_invk2[par->N_z2n-1];
+	return 0;
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		long int *cherche(long int z, long int *tab0, int N)
+ *
+ *	\brief	Recherche dichotomique de l'élément z dans un tableau tab0 de taille N \n
+ *			classé dans l'ORDRE DECROISSANT. 
+ *
+ * 	\return	L'adresse correspondant à l'élément trouvé ou NULL si l'élément n'est pas présent
+ */
+/*-------------------------------------------------------------------------------------*/
+long int *cherche(long int z, long int *tab0, int N)
+{
+
+	if (N<=1) {
+		if (z==tab0[0]) return tab0;
+		else            return NULL;
+	}
+	
+	if (tab0[N>>1] < z) return(cherche(z, tab0, N>>1));
+	else                return(cherche(z, tab0+(N>>1), N-(N>>1)));
+}
+
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md1D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
+ *
+ *	\brief	Affichage du temps restant estimé en cours de calculs
+ */
+/*-------------------------------------------------------------------------------------*/
+int md1D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
+{
+
+	/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
+	if (CHRONO(clock(), par->last_clock) < 5){
+		return 0;
+	/* Sinon, estimation et affichage de la durée restante */
+	}else /*if (par->VERBOSE >= 1)*/{
+		int i;
+		time(&par->last_time);
+		par->last_clock = clock();
+		float t_ecoule = difftime(par->last_time,par->time0);
+		float t_total = t_ecoule*(NS*(2*N+1))/((NS-nS)*(2*N+1)+n+N+1);
+		float t_restant = t_total - t_ecoule;
+		int pourcent = ROUND(100.0*t_ecoule/t_total);
+				
+		fprintf(stdout,"\r");
+		fprintf(stdout,"%3d %% |", pourcent);
+		for (i=0;i<pourcent/5;i++) {fprintf(stdout,"|");}
+		for (i=pourcent/5;i<20;i++) {fprintf(stdout," ");}
+		fprintf(stdout,"| reste %d s sur %d s     ",ROUND(t_restant), ROUND(t_total));
+		fflush(stdout);
+	}
+	
+	return 0;
+}

@@ -1,0 +1,59 @@
+#  Sept 21st, 2018 - Comparison with case published in my PhD
+# 
+#  Reflexion
+# Order DM       GSolver
+#  3    0,002044 0,002050
+#  2    0,002473 0,002472
+#  1    0,004218 0,004216
+#  0    0,012033 0,012037
+# -1    0,009170 0,009151
+#  Transmission
+# Order DM       GSolver
+# 5     0,017123 0,017136
+# 4     0,046808 0,046865
+# 3     0,029673 0,029760
+# 2     0,056981 0,056918
+# 1     0,395220 0,395209
+# 0     0,040444 0,040365
+# -1    0,240370 0,240517
+# -2    0,105740 0,105639
+# -3    0,037699 0,037664
+# 
+# Tableau 3.1 Comparaison des efficacites obtenues a partir de la formulation (3.22) et
+# par le logiciel commercial GSolver base sur la methode RCWA, dans le cas d置n reseau
+# lamellaire en incidence conique. Le reseau utilise a un indice de refraction nu = 1,5,
+# une periode d = 3,1 lmabda, une hauteur h = 0,1 lambda, la largeur d置ne ligne est d/2. Les angles
+# d段ncidence sont theta_i = 30 deg et phi_i = 30 deg, la polarisation fait un angle Psi = 45 deg avec la
+# normale au plan d段ncidence.
+#
+# Errata: phi_i = 45 deg and h = 1 lambda
+
+
+# Parametres de la surface
+nu_super = 1.0 + i0.000000
+nu_sub   = 1.5 + i0.000000
+Lx       = 3.1
+Ly			= 0.1 # profile is invariant along y, this value is arbitrary
+h       = 1
+
+# Parametres du champ
+i_field_mode = PLANE_WAVE
+pola = TM
+lambda = 1.0
+theta_i = 30.0
+psi = 45
+phi_i = 45
+
+
+# Parametres numeriques
+calcul_type = STD
+calcul_method = RK4
+#calcul_method = Z_INVAR
+Nx = 50
+Ny = 0
+NS = 200
+delta_h = 0.00005
+
+# Profil
+profile_name = carreValidConic ; profile_file = carre_256_1D.txt
+

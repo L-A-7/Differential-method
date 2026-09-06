@@ -1,0 +1,37 @@
+#
+#   Parameters corresponding to Schuster josaa 2007
+#
+
+
+# Sample parameters
+nu_super = 1.0 + i0.0
+nu_sub = 1.5 +i0.0
+Lx = 1.0001
+Ly = 1.0001
+h = 0.05
+
+# Field parameters
+lambda = 0.5
+i_field_mode = PLANE_WAVE
+theta_i = 0.0
+phi_i = 0.0
+psi = 45.0
+
+# Numerical parameters
+calcul_type   = STD
+#calcul_method = RK4
+calcul_method = Z_INVAR
+
+verbosity = 2
+Nx = 5
+Ny = 5
+NS = 1
+delta_h = 0.00001
+
+# Profil
+#nom_profil = circle_schuster ; fichier_profil = /home/lau/Profils/circle_R025_8x8.txt
+nom_profil = circle_schuster ; fichier_profil = /home/lau/Profils/circle_R025_128x128.txt
+#nom_profil = circle_schuster ; fichier_profil = /home/lau/Profils/circle_R025_256x256.txt
+#nom_profil = circle_schuster ; fichier_profil = /home/lau/Profils/circle_R025_512x512.txt
+
+

@@ -1,0 +1,31 @@
+#
+#
+
+# Sample parameters
+n_super = 1.0 + i0.0
+n_sub = 1.38 +i0.0
+
+# Field parameters
+i_field_mode = PLANE_WAVE
+
+# Numerical parameters
+calcul_type   = STD
+calcul_method = RK4
+#calcul_method = Z_INVAR
+#calcul_method = IMPROVED_RCWA
+
+verbosity = 2
+delta_h = 0.00001
+
+N=10
+NS=1000
+pola=TM
+profile_name=Test_Debug
+profile_file=/home/arnold/Programs/md2D/DEBUG/profile.txt
+h=756.17
+theta_i=0
+lambda=600
+L=1000
+
+
+

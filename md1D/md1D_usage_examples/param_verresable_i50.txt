@@ -1,0 +1,19 @@
+#
+#   Fichier de configuration pour le programme md1D
+#
+
+
+# Parameres de la surface
+n_super = 1.0 + i0.0
+n_sub   = 1.5 + i0.0
+h = AUTO
+
+# Parameres du champ
+pola = TE
+lambda = 632.8
+
+# Parameres numeriques
+type_calcul = ELLIPSO
+N = AUTO
+NS = AUTO
+delta_h = 1

@@ -1,0 +1,40 @@
+#
+#   Fichier de configuration pour le programme md1D
+#
+
+
+# Paramètres de la surface
+n_super = 1.0 + i0.0
+n_sub = 1.5 +i0.0
+L = 51128
+h = AUTO
+
+# Paramètres du champ
+pola = TE
+lambda = 632.8
+i_field_mode = PLANE_WAVE
+theta_i = 50.0
+
+# Paramètres numériques
+#calcul_type   = NEAR_FIELD
+calcul_type   = STD
+#calcul_method = IMPROVED_RCWA
+calcul_method = RK4
+#calcul_method = Z_INVAR
+#calcul_method = SHOOTING_METHOD
+#calcul_method = EULER
+#calcul_method = EULER2
+N = 200
+NS = 1000
+delta_h = 0.1
+
+#imposed_S_steps = 1
+#imposed_S_steps_filename = optim/imposed_S_step2.txt 
+#N_imposed_S_steps = 1
+
+# Profil
+#nom_profil = sin ; fichier_profil = /home/lau/Profils/sin_2048.txt
+#nom_profil = sin ; fichier_profil = /home/lau/Profils/sin_64.txt
+#nom_profil = cos ; fichier_profil = /home/lau/Profils/cos_2048.txt
+nom_profil = R0500_slope0.75 ; fichier_profil = /home/lau/Profils/rug1D_R0500_slope0.75_L51128.0505_Nx8192.txt
+#nom_profil = staircase ; fichier_profil = /home/lau/Profils/sin5staircase_256.txt

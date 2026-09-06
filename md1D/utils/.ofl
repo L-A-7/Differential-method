@@ -1,0 +1,5 @@
+PWD /home/lau/Programmes/md1D/utils
+INPUT /usr/share/texmf/web2c/lambda.oft
+INPUT /usr/share/texmf/tex/latex/tools/.tex
+OUTPUT .log
+OUTPUT .dvi

@@ -1,0 +1,37 @@
+#    
+#    
+
+#------------ Parameters ------------
+calcul_type   : STD
+calcul_method : Z_INVAR
+theta_i = 0.000000 deg
+phi_i   = 0.000000 deg
+psi     = 45.000000 deg
+nu_super = 1.000000 + i0.000000
+nu_sub   = 3.450000 + i0.000000
+Lx       = 0.600000
+Ly       = 0.600000
+h       = 0.040000
+coef_h  = 1.000000
+lambda  = 10.000000
+Nx       = 5
+Ny       = 5
+NS      = 1
+delta_h = 0.000010
+N_steps   = 1
+Nprx = 128
+Npry = 128
+Calcul_duration = 10.160000 s 
+
+#------------ Results -------------
+sum_eff           =  9.844971e-01
+one_minus_sum_eff =  1.550287e-02
+somm_eff_r        =  9.808003e-01
+somm_eff_t        =  3.696840e-03
+
+eff_r =  9.808002883608e-01 
+nx_eff_r =  0.000000000000e+00 
+ny_eff_r =  0.000000000000e+00 
+eff_t =  3.696839536541e-03 
+nx_eff_t =  0.000000000000e+00 
+ny_eff_t =  0.000000000000e+00 

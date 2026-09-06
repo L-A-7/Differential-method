@@ -1,0 +1,6 @@
+n_super = 1.000000 + i0.000000
+n_sub = 3.761231 + i0.010663
+h = AUTO
+i_field_mode  = PLANE_WAVE
+calcul_type   = ELLIPSO
+delta_h = 0.1

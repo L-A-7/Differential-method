@@ -1,0 +1,74 @@
+#--------------------------------
+#
+#   Configuration file for md1D
+#
+#--------------------------------
+
+# Surface parameters
+# ------------------
+n_super = 1.0 + i0.0 # Superstrate complex refractive index
+n_sub = 1.5 + i0.0   # Substate complex refractive index
+L = 700.0            # Sample lenght (arbitrary units)
+h = 200.0            # Sample height, can be set to AUTO, the program then 
+                     #    deduces the heigth value from the profile file
+coef_h = 1           # [Optionnal] Coefficient by which h is multiplied (can be usefull when
+                     #    h is set to AUTO)
+
+# Field parameters
+# ----------------
+lambda = 632.8            # Wavelength (arbitrary unit)
+theta_i = 0.0             # Incidence angle (degrees)
+pola = TE                 # Field polarization, TE/TM. Can be omitted in ellipsometric
+                          #    modes
+i_field_mode = PLANE_WAVE  # Method to define the incident field :
+                           #    PLAN_WAVE   : Only one non nul spatial frequency component
+                           #    GAUSSIAN
+                           #    FROM_FILE   : spatial frequency components of the field are
+			                  #                  read from an ascii file
+                           #    FROM_BINARY : spatial frequency components of the field are
+			                  #                  read from a binary file
+			                  #    (see md1D.c for more details)
+
+# Numerical parameters 
+# --------------------
+N = 10                    # Truncation parameter for spatial frequency components (2N+1 orders)
+                          #    the most time consuming parameter (t~N^3 or more).
+			  #    The best method to choose its value is making convergence tests
+			  #    (but it takes long). 
+			  #    Another less rigorous but fastest method is to indicate first
+			  #    a very small value for N, the program then
+			  #    alerts the user and tell the minimum value that covers all
+			  #    propagative orders, you can take this value and add 20%/30%/...
+			  #    depending on the sample and the desired precision,
+			  #    this can also be done automaticaly by setting N to AUTO (see
+			  #    md1D_pilot.c for details) and be carrefull with that option.
+NS = 10     # Number of S matrices used, must be at least 10 S matrices per lambda
+           #    of height for index 1.5, more for higher index, not very time
+			  #    consuming.
+			  #    Can be set to AUTO
+delta_h = 1.0 # Size of the step used in the RungeKutta integration algorithm, must
+           #    be less than lambda/100 (for index = 1.5), has a direct impact
+			  #    on energy balance if too big.
+			  #    can be set to AUTO
+			  #    Calculus time is proportional to 1/delta_h
+calcul_type = STD         # Calculation type (see md1D_pilot.c for details) :
+           #    STD : calculation for a particular TE or TM polarization and
+			  #          a particular incidence angle, results are given
+			  #          for all spatial frequencies of the field
+			  #    ELLIPSO : makes calculations for TE and TM, deduces the 
+			  #              polarimetric phase shift
+			  #    VAR_I : same as STD, but for differents incidence angles
+			  #            (from 0 to 90) by default (hard encoded in md1D_pilot.c)
+			  #            results are first order (0 frequency) components for all
+			  #            the incident angles
+			  #    VAR_I_ELLIPSO : same as VAR_I, with ellipsometric calculations
+			  #    VAR_LAMBDA_ELLISPO : same as VAR_I_ELLISPO, lambda varies, index
+			  #                         as a function of lambda must be precised
+			  #                         in a file
+			  #    ALEAT_T_ELLIPSO : random combination of T matrices, used to 
+			  #                      simulate deep random samples
+
+# Profile parameters
+# ------------------
+nom_profil = results_01_basic # Name of the results file (".txt" will be added)
+fichier_profil = cos_256.dat  # Name of the profile definition file

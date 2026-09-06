@@ -1,0 +1,153 @@
+/*
+ *	refractive_index.c
+ *
+ *
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include "../md2D_utils.h"
+#include "../md2D_io_utils.h"
+
+#define STR_SIZE 5000
+
+void err_message(){
+	fprintf(stderr,	"usage : refractive_index MATERIAL_NAME lambda [Cauchy/Lookup]\n");
+}
+
+complex refractive_index(char* name,double lambda, char* method);
+
+int main(int argc, char *argv[]){
+	
+	int i;
+	complex ind;
+	double lambda;
+	char material_name[STR_SIZE], method[STR_SIZE], *endptr;
+	
+	/* Copie des arguments de la ligne de commande */
+	char **argvcp; 
+	argvcp = (char **) malloc(sizeof(char*)*argc);
+	argvcp[0] = (char*) malloc(sizeof(char)*STR_SIZE*argc);
+	for(i=1;i<=argc-1;i++){
+		argvcp[i] = argvcp[i-1] + STR_SIZE;
+		strncpy(argvcp[i], argv[i],STR_SIZE);
+	}
+	
+	/* Vérification de la présence du nombre minimal d'options */
+	if (argc < 2){
+		err_message();
+		return 1;
+	}
+	
+	/* Reading the arguments */
+	strncpy(material_name, argvcp[1],STR_SIZE);
+	lambda = strtod(argvcp[2], &endptr);
+	if (argvcp[2] == endptr){
+		fprintf(stderr,"ERROR, %s can't read argument lambda. Exiting.",__FILE__);
+		exit(EXIT_FAILURE);
+	}
+	strncpy(method, "Lookup",STR_SIZE);
+
+/*	strncpy(method, argvcp[3],STR_SIZE);*/ /*Ajouter verifications, etc..*/
+	
+	/* index determination */
+	ind = refractive_index(material_name,lambda, method);
+	
+	fprintf(stdout,"%f +i%f",creal(ind),cimag(ind));
+
+	
+	return 0;
+}
+
+complex refractive_index(char* name,double lambda, char* method)
+{
+	char filename[SIZE_STR_BUFFER];
+	double lambda_angstrom = 10*lambda;
+	double cauchy_n[5],cauchy_k[5],n_power[6],k_power[6],index_n,index_k;
+	complex index;
+	int i,Nb_cauchy = 5;
+	
+	/* File name */
+	snprintf(filename, SIZE_STR_BUFFER*sizeof(char), "%s_index.txt", name);
+		
+	/* Cauchy method */
+	if (!strcmp(method,"Cauchy")){
+		lire_tab(filename, "CAUCHY_N", cauchy_n, Nb_cauchy);
+		lire_tab(filename, "CAUCHY_K", cauchy_k, Nb_cauchy);
+		lire_tab(filename, "N_POWERS", n_power, Nb_cauchy+1);
+		lire_tab(filename, "K_POWERS", k_power, Nb_cauchy+1);
+/*SaveDbleTab2file (cauchy_n,  Nb_cauchy,"stdout", " ");printf("\n");
+SaveDbleTab2file (n_power, Nb_cauchy,"stdout", " ");printf("\n");
+SaveDbleTab2file (cauchy_k,  Nb_cauchy,"stdout", " ");printf("\n");
+SaveDbleTab2file (k_power, Nb_cauchy,"stdout", " ");printf("\n");*/
+
+		index_n = 0;
+		index_k = 0;
+		for (i=0;i<=Nb_cauchy-1;i++){
+			index_n += cauchy_n[i]*pow(lambda_angstrom,n_power[i]);
+			index_k += cauchy_k[i]*pow(lambda_angstrom,k_power[i]);
+		}
+/*printf("Milieu: %s, lambda = %f, n = %f, k = %f\n",name,lambda,index_n,index_k);
+*/				
+		index = index_n + I*index_k; 
+		return index;
+		
+	}
+	/* Lookup-Table method */
+	if (!strcmp(method,"Lookup")){
+		double *tab_n, *tab_k, *tab_lambda, npoints, *table_tmp;
+		lire_tab(filename, "NPOINTS", &npoints, 1);
+		table_tmp= (double *) malloc(sizeof(double)*3*((int)npoints));
+		tab_lambda= (double *) malloc(sizeof(double)*((int)npoints));
+		tab_n= (double *) malloc(sizeof(double)*((int)npoints));
+		tab_k= (double *) malloc(sizeof(double)*((int)npoints));
+		lire_tab(filename, "TABLE", table_tmp, 3*(int)npoints);
+		/* Réarrangement en plusieurs tableaux */
+		for (i=0; i<=(int)npoints -1;i++){
+			tab_lambda[i] = table_tmp[3*i];
+			tab_n[i] = table_tmp[3*i+1];
+			tab_k[i] = table_tmp[3*i+2];
+		}
+		/* Recherche de l'indice de tableau pour lambda */
+		int num_min = 0;
+		int num_max = (int) npoints-1;
+		int numero = num_max>>1;
+		while(!(tab_lambda[numero] <= lambda && lambda < tab_lambda[numero+1])){
+			numero=num_min+((num_max-num_min)>>1);
+			if (lambda < tab_lambda[numero]){
+				num_max=numero;
+			}
+			if (tab_lambda[numero+1] <= lambda){
+				num_min=numero;
+			}
+			if (num_min == num_max){
+				fprintf(stderr,"md2D_indice, look-up table incompatible avec lambda = %f pour %s",lambda,name);
+				exit(EXIT_FAILURE);
+			}
+		}
+		/* Interpolation linéaire */
+		double l1 = tab_lambda[numero];
+		double l2 = tab_lambda[numero+1];
+		double n1 = tab_n[numero];
+		double n2 = tab_n[numero+1];
+		double k1 = tab_k[numero];
+		double k2 = tab_k[numero+1];
+		index_n= (lambda-l1)*(n2-n1)/(l2-l1) + n1;
+		index_k= (lambda-l1)*(k2-k1)/(l2-l1) + k1;
+
+		free(tab_lambda);
+		free(tab_n);
+		free(tab_k);
+		free(table_tmp);
+		
+/*printf("lambda= %f, lambda1= %f, lambda2= %f\n",lambda,tab_lambda[numero],tab_lambda[numero+1]);
+printf("lambda= %f, n = %f, k= %f\n",lambda,index_n,index_k);
+*/		index = index_n + I*index_k; 
+
+		return index;
+	}
+	return -1;/* ERREUR, ne devrait pas arriver là ... */
+}

@@ -1,0 +1,38 @@
+Lecture des param%Gï¿½%@tres dans md2D_param.txt
+Lecture des param%Gï¿½%@tres dans TESTS/carre_1_256.txt
+Reading the profile TESTS/carre_1_256.txt : OK
++---------------------------------------------------------------------
+|                        CAUTION !
+| h determined for TESTS/carre_1_256.txt is 1.000000 and h indicated 0.100000 !
++---------------------------------------------------------------------
+Profile normalisation between 0 and (h x coef_h) : OK
+n_super = 1.000000 + i0.000000
+n_sub   = 1.500000 + i0.000000
+lambda  = 1.000000
+theta_i = 0.000000 rad (0.000000%Gï¿½%@)
+phi_i   = 0.785398 rad (45.000000%Gï¿½%@)
+psi     = 1.570796 rad (90.000000%Gï¿½%@)
+L       = 3.100000
+h       = 0.100000
+coef_h  = 1.000000
+delta_h = 0.010000
+N       = 100
+NS      = 10
+N_x     = 256
+pola    : TM
+calcul_type    = STD
+calcul_method  = RCWA
+i_field_mode   = PLANE_WAVE
+nom_profil     = carre_1
+fichier_profil = TESTS/carre_1_256.txt
+type_profil    = H_X
+N_couches      = 0
+S-Matrix calculation
+100 % [817s >>>>>>>>>>>>>>>>>>>> 0s] 817s       
+
+Re eff_R :
+4.911341e-04 6.765605e-06 5.613066e-03 2.569481e-02 5.613066e-03 6.765605e-06 4.911341e-04 
+Re eff_T :
+6.802061e-05 1.352280e-03 1.217785e-05 9.542284e-03 9.401337e-01 9.542284e-03 1.217785e-05 1.352280e-03 6.802061e-05 Efficiencies summ   : 1.0000000000
+1-Efficiencies summ : -3.774758e-15
+Temps %Gï¿½%@coul%Gï¿½%@ : 612.030000 s 

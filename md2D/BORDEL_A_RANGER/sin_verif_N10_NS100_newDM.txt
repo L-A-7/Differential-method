@@ -1,0 +1,33 @@
+#    
+#    
+
+#------------ Parameters ------------
+calcul_type   : STD
+calcul_method : SHOOTING_METHOD
+pola    : TM
+theta_i = 40.000000 deg
+n_super = 1.000000 + i0.000000
+n_sub   = 1.300000 + i7.600000
+L       = 0.500000
+h       = 0.200000
+coef_h  = 1.000000
+lambda  = 0.632800
+N       = 1
+NS      = 100
+delta_h = 0.100000
+N_steps   = 100
+N_x = 2048
+Calcul_duration = 1.220000 s 
+
+#------------ Results -------------
+sum_eff           =  6.816094e-01
+one_minus_sum_eff =  3.183906e-01
+somm_eff_r        =  6.805446e-01
+somm_eff_t        =  1.064810e-03
+
+theta_r = -3.852179975464e+01  4.000000000000e+01 
+N_eff_r = -1.000000000000e+00  0.000000000000e+00 
+eff_r =  5.496154907029e-01  1.309291034532e-01 
+theta_t =  nan  nan 
+N_eff_t = -1.000000000000e+00  0.000000000000e+00 
+eff_t =  9.507164631979e-04  1.140934476413e-04 

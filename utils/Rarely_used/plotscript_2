@@ -1,0 +1,19 @@
+# set terminal png transparent nocrop enhanced font arial 8 size 420,320 
+# set terminal png nocrop enhanced font arial 8 size 420,320 
+# set output 'mgr.5.png'
+set key right top Right noreverse enhanced box linetype -1 linewidth 1.000 samplen 4 spacing 1 width 0 height 0 autotitles
+#set key right top Right noreverse noinvert enhanced box linetype -1 linewidth 1.000 samplen 4 spacing 1 width 0 height 0 autotitles
+set samples 300, 300
+set title "Ag 108 decay data" 0.000000,0.000000  font ""
+set xlabel "Time (sec)" 0.000000,0.000000  font ""
+set ylabel "Rate" 0.000000,0.000000  font ""
+S = 1
+
+#plot "silver.dat" t "rate" w errorb,
+#set logscale y
+plot "silver.dat" with points pt 6 ps 1,\
+ "" u 1:2:($2/1.0) sm acs t "acspline Y/(Z*1.e1)",\
+ "" u 1:2:($2/($3*1.e3)) sm acs t "         Y/(Z*1.e3)",\
+ "" u 1:2:($2/($3*1.e2)) sm acs t "         Y/(Z*1.e2)",\
+               "" smooth sbezier t "bezier"
+pause mouse

@@ -1,0 +1,11 @@
+Optical Engineering & Applications
+26-30 august 2007 - San Diego
+Advanced Metrology : advanced characterization techniques for optics, semiconductors and nanotechnologies.
+
+Abstract title :
+Grating Roughness Characterization, applications in the semiconductor industry
+
+Abstract :(250 words max)
+One of the most precise and effective characterization technique used nowadays in the semiconductors industry is called scatterometry. It consists of solving the electromagnetic inverse problem after appropriate ellipsometric measurements of a periodic test structure. The roughness present on the grating test structure can be classified in several categories (Line Edge Roughness, Line Width Roughness, etc...) and can impact the electronic response of the device. With the constant reduction of the critical dimensions, the roughness may become of an encreasing importance relatively to the average line width, and thus more important to characterize. We have developped an electromagnetic model able to take into acount both the scattering by the periodic part of the structure and by the roughness. Our simulations confirm that the classical scatterometry, measuring only the specular beam, is almost unsensible to roughness. We show how the roughness present on the grating impacts the optical signatures and how it is possible to characterize it through appropriate measurements and calculations.
+
+

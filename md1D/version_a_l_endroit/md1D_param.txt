@@ -1,0 +1,54 @@
+#
+#   Fichier de configuration pour le programme md1D
+#
+
+
+# Paramètres de la surface
+n_super = 1.0 + i0.0
+n_sub = 1.5 +i0.0
+L = 1500.0
+h = AUTO
+
+# Paramètres du champ
+pola = TM
+lambda = 200 # 632.8
+angle_i = 0.0
+
+# Paramètres numériques
+#type_calcul = VAR_LAMBDA_ELLIPSO
+type_calcul = STD
+i_field_mode = PLAN_WAVE
+N = 12
+NS = 10
+delta_h = AUTO
+
+# Parametres pour extract_S
+#mode_extract_S = 1 ; h_extract_S = 100
+
+# Parametres pour READ_MAT_S
+#READ_MAT_S = 1 ; mat_S_file = S_TE_cos_h200.000000.txt
+
+
+# Parametres pour ALEAT_T
+#L_segment = 100.0
+#ecart_type_segment = 0.0
+#h_total_aleat_T = 1600.0
+
+# Profil
+#nom_profil = results_simple_x2 ; fichier_profil = results/TestCombMat/profil_binaire.txt ; 
+
+#nom_profil = cos ; fichier_profil = TESTS/cos_256.dat
+nom_profil = carre03 ; fichier_profil = TESTS/carre03.txt
+#nom_profil = sin_fini ; fichier_profil = TESTS/sin_fini_1024.dat ; N_profil = 1024 ; type_profil = HX
+#nom_profil = sin10 ; fichier_profil = TESTS/sin10_256.dat ; N_profil = 256 ; type_profil = HX
+#nom_profil = aleat05 ; fichier_profil = TESTS/aleat.txt
+#nom_profil = profil_plat ; fichier_profil = TESTS/flat_256.dat
+#nom_profil = carre_3 ; fichier_profil = TESTS/carre_3_256.dat ;
+#nom_profil = carre_6 ; fichier_profil = TESTS/carre_6_256.dat ; N_profil = 256 ; type_profil = HX
+#nom_profil = multi_cos ; fichier_profil = TESTS/multi_2_256.txt
+#nom_profil = multi_lame ; fichier_profil = TESTS/multi_lamell01.dat
+#nom_profil = cminces ; fichier_profil = TESTS/cminces01.txt
+#nom_profil = rug_vol ; fichier_profil = TESTS/rug_vol.txt
+#nom_profil = spamm2_100_50 ; fichier_profil = TESTS/spamm2_L100_CD50_N1024.txt
+#nom_profil = GG1-AA10 ; fichier_profil = TESTS/GG1-AA10.txt ; N_profil = 100 ; type_profil = HX
+

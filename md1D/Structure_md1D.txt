@@ -1,0 +1,15 @@
+
+
++----------+       +--------+           +----------+
+| Profil   | ====> | k2_xyz | ========> | TFk2_xyz | ====\   1ere etape : 
+|  - H_X   |       +--------+           +----------+      |     transformation du profil, quelquesoit sa 
+|  - MULTI |       +------------+       +-------------+   |     présentation, en tableau de TF_k2/invk2
+|  - N_XYZ | ====> | inv_k2_xyz | ====> | TFinvk2_xyz | ==|
++----------+       +------------+       +-------------+   |
+                                                          |
+                                                          |
+                                                          v
+
+                                                     +-----------+
+                                                     |  S_matrix |
+                                                     +-----------+

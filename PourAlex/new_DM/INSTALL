@@ -1,0 +1,38 @@
+PACKAGES NECESSAIRES A L'INSTALLATION
+-------------------------------------
+gcc
+g77
+gfortran
+compat-gcc-32		(32 identifie la version du gcc)
+compat-gcc-32-g77 	(32 identifie la version du gcc)
+blas
+blas-devel
+lapack
+lapack-devel
+atlas
+atlas-devel
+acml
+
+
+COMPILATION
+-----------
+
+* EDITER LE Makefile ET VERIFIER LES VARIABLES SUIVANTES :
+	ACML_INCLUDE_DIR = /opt/acml3.6.0/gnu64/include
+	ACML_LIB_DIR = /opt/acml3.6.0/gnu64/lib
+	ATLAS_INCLUDE_DIR = /usr/include/atlas
+	ATLAS_LIB_DIR = /usr/lib64/atlas
+
+	ADAPTER EN FONCTION DE L'INSTALLATION DES PACKAGES
+
+* COMPILATION 
+	TAPER LA COMMANDE make POUR OBTENIR DE L'AIDE
+	EXEMPLE DE COMPILATION AVEC ACML :
+		make BUILD=ACML clean all
+
+MODIFICATIONS
+-------------
+29-juin-2007 :
+	merge en la version Fresnel de Laurent Arnaud et les modifications shaktiware
+	utilisation du type REAL complex a la place du type complex. REAL <=> double 
+	les complexes utilises doivent avoir une precision double

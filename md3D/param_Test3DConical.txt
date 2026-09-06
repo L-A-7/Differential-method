@@ -1,0 +1,47 @@
+#
+#
+
+# Sample parameters
+nu_super = 1.55 + i0.0
+nu_sub = 1.0 +i0.0
+
+# Field parameters
+i_field_mode = PLANE_WAVE
+
+# Numerical parameters
+calcul_type   = STD
+calcul_method = RK4
+#calcul_method = Z_INVAR
+#calcul_method = IMPROVED_RCWA
+
+verbosity = 0
+delta_h = 0.00001
+
+
+Lx=401
+Ly=0.1
+Nx=50
+Ny=0
+NS=3000
+lambda=600
+#pola=TM
+psi=90
+phi_i=90
+
+n_air="1.0 + i0.0"
+n_ormoprime="1.55 + i0.0"
+n_substrate="1.55 + i0.0"
+
+h=500
+theta_i=30
+
+profile_name=test3DConical
+profile_file=pr_Test3DConical3.txt
+
+
+
+
+
+	
+
+

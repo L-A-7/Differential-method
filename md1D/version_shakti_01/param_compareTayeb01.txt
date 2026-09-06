@@ -1,0 +1,36 @@
+#	Calculs Tayeb ACES_1994
+#	réseau diélectrique sinusoïdal
+#	L=3.9 lambda, h=0.5 lambda
+#	eps=3eps0, n = 1.732050807+i0.0, incidence=30°
+
+
+# Paramètres de la surface
+n_super = 1.000000 + i0.000000
+n_sub   = 1.732051 + i0.000000
+L       = 3.9
+h       = 0.5
+
+# Paramètres du champ
+pola = TE
+polarisation = TE
+lambda = 1.0
+angle_i = 30.0
+
+# Paramètres numériques
+type_calcul = STD
+N = 20
+NS = 20
+delta_h = 0.005
+delta_h_approx = 0.005
+
+# Profil
+nom_profil = compareTayeb ; fichier_profil = /home/lau/Programmes/md1D/version_shakti_01/TESTS/cos_256.dat
+#nom_profil = sin1024 ; fichier_profil = TESTS/sin_1024.dat ; N_profil = 1024 ; type_profil = HX
+#nom_profil = cos128 ; fichier_profil = TESTS/cos_128.dat ; N_profil = 128 ; type_profil = HX
+#nom_profil = profil_cosinusoidal ; fichier_profil = TESTS/cos_100.dat ; N_profil = 100 ; type_profil = HX
+#nom_profil = profil_cosinusoidal ; fichier_profil = TESTS/cos_64.dat ; N_profil = 64 ; type_profil = HX
+#nom_profil = profil_aleat ; fichier_profil = TESTS/aleat_64.dat ; N_profil = 64 ; type_profil = HX
+#nom_profil = wzw7_01; fichier_profil = TESTS/wzw7_01.dat ; N_profil = 256 ; type_profil = HX
+#nom_profil = profil_plat ; fichier_profil = TESTS/flat_256.dat ; N_profil = 256 ; type_profil = HX
+#nom_profil = profil_carre ; fichier_profil = TESTS/carre_256.dat ; N_profil = 256 ; type_profil = HX
+#nom_profil = profil_carre ; fichier_profil = TESTS/carre_6_256.dat ; N_profil = 256 ; type_profil = HX

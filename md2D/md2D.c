@@ -35,7 +35,7 @@ int md2D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff
 /*		par->Ai[par->vec_middle] = -par->k_super;*/
 		 
 	}else{
-		fprintf(stderr, "%s, ligne %d : ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
+		fprintf(stderr, "%s, ligne %d: ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
 		exit(EXIT_FAILURE);
 	}
 	

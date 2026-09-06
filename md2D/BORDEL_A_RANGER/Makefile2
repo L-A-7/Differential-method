@@ -1,0 +1,147 @@
+#
+#
+#
+HOME = /home_nfs/arnaud
+ACML_INCLUDE_DIR = /opt/acml4.3.0/gfortran64/include 
+ACML_LIB_DIR = /opt/acml4.3.0/gfortran64/lib
+ATLAS_INCLUDE_DIR = /usr/include/atlas
+ATLAS_LIB_DIR = /usr/lib64/atlas
+MKL_LIB = /opt/intel/cmkl/9.1.023/lib/64
+MKL_INC = /opt/intel/cmkl/9.1.023/include
+FFTW_PATH = /apps/fftw-3.1.2/fftw-3.1.2-d64
+FFTW_LIB = $(FFTW_PATH)/lib
+FFTW_INC = $(FFTW_PATH)/include
+LOCAL_INC = $(HOME)/include
+#LOCAL_LIB = $(HOME)/lib
+LIB3 = -L$(LOCAL_LIB) -L$(MKL_LIB) $(FFTW_LIB)/libfftw3.a
+INC3 = -I$(LOCAL_INC) -I$(MKL_INC) -I$(FFTW_INC)
+
+#BUILD=ACML
+BUILD=Lapack
+#BUILD=Lapack_ATLAS
+COMPIL=ICC
+
+NAME = md2D
+STD_H = std_include.h
+IN_OUT = $(NAME)_in_out
+UTILS = $(NAME)_utils
+IO_UTILS = $(NAME)_io_utils
+PILOT = $(NAME)_pilot
+ODE_SOLVE = ode_solve
+EQ_DIFF = eq_diff
+
+
+#INC1 = -I/home/lau/Programmes/md1D/fftw
+#LIB1 = -static -lfftw3 -lgsl 
+LIB1 = -lfftw3 -lgsl -lgslcblas
+#LIB1 = -lfftw3
+
+ifeq ($(BUILD),Lapack)
+INC2 = -I$(ATLAS_INCLUDE_DIR)
+LIB2 = -llapack -lblas 
+XERBLA=xerbla.o
+OPTIM_FLAGS=-D_LAPACK_OPTIMIZATION
+endif
+
+ifeq ($(BUILD),Lapack_ATLAS)
+INC2 = -I$(ATLAS_INCLUDE_DIR)
+LIB2 = -L$(ATLAS_LIB_DIR) -latlas -llapack -lblas 
+XERBLA=xerbla.o
+OPTIM_FLAGS=-D_BLAS_OPTIMIZATION -D_LAPACK_OPTIMIZATION
+endif
+
+ifeq ($(BUILD),ACML)
+INC2= -I$(ACML_INCLUDE_DIR)
+LIB2 = -L$(ACML_LIB_DIR) -lacml
+OPTIM_FLAGS= -D_ACML
+endif
+
+ifeq ($(COMPIL),ICC)
+CC=/apps/intel/Compiler/11.1/056/bin/ia64/icc -wd981
+#LIB3 = -L/opt/intel/cce/9.1.047/lib
+else
+CC=gcc
+endif
+
+ifeq ($(SCHED),FIFO)
+OPTIM_FLAGS+=-DSCHED_FIFO=1
+endif
+
+INC =$(INC1) $(INC2) $(INC3)
+#LIB =$(LIB1) $(LIB2) -lg2c -lm
+LIB =$(LIB1) $(LIB2) -lm
+
+#all : $(NAME)
+all : $(EQ_DIFF)
+
+# Options de compilation :
+#CFLAGS = -g -Wall -ansi $(OPTIM_FLAGS)
+CFLAGS = -O3 -Wall -ansi $(OPTIM_FLAGS)
+
+# Profiling
+#PG = -pg
+#PG = 
+
+# Compilation
+$(NAME).o : $(NAME).c $(NAME).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(NAME).c $(PG)
+
+#
+$(IO_UTILS).o : $(IO_UTILS).c $(IO_UTILS).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(IO_UTILS).c $(PG)
+
+#
+$(IN_OUT).o : $(IN_OUT).c $(IN_OUT).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(IN_OUT).c $(PG) 
+
+#
+$(UTILS).o : $(UTILS).c $(UTILS).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(UTILS).c $(PG)
+
+#
+$(PILOT).o : $(PILOT).c $(PILOT).h $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(PILOT).c $(PG)
+
+#
+$(ODE_SOLVE).o : $(ODE_SOLVE).c $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(ODE_SOLVE).c $(PG)
+
+#
+$(EQ_DIFF).o : $(EQ_DIFF).c $(STD_H)
+	$(CC) -c $(CFLAGS) $(INC) $(EQ_DIFF).c $(PG)
+
+# Link the object files :
+$(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o
+	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o $(LIB) $(PG)
+
+# Link the object files :
+$(EQ_DIFF) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o $(EQ_DIFF).o
+	$(CC) -o $(NAME) $(NAME).o $(IO_UTILS).o $(IN_OUT).o $(UTILS).o $(PILOT).o $(ODE_SOLVE).o $(EQ_DIFF).o $(LIB) $(PG)
+
+# Archivage du projet en .tar
+tar :  
+#	tar -cvf $(NAME).tar ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./results/*
+	tar -cvf $(NAME).tar ./*.c ./*.h ./*param* ./Makefile ./utils/*
+#	tar -cvf $(NAME).tar ./*.c ./*.h ./*.m ./md1D_param.txt ./utils/*  
+#	tar -cvf $(NAME).tar ./*.c ./*.h  
+
+# Archivage et Compression du projet en .tar.bz2
+bz2 : tar
+	rm -f $(NAME).tar.bz2
+	bzip2 $(NAME).tar
+
+# Archivage et Compression du projet en .tar.gz
+targz : tar
+	rm -f $(NAME).tar.gz
+	gzip $(NAME).tar
+
+# Archivage et Compression du projet en .zip
+zip :
+	zip $(NAME) ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./doc/*
+
+
+# Nettoyage du répertoire de travail	
+clean :
+	rm -f ./*.o
+	rm -f ./*~
+

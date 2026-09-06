@@ -1,0 +1,1246 @@
+This is Omega, Version 3.14159--1.23.2.1 (Web2C 7.4.5) (format=lambda 2003.3.8)
+17 MAR 2005 16:21
+Copyright (c) 1994--2000 John Plaice and Yannis Haralambous
+**= 0.632800
+(/usr/share/texmf/tex/latex/tools/.tex
+LaTeX2e <2001/06/01> patch level 1
+Babel <v3.7h> and hyphenation patterns for english, spanish, russian, greek, in
+uit, dumylang, nohyphenation, loaded.
+File ignored)
+
+! LaTeX Error: Missing \begin{document}.^^J^^JSee the LaTeX manual or LaTeX Com
+panion for explanation.^^JType  H <return>  for immediate help.
+ ...                                              
+                                                  
+<*> = 0
+       .632800
+? #------------ Param^^e8tres ------------
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? Pola    : TE
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? n_super = 1.000000 + i0.000000
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? n_sub   = 3.881500 + i0.019270
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? L       = 40.000000
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? h       = 2.000000
+You're in trouble here.  Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+? lambda  = 0.632800
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? angle_i = 0.000000
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? N       = 10
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? NS      = 10
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? delta_h = 0.200000
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? Nstep   = 10
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? N_profil = 100
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? 
+Missing character: There is no 0 in font nullfont!
+Missing character: There is no . in font nullfont!
+Missing character: There is no 6 in font nullfont!
+Missing character: There is no 3 in font nullfont!
+Missing character: There is no 2 in font nullfont!
+Missing character: There is no 8 in font nullfont!
+Missing character: There is no 0 in font nullfont!
+Missing character: There is no 0 in font nullfont!
+
+*#------------ Efficacit^^e9s -------------
+! You can't use `macro parameter character #' in horizontal mode.
+<*> #
+     ------------ Efficacit^^e9s -------------
+? somm_eff          =  6.914651e+12
+OK, entering \scrollmode...
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no E in font nullfont!
+Missing character: There is no f in font nullfont!
+Missing character: There is no f in font nullfont!
+Missing character: There is no i in font nullfont!
+Missing character: There is no c in font nullfont!
+Missing character: There is no a in font nullfont!
+Missing character: There is no c in font nullfont!
+Missing character: There is no i in font nullfont!
+Missing character: There is no t in font nullfont!
+Missing character: There is no ^^e9 in font nullfont!
+Missing character: There is no s in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+Missing character: There is no - in font nullfont!
+
+*un_moins_somm_eff = -6.914651e+12
+Missing character: There is no u in font nullfont!
+Missing character: There is no n in font nullfont!
+! Missing $ inserted.
+<inserted text> 
+                $
+<*> un_
+       moins_somm_eff = -6.914651e+12
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 0.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 0.
+
+*somm_eff_R        =  6.914651e+12
+
+*somm_eff_T        =  6.192320e-13
+
+*eff_R       =  5.287105e+10  1.442726e+11  2.578434e+11  3.568524e+11  3.93037
+7e+11  3.331290e+11  2.014983e+11  7.625733e+10  3.483872e+10  9.906696e+10  2.
+237191e+11  3.352180e+11  3.890364e+11  3.999450e+11  4.137266e+11  4.498542e+1
+1  4.927099e+11  5.354191e+11  5.852906e+11  6.087826e+11  5.312820e+11
+
+*N_eff_R     = -1.000000e+01 -9.000000e+00 -8.000000e+00 -7.000000e+00 -6.00000
+0e+00 -5.000000e+00 -4.000000e+00 -3.000000e+00 -2.000000e+00 -1.000000e+00  0.
+000000e+00  1.000000e+00  2.000000e+00  3.000000e+00  4.000000e+00  5.000000e+0
+0  6.000000e+00  7.000000e+00  8.000000e+00  9.000000e+00  1.000000e+01
+
+*theta_eff_R = -9.102433e+00 -8.185590e+00 -7.270853e+00 -6.357975e+00 -5.44671
+5e+00 -4.536835e+00 -3.628101e+00 -2.720279e+00 -1.813141e+00 -9.064570e-01  0.
+000000e+00  9.064570e-01  1.813141e+00  2.720279e+00  3.628101e+00  4.536835e+0
+0  5.446715e+00  6.357975e+00  7.270853e+00  8.185590e+00  9.102433e+00
+
+*eff_T       =  1.541250e-14  1.845429e-14  2.223031e-14  2.696239e-14  3.27630
+7e-14  3.914335e-14  4.454435e-14  4.659141e-14  4.339174e-14  3.517089e-14  2.
+484160e-14  1.669492e-14  1.396503e-14  1.707330e-14  2.376622e-14  3.076276e-1
+4  3.551468e-14  3.700620e-14  3.552618e-14  3.199829e-14  2.741853e-14
+
+*N_eff_T     = -1.000000e+01 -9.000000e+00 -8.000000e+00 -7.000000e+00 -6.00000
+0e+00 -5.000000e+00 -4.000000e+00 -3.000000e+00 -2.000000e+00 -1.000000e+00  0.
+000000e+00  1.000000e+00  2.000000e+00  3.000000e+00  4.000000e+00  5.000000e+0
+0  6.000000e+00  7.000000e+00  8.000000e+00  9.000000e+00  1.000000e+01
+
+*theta_eff_T = -2.335819e+00 -2.102126e+00 -1.868468e+00 -1.634842e+00 -1.40124
+3e+00 -1.167667e+00 -9.341100e-01 -7.005689e-01 -4.670395e-01 -2.335178e-01  0.
+000000e+00  2.335178e-01  4.670395e-01  7.005689e-01  9.341100e-01  1.167667e+0
+0  1.401243e+00  1.634842e+00  1.868468e+00  2.102126e+00  2.335819e+00
+
+*
+! Missing $ inserted.
+<inserted text> 
+                $
+<*> 
+    
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+
+Overfull \hbox (19.99998pt too wide) detected at line 0
+[]
+ []
+
+
+Overfull \hbox (80.05428pt too wide) detected at line 0
+[]\OML/cmm/m/it/10 oins[]omm[]ff \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (57.98975pt too wide) detected at line 0
+\OMS/cmsy/m/n/10 -\OT1/cmr/m/n/10 6\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 914651\OML
+/cmm/m/it/10 e \OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (69.37285pt too wide) detected at line 0
+\OT1/cmr/m/n/10 12\OML/cmm/m/it/10 somm[]ff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 6\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 914651\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (69.11241pt too wide) detected at line 0
+\OT1/cmr/m/n/10 12\OML/cmm/m/it/10 somm[]ff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 6\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 192320\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (42.64pt too wide) detected at line 0
+\OT1/cmr/m/n/10 13\OML/cmm/m/it/10 eff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 5\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 287105\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 101\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 442726\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 112\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 578434\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 113\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 568524\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 113\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 930377\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 113\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 331290\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 112\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 014983\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 117\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 625733\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 103\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 483872\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 109\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 906696\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 102\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 237191\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 113\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 352180\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 113\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 890364\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 113\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 999450\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 114\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 137266\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 114\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 498542\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 114\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 927099\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 115\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 354191\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 115\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 852906\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 116\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 087826\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 115\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 312820\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (50.31256pt too wide) detected at line 0
+\OT1/cmr/m/n/10 11\OML/cmm/m/it/10 N[]ff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (57.98975pt too wide) detected at line 0
+\OMS/cmsy/m/n/10 -\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML
+/cmm/m/it/10 e \OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 9\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 8\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 7\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 6\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 5\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 4\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 3\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 000\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 002\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 003\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 004\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 005\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 006\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 007\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 008\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 009\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (65.20381pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01\OML/cmm/m/it/10 theta[]ff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (57.98975pt too wide) detected at line 0
+\OMS/cmsy/m/n/10 -\OT1/cmr/m/n/10 9\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 102433\OML
+/cmm/m/it/10 e \OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 8\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 185590\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 7\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 270853\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 6\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 357975\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 5\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 446715\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 4\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 536835\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 3\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 628101\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 720279\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 813141\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 9\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 064570\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 010\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 009\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 064570\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 011\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 813141\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 002\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 720279\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 003\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 628101\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 004\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 536835\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 005\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 446715\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 006\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 357975\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 007\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 270853\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 008\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 185590\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 009\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 102433\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (42.37956pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00\OML/cmm/m/it/10 eff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 541250\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 141\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 845429\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 142\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 223031\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 142\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 696239\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 276307\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 914335\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 144\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 454435\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 144\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 659141\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 144\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 339174\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 517089\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 142\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 484160\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 141\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 669492\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 141\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 396503\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 141\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 707330\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 142\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 376622\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 076276\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 551468\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 700620\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 552618\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 143\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 199829\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 142\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 741853\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.05212pt too wide) detected at line 0
+\OT1/cmr/m/n/10 14\OML/cmm/m/it/10 N[]ff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (57.98975pt too wide) detected at line 0
+\OMS/cmsy/m/n/10 -\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML
+/cmm/m/it/10 e \OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 9\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 8\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 7\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 6\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 5\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 4\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 3\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 000\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 002\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 003\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 004\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 005\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 006\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 007\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 008\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 009\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (64.94337pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01\OML/cmm/m/it/10 theta[]ff[] \OT1/cmr/m/n/10 =
+ []
+
+
+Overfull \hbox (57.98975pt too wide) detected at line 0
+\OMS/cmsy/m/n/10 -\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 335819\OML
+/cmm/m/it/10 e \OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 102126\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 868468\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 634842\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 401243\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 1\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 167667\OML/cmm/m/it/10 e \OT
+1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 9\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 341100\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 7\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 005689\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 4\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 670395\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (17.77782pt too wide) detected at line 0
+\OT1/cmr/m/n/10 01 \OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (50.21194pt too wide) detected at line 0
+\OT1/cmr/m/n/10 2\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 335178\OML/cmm/m/it/10 e \OM
+S/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 010\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 000000\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 002\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 335178\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 014\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 670395\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 017\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 005689\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 019\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 341100\OML/cmm/m/it/10 e \
+OMS/cmsy/m/n/10 -
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 011\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 167667\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 401243\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 634842\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 001\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 868468\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 002\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 102126\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (60.21198pt too wide) detected at line 0
+\OT1/cmr/m/n/10 002\OML/cmm/m/it/10 .\OT1/cmr/m/n/10 335819\OML/cmm/m/it/10 e \
+OT1/cmr/m/n/10 +
+ []
+
+
+Overfull \hbox (10.0pt too wide) detected at line 0
+\OT1/cmr/m/n/10 00$ 
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+! LaTeX Error: The font size command \normalsize is not defined:^^J            
+   there is probably something wrong with the class file.^^J^^JSee the LaTeX ma
+nual or LaTeX Companion for explanation.^^JType  H <return>  for immediate help
+.
+ ...                                              
+                                                  
+<*> 
+    
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+[1]
+(Please type a command or say `\end')
+*
+! Emergency stop.
+<*> 
+    
+End of file on the terminal!
+
+ 
+Here is how much of Omega's memory you used:
+ 7 strings out of 28736
+ 110 string characters out of 1186914
+ 417734 words of memory out of 2000001
+ 3 multiletter control sequences out of 65536
+14 fonts 88 hyphenation exceptions out of 1000
+ 17i,4n,12p,310b,165s stack positions out of 1500i,400n,600p,200000b,5000s
+Output written on .dvi (1 page, 3484 bytes).

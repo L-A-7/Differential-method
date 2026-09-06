@@ -1,0 +1,25 @@
+#sigma0_normed = 1.50832349329894 + i0.0
+#
+#
+
+# Sample parameters
+n_super = 1.0 + i0.0
+n_sub = 3.39 +i0.0
+
+# Field parameters
+i_field_mode = PLANE_WAVE
+
+# Numerical parameters
+calcul_type   = NEAR_FIELD
+#calcul_type   = STD
+#calcul_method = RK4
+calcul_method = Z_INVAR
+
+#imposed_S_steps = AUTO
+hmin_Sstep = 10
+
+verbosity = 2
+delta_h = 0.00001
+
+
+

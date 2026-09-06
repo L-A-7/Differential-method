@@ -1,0 +1,44 @@
+#
+#
+#
+
+#set terminal png 
+
+
+set multiplot
+set logscale y
+set grid
+
+set size 0.6,0.45
+set origin 0.0,0.5
+set label "Efficacités en reflexion" at screen 0.33,0.95 center
+set xrange [-90:90]
+plot './eff_R.tmp' notitle with linespoints pt 6
+
+set size 0.6,0.45
+set origin 0.0,0.0
+set label "Efficacités en transmission" at screen 0.33,0.45 center
+set xrange [-90:90]
+plot 'eff_T.tmp' notitle with linespoints pt 4
+
+
+unset logscale y
+set size 0.45,0.45
+set origin 0.55,0.0
+set label "Profil" at screen 0.80,0.45 center
+set autoscale x
+#plot 'profil.tmp' notitle with filledcurve y1=0 lt 2
+
+set size 0.45,0.45
+set origin 0.55,0.5
+set label "var_i" at screen 0.80,0.95 center
+set xrange [-90:90]
+#plot 'var_i.tmp' notitle with linespoints pt 3 ps 3
+
+
+unset multiplot
+
+pause mouse
+#pause -1 "Press Return to continue"
+
+
