@@ -102,6 +102,43 @@ drive, disk image), it would contain the actual RCS `,v` files and could be
 imported the same way the `.bzr` repositories were (`cvs2git` or similar),
 extending this repo's history back past 2009 to at least 2004-2005.
 
+## RCWA/ (removed): an earlier md2D snapshot, and a lost calculation mode
+
+The top-level `RCWA/` folder (removed after this was written) did not
+implement Rigorous Coupled-Wave Analysis - despite the name, it held no
+eigenvalue/modal-method code and its Makefile linked no LAPACK/BLAS. Its
+`md2D.c` header identified it as the same differential method, dated
+January 2007, predating the Bazaar-tracked `md2D/` history (2009-2010) and
+postdating `md1D`'s CVS era (2004-2006): an earlier link in the same
+lineage, using an older per-program file-naming convention (`md2D_io_utils.c`
+instead of the shared `md_*` library convention) and even directly
+referencing `md1D_utils.h` in `dioptre_inverse.c`.
+
+Everything of substance in `RCWA/` was already duplicated, more completely,
+in `md2D/`: the Tayeb ACES-1994 sinusoidal-aluminum-grating comparison
+(`param_tayeb_sinus_metal.txt`, `res_tayeb_alu.txt`) and the SPIE-2007-linked
+CD/thickness reconstruction study (`Optimization_var_lambda/`, with the same
+`measured_data.txt`/`simulated_data.txt`) both exist there too, and are the
+more actively maintained versions (`md2D/`'s own Tayeb comparisons were
+re-verified as late as 2018). `md2D_conique.tar` was checked and found
+byte-identical to the loose RCWA source - no actual conical-incidence code
+despite the name.
+
+One finding did NOT survive elsewhere: `RCWA/res_tayeb_alu.txt` and
+`RCWA/sinus_alu_RCWA_*.txt` carry `calcul_method : RCWA` in their output
+headers, meaning `md2D` once had an actual RCWA-algorithm mode, selectable
+via a `calcul_method` parameter, used to cross-check the differential
+method against a real RCWA computation for this exact benchmark. No
+surviving source implements it: it's absent from `RCWA/`'s own code, and
+current `md2D/md2D.c` only has a *commented-out* reference to
+`calcul_method == "RCWA"` in a dead progress-bar time estimate (search
+`md2D/md2D.c` for `IMPROVED_RCWA` to find it). The current
+`md2D/res_tayeb_alu.txt` instead shows `calcul_method : Z_INVAR` - the
+real differential method superseded and replaced that RCWA-mode
+comparison at some point. So: the benchmark comparison lineage survives
+in `md2D/`, but the alternate RCWA code path that once produced one side
+of it is a lost capability, not just lost data.
+
 ### A related, unexplored lead
 
 `~/Programs/M_files/MethodDiff/m_methodDiff/CVS` (outside this project,
