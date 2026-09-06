@@ -1,9 +1,9 @@
 /*!	\file		md2D.c
  *
  * 	\brief		Differential method \n
- *						2-Dimensions (as opposed to 3-D) \n
- *						S-Matrices algorithm \n
- * 					FFF algorithm \n
+ *				2-Dimensions (as opposed to 3-D) \n
+ *				S-Matrices algorithm \n
+ * 				FFF algorithm \n
  * 
  *
  *	\date		nov 2007
@@ -64,9 +64,11 @@ int md2D_propagativ_limits(struct Param_struct *par, struct Efficacites_struct *
 	Nmax_sub   =  FLOOR( ( creal(k_sub) - sigma0 )/Delta_sigma );
 	Nmin_sub   = -FLOOR( ( creal(k_sub) + sigma0 )/Delta_sigma );
 	int Nlimit = MAX(MAX(Nmax_super,Nmax_sub),MAX(-Nmin_super,-Nmin_sub));
-	if (N < Nlimit && par->verbosity >= 1) {
-		fprintf(stderr,"WARNING, N too small to represent all propagatives orders\n");
-		fprintf(stderr,"minimum value: N = %d \n",Nlimit);
+	if (N < Nlimit) {
+		if(par->verbosity >= 1){
+			fprintf(stderr,"WARNING, N too small to represent all propagatives orders\n");
+			fprintf(stderr,"minimum value: N = %d \n",Nlimit);
+		}
 		if (N < Nmax_super)  Nmax_super =  N;
 		if (N < Nmax_sub)    Nmax_sub   =  N;
 		if (Nmin_super < -N) Nmin_super = -N;
@@ -158,8 +160,8 @@ int md2D_efficiencies(COMPLEX *Ai, COMPLEX *Ar, COMPLEX *At, struct Param_struct
 		Pz_i = fabs(creal(Exi[n+mid]*CONJ(Hpyi[n+mid]) - Eyi[n+mid]*CONJ(Hpxi[n+mid])));
 		sumPzi += Pz_i;
 	}
-sumPzi=1;
-fprintf(stderr,"sumPzi=%f\n",sumPzi);
+/*sumPzi=1;
+fprintf(stderr,"WARNING, sumPzi=%f\n",sumPzi);*/
 
 	/* Reflexion : efficiencies and directions */
 	for (n=Nmin_super; n<=Nmax_super; n++) {
@@ -167,12 +169,110 @@ fprintf(stderr,"sumPzi=%f\n",sumPzi);
 		eff->eff_r[n-Nmin_super] = Pz_r/sumPzi;
 		eff->N_eff_r[n-Nmin_super] = (double) n;
 		eff->theta_r[n-Nmin_super] =  SIGN(sigma[n+mid])*acos(kz_super[n+mid]/k_super) * 180.0/PI;
+		eff->arg_Ar[n-Nmin_super] = carg(par->Ar[n+mid]/par->Ai[mid]);
 	}
 
 	/* Transmission : efficiencies and directions */
 	for (n=Nmin_sub; n<=Nmax_sub; n++) {
 		Pz_t = fabs(creal(Ext[n+mid]*CONJ(Hpyt[n+mid]) - Eyt[n+mid]*CONJ(Hpxt[n+mid])));
 		eff->eff_t[n-Nmin_sub] = Pz_t/sumPzi;
+		eff->N_eff_t[n-Nmin_sub] = (double) n;
+		eff->theta_t[n-Nmin_sub] = SIGN(sigma[n+mid])*acos(kz_sub[n+mid]/k_sub) * 180.0/PI;
+		eff->arg_At[n-Nmin_sub] = carg(par->At[n+mid]/par->Ai[mid]);
+	}
+
+	/* Sum of efficiencies */
+	eff->sum_eff_r = 0;
+	eff->sum_eff_t = 0;
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		eff->sum_eff_r += eff->eff_r[n-Nmin_super];
+	}
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		eff->sum_eff_t += eff->eff_t[n-Nmin_sub];
+	}
+	eff->sum_eff = eff->sum_eff_r + eff->sum_eff_t;
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int md2D_efficiencies(COMPLEX *Ai, COMPLEX *A0, COMPLEX *Ah, struct Param_struct *par,  struct Efficacites_struct *eff)
+ *
+ *	\brief		Special function used for calculation of scatterd flux by scatterer on waveguide (energy flux are stored in eff->eff_r or eff->eff_t for minimizing the code modifications, but are not efficiencies)
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_energy_flux(struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	int n;
+	int vec_size = par->vec_size;
+	int mid = par->vec_middle;
+	
+	COMPLEX k_super = par->k_super;
+	COMPLEX k_sub = par->k_sub;
+	COMPLEX k_super2 = k_super*k_super;
+	COMPLEX k_sub2 = k_sub*k_sub;
+	
+	COMPLEX *At, *Ar, *kz_super, *kz_sub, *sigma, Coeff_r, Coeff_t;
+	kz_super = par->kz_super;
+	kz_sub = par->kz_sub;
+	sigma = par->sigma;
+	At = par->At;
+	Ar = par->Ar;
+	
+	int Nmin_super = eff->Nmin_super;
+	int Nmax_super = eff->Nmax_super;
+	int Nmin_sub   = eff->Nmin_sub;
+	int Nmax_sub   = eff->Nmax_sub;
+
+	/* Vi = [0 0 ... 0 1 0 ... 0 0] */
+	for (n=0;n<=vec_size-1;n++){
+		par->Vi[n] = 0;
+	}
+	par->Vi[par->vec_middle] = 1;
+	/* Vt = S22*Vi */
+	M_x_V (par->Vt, par->S22, par->Vi, vec_size, vec_size);
+
+	/* Vr = S12*Vi */	
+	M_x_V (par->Vr, par->S12, par->Vi, vec_size, vec_size);
+
+	/* Ar = Vr*cexp(-I*kz_super*h) */
+	for (n=0;n<=vec_size-1;n++){
+		Ar[n] = par->Vr[n]*cexp(-I*kz_super[n]*par->h);
+	}
+	/* At = Vt */
+	for (n=0;n<=vec_size-1;n++){
+		At[n] = par->Vt[n];
+	}
+printf("\nVt2_mid= %f\n", cabs(par->Vt[mid]*conj(par->Vt[mid])));
+printf("Vr2_mid= %f\n", cabs(par->Vr[mid]*conj(par->Vr[mid])));
+printf("At2_mid= %f\n", cabs(At[mid]*conj(At[mid])));
+printf("Ar2_mid= %f\n", cabs(Ar[mid]*conj(Ar[mid])));
+/*printf("\nRe(Ar)\n");SaveCplxTab2file (Ar, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(Ar)\n");SaveCplxTab2file (Ar, vec_size, "Im", "stdout", " ", 10000, "\n");
+printf("\nRe(At)\n");SaveCplxTab2file (At, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(At)\n");SaveCplxTab2file (At, vec_size, "Im", "stdout", " ", 10000, "\n");*/
+
+	if (par->pola == TE){
+		Coeff_r=1;
+		Coeff_t=1;
+	}else if (par->pola == TM){
+		Coeff_r=1/k_super2;
+		Coeff_t=1/k_sub2;
+	}else{
+		fprintf(stderr, "%s, line %d: ERROR, pola = %d, must be \"TE\" or \"TM\".Exiting\n",__FILE__,__LINE__,par->pola);
+		exit(EXIT_FAILURE);
+	}
+
+	/* Reflexion */
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		eff->eff_r[n-Nmin_super] = Coeff_r*0.5*Ar[n+mid]*conj(Ar[n+mid])*creal(kz_super[n+mid])*par->L;
+		eff->N_eff_r[n-Nmin_super] = (double) n;
+		eff->theta_r[n-Nmin_super] =  SIGN(sigma[n+mid])*acos(kz_super[n+mid]/k_super) * 180.0/PI;
+	}
+
+	/* Transmission */
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		eff->eff_t[n-Nmin_sub] = Coeff_t*0.5*At[n+mid]*conj(At[n+mid])*creal(kz_sub[n+mid])*par->L;
 		eff->N_eff_t[n-Nmin_sub] = (double) n;
 		eff->theta_t[n-Nmin_sub] = SIGN(sigma[n+mid])*acos(kz_sub[n+mid]/k_sub) * 180.0/PI;
 	}
@@ -187,6 +287,118 @@ fprintf(stderr,"sumPzi=%f\n",sumPzi);
 		eff->sum_eff_t += eff->eff_t[n-Nmin_sub];
 	}
 	eff->sum_eff = eff->sum_eff_r + eff->sum_eff_t;
+printf("totalFlux_r=%f\n", eff->sum_eff_r);
+printf("totalFlux_t=%f\n", eff->sum_eff_t);
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int swifts_md2D_energy_flux(double h_guide, struct Param_struct *par, struct Efficacites_struct *eff)
+ *
+ *	\brief		Special function used for calculation of scatterd flux by scatterer on waveguide (energy flux are stored in eff->eff_r or eff->eff_t for minimizing the code modifications, but are not efficiencies)
+ */
+/*-------------------------------------------------------------------------------------*/
+int swifts_md2D_energy_flux(double h_guide, struct Param_struct *par, struct Efficacites_struct *eff)
+{
+	int n;
+	int vec_size = par->vec_size;
+	int mid = par->vec_middle;
+	
+	COMPLEX k_super = par->k_super;
+	COMPLEX k_sub = par->k_sub;
+	COMPLEX k_super2 = k_super*k_super;
+	COMPLEX k_sub2 = k_sub*k_sub;
+	
+	COMPLEX *At, *Ar, *kz_super, *kz_sub, *sigma, Coeff_r, Coeff_t;
+	kz_super = par->kz_super;
+	kz_sub = par->kz_sub;
+	sigma = par->sigma;
+	At = par->At;
+	Ar = par->Ar;
+	
+	int Nmin_super = eff->Nmin_super;
+	int Nmax_super = eff->Nmax_super;
+	int Nmin_sub   = eff->Nmin_sub;
+	int Nmax_sub   = eff->Nmax_sub;
+
+	if (!strcmp(par->S_matrix_blocks_calculation,"ALL_4_S_MATRIX_BLOCKS")){ /* Lightening from below */
+		/* Vi = [0 0 ... 0 1 0 ... 0 0] */
+		for (n=0;n<=vec_size-1;n++){
+			par->Vi[n] = 0;
+		}
+		par->Vi[par->vec_middle] = 1;
+		/* Vt = S21*V0p */
+		M_x_V (par->Vt, par->S21, par->Vi, vec_size, vec_size);
+		/* Vr = S11*V0p */	
+		M_x_V (par->Vr, par->S11, par->Vi, vec_size, vec_size);
+	}else{ /* Lightening from top */
+		/* Vi = [0 0 ... 0 1 0 ... 0 0] */
+		for (n=0;n<=vec_size-1;n++){
+			par->Vi[n] = 0;
+		}
+		par->Vi[par->vec_middle] = 1;
+		/* Vt = S22*Vi */
+		M_x_V (par->Vt, par->S22, par->Vi, vec_size, vec_size);
+		/* Vr = S12*Vi */	
+		M_x_V (par->Vr, par->S12, par->Vi, vec_size, vec_size);
+	}
+	/* Ar = Vr*cexp(-I*kz_super*h) */
+	for (n=0;n<=vec_size-1;n++){
+		Ar[n] = par->Vr[n]*cexp(-I*kz_super[n]*(par->h+h_guide));
+	}
+	/* At = Vt */
+	for (n=0;n<=vec_size-1;n++){
+/*		At[n] = par->Vt[n]*cexp(I*kz_super[n]*h_guide);
+*/		At[n] = par->Vt[n];
+	}
+
+printf("\nVt2_mid= %f\n", cabs(par->Vt[mid]*conj(par->Vt[mid])));
+printf("Vr2_mid= %f\n", cabs(par->Vr[mid]*conj(par->Vr[mid])));
+printf("At2_mid= %f\n", cabs(At[mid]*conj(At[mid])));
+printf("Ar2_mid= %f\n", cabs(Ar[mid]*conj(Ar[mid])));
+/*printf("\nRe(Ar)\n");SaveCplxTab2file (Ar, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(Ar)\n");SaveCplxTab2file (Ar, vec_size, "Im", "stdout", " ", 10000, "\n");
+printf("\nRe(At)\n");SaveCplxTab2file (At, vec_size, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(At)\n");SaveCplxTab2file (At, vec_size, "Im", "stdout", " ", 10000, "\n");*/
+
+	if (par->pola == TE){
+		Coeff_r=1;
+		Coeff_t=1;
+	}else if (par->pola == TM){
+		Coeff_r=1/k_super2;
+		Coeff_t=1/k_sub2;
+	}else{
+		fprintf(stderr, "%s, line %d: ERROR, pola = %d, must be \"TE\" or \"TM\".Exiting\n",__FILE__,__LINE__,par->pola);
+		exit(EXIT_FAILURE);
+	}
+
+	/* Reflexion */
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		eff->eff_r[n-Nmin_super] = Coeff_r*0.5*Ar[n+mid]*conj(Ar[n+mid])*creal(kz_super[n+mid])*par->L;
+		eff->N_eff_r[n-Nmin_super] = (double) n;
+		eff->theta_r[n-Nmin_super] =  SIGN(sigma[n+mid])*acos(kz_super[n+mid]/k_super) * 180.0/PI;
+	}
+
+	/* Transmission */
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		eff->eff_t[n-Nmin_sub] = Coeff_t*0.5*At[n+mid]*conj(At[n+mid])*creal(kz_sub[n+mid])*par->L;
+		eff->N_eff_t[n-Nmin_sub] = (double) n;
+		eff->theta_t[n-Nmin_sub] = SIGN(sigma[n+mid])*acos(kz_sub[n+mid]/k_sub) * 180.0/PI;
+	}
+
+	/* Sum of efficiencies */
+	eff->sum_eff_r = 0;
+	eff->sum_eff_t = 0;
+	for (n=Nmin_super; n<=Nmax_super; n++) {
+		eff->sum_eff_r += eff->eff_r[n-Nmin_super];
+	}
+	for (n=Nmin_sub; n<=Nmax_sub; n++) {
+		eff->sum_eff_t += eff->eff_t[n-Nmin_sub];
+	}
+	eff->sum_eff = eff->sum_eff_r + eff->sum_eff_t;
+printf("totalFlux_r=%f\n", eff->sum_eff_r);
+printf("totalFlux_t=%f\n", eff->sum_eff_t);
 
 	return 0;
 }
@@ -235,11 +447,98 @@ printf("At\n");SaveCplxTab2file (par->At, par->vec_size, "Re", "stdout", " ", 10
 	return 0;
 }
 
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	S_matrix(struct Param_struct *par)
+ *
+ *		\brief	S-matrix
+ */
+/*-------------------------------------------------------------------------------------*/
+int S_matrix(struct Param_struct *par)
+{
 
+	if (par->verbosity) fprintf(stdout,"S-Matrix calculation\n");
+	int nS;
+	int vec_size = par->vec_size;
+	int NS = par->NS;
+	COMPLEX **S12, **S22, **S21, **S11, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2, **T_tmp3;
+	S12 = par->S12;
+	S22 = par->S22;
+	S21 = par->S21;
+	S11 = par->S11;
+	T11 = par->T11;
+	T12 = par->T12;
+	T21 = par->T21;
+	T22 = par->T22;
+
+	Z      = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp  = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp2 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp3 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	
+	/* Initialisations */
+	S_matrix_init(par);
+	
+	/* Iterations */
+	for (nS=0; nS<=NS-1; nS++) {
+
+		/* T-Matrix calculation */
+		T_Matrix(T11, T12, T21, T22, nS, par);
+
+		/* Z = inv(T11 + T12*S12) */
+		invM(Z, add_M(T_tmp2, 
+			T11, M_x_M(T_tmp,
+				T12,S12,	vec_size, vec_size), vec_size, vec_size), vec_size);
+		/* S12 = (T21 +T22*S12)*Z */
+		M_x_M(S12,
+			add_M(T_tmp2, T21, M_x_M(T_tmp,
+					T22,S12, vec_size, vec_size), vec_size, vec_size),
+			Z, vec_size, vec_size);
+		/* S22 = S22*Z */
+		M_equals(T_tmp,S22, vec_size, vec_size);
+		M_x_M(S22,T_tmp,Z, vec_size, vec_size);
+
+		/* Following blocks only usefull when some light is coming from below [the order (S22, S12),S21,S11 must not be changed] */
+		if (!strcmp(par->S_matrix_blocks_calculation,"ALL_4_S_MATRIX_BLOCKS")){
+			/* S21 = S21 - S22*T12*S11 */
+			sub_M(S21, S21, M_x_M(T_tmp, 
+				S22, 
+				M_x_M(T_tmp2, T12, S11, vec_size, vec_size), vec_size, vec_size), vec_size, vec_size);
+	
+			/* S11 = (T22 - S12*T12)*S11 */
+			M_equals(T_tmp, S11, vec_size, vec_size);
+			M_x_M(S11,
+				sub_M(T_tmp2, T22, M_x_M(T_tmp3,
+						S12,T12, vec_size, vec_size), vec_size, vec_size),
+				T_tmp, vec_size, vec_size);
+		}
+
+		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
+		if (!strcmp(par->calcul_type,"NEAR_FIELD")){
+			md2D_save_near_field(S12, Z, vec_size, nS, par);
+/*			md2D_save_T(T11, T12, T21, T22, vec_size, nS, par);*/ /* Optional but seem to work better for guided modes than more sophisticated local field retriaval algorithm */
+		}
+		
+	}
+	
+	free(Z[0]);
+	free(Z);
+	free(T_tmp[0]);
+	free(T_tmp);
+	free(T_tmp2[0]);
+	free(T_tmp2);
+	free(T_tmp3[0]);
+	free(T_tmp3);
+	
+	if(par->verbosity >0) {fprintf(stdout,"\n");}
+	
+	return 0;
+}
+
+#if 0
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	int S_matrix(struct Param_struct *par)
  *
- *		\brief	S matrix calculation
+ *	\brief	S matrix calculation
  */
 /*-------------------------------------------------------------------------------------*/
 int S_matrix(struct Param_struct *par)
@@ -292,6 +591,7 @@ int S_matrix(struct Param_struct *par)
 		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
 		if (!strcmp(par->calcul_type,"NEAR_FIELD")){
 			md2D_save_near_field(S12, Z, vec_size, nS, par);
+/*			md2D_save_T(T11, T12, T21, T22, vec_size, nS, par);*/ /* Optional but seem to work better for guided modes than more sophisticated local field retriaval algorithm */
 		}
 		
 	}
@@ -307,6 +607,7 @@ int S_matrix(struct Param_struct *par)
 	
 	return 0;
 }
+#endif
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS, struct Param_struct *par)
@@ -337,9 +638,9 @@ int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS,
 	P = allocate_CplxMatrix(2*vec_size,2*vec_size);
 
 	/* Psi matrix */
-	if (nS==0){ /* 1st S-Matrix iteration : we are in the substrat */
+	if (nS==0){ /* 1st S-Matrix iteration : we are in the substrate */
 		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_sub, k_sub, vec_size, pola);
-	}else{     /* Following iterations : we are in the superstrat */
+	}else{     /* Following iterations : we are in the superstrate */
 		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, pola);
 	}
 	invPsiMatrix(iPsi11, iPsi12, iPsi21, iPsi22, kz_super, k_super, vec_size, pola);
@@ -353,6 +654,7 @@ int T_Matrix(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, int nS,
 	}
 	Delta_z = hmax - hmin;
 	z = (hmax + hmin)/2;
+/*	z = hmin;*/
 
 	/* P_matrix calculation */
 	(*par->P_matrix)(P, z, Delta_z, par);
@@ -394,7 +696,7 @@ SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Re", "stdout");
 printf("\nIm(par->T) :\n");
 SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
-	/*Affichage du temps restant à l'écran */
+	/*Affichage du temps restant Ã  l'Ã©cran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
 	
 	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
@@ -403,6 +705,197 @@ SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 	free(PPsi21[0]);free(PPsi21);free(PPsi22[0]);free(PPsi22);
 	free(P[0]);free(P);
 
+	return 0;
+}
+
+#if 0
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int swifts_S_matrix(struct Param_struct *par)
+ *
+ *	\brief	S matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int swifts_S_matrix(COMPLEX n_guide, double h_guide, struct Param_struct *par)
+{
+
+	if (par->verbosity) fprintf(stdout,"swifts S-Matrix calculation\n");
+	int nS;
+	int vec_size = par->vec_size;
+	int NS = par->NS;
+	COMPLEX **S12, **S22, **T11, **T12, **T21, **T22, **Z, **T_tmp, **T_tmp2;
+	S12 = par->S12;
+	S22 = par->S22;
+	T11 = par->T11;
+	T12 = par->T12;
+	T21 = par->T21;
+	T22 = par->T22;
+
+	Z      = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp  = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	T_tmp2 = allocate_CplxMatrix(par->vec_size,par->vec_size);
+	
+	/* Initialisations */
+	swifts_monolayer_S_matrix(n_guide,h_guide,par);
+
+	/* Iterations */
+	for (nS=0; nS<=NS-1; nS++) {
+
+		/* T-Matrix calculation */
+		T_Matrix(T11, T12, T21, T22, nS, par);
+
+		/* Z = inv(T11 + T12*S12) */
+		invM(Z, add_M(T_tmp2, 
+			T11, M_x_M(T_tmp,
+				T12,S12,	vec_size, vec_size), vec_size, vec_size), vec_size);
+		/* S12 = (T21 +T22*S12)*Z */
+		M_x_M(S12,
+			add_M(T_tmp2, T21, M_x_M(T_tmp,
+					T22,S12, vec_size, vec_size), vec_size, vec_size),
+			Z, vec_size, vec_size);
+		/* S22 = S22*Z */
+		M_equals(T_tmp,S22, vec_size, vec_size);
+		M_x_M(S22,T_tmp,Z, vec_size, vec_size);
+
+		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
+		if (!strcmp(par->calcul_type,"NEAR_FIELD")){
+			md2D_save_near_field(S12, Z, vec_size, nS, par);
+/*			md2D_save_T(T11, T12, T21, T22, vec_size, nS, par);*/ /* Optional but seem to work better for guided modes than more sophisticated local field retriaval algorithm */
+		}
+	}
+	
+	free(Z[0]);
+	free(Z);
+	free(T_tmp[0]);
+	free(T_tmp);
+	free(T_tmp2[0]);
+	free(T_tmp2);
+	
+	if(par->verbosity >0) {fprintf(stdout,"\n");}
+	
+	return 0;
+}
+#endif
+
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int S_matrix_init(struct Param_struct *par)
+ *
+ *		\brief	Calculation of S matrix initial value
+ */
+/*-------------------------------------------------------------------------------------*/
+int S_matrix_init(struct Param_struct *par)
+{
+	int i,j;
+	int vec_size=par->vec_size;
+
+	if (!strcmp(par->calculation_on_layer,"ON_1_LAYER")){
+		monolayer_S_matrix(par->nu_layer, par->h_layer, par);
+	}else{
+		/* S12 and S22 */
+		for (i=0; i<=vec_size-1; i++) {
+			for (j=0; j<=vec_size-1; j++) {
+				par->S12[i][j] = 0;
+				par->S22[i][j] = 0;
+			}
+			par->S22[i][i] = 1;
+		}
+		/* S21 and S11 */
+		if (!strcmp(par->S_matrix_blocks_calculation,"ALL_4_S_MATRIX_BLOCKS")){
+			for (i=0; i<=vec_size-1; i++) {
+				for (j=0; j<=vec_size-1; j++) {
+					par->S11[i][j] = 0;
+					par->S21[i][j] = 0;
+				}
+				par->S11[i][i] = 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	int monolayer_S_matrix(struct Param_struct *par)
+ *
+ *		\brief	S matrix calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int monolayer_S_matrix(COMPLEX n_guide, double h_guide, struct Param_struct *par)
+{
+	int i, j;
+	int vec_size = par->vec_size;
+	COMPLEX **S12, **S22, **S21, **S11;
+	COMPLEX g0,g1,g2,ep,em,A,B,C,D,E,F,G,H,k1_2;
+	S12 = par->S12;
+	S22 = par->S22;
+	S21 = par->S21;
+	S11 = par->S11;
+	COMPLEX *kz_sub = par->kz_sub;
+	COMPLEX *sigma = par->sigma;
+	k1_2=((2*PI/par->lambda)*n_guide)*((2*PI/par->lambda)*n_guide);
+	/* S12 and S22 */
+	for (i=0; i<=vec_size-1; i++) {
+		for (j=0; j<=vec_size-1; j++) {
+			S12[i][j] = 0;
+			S22[i][j] = 0;
+		}
+		g0=kz_sub[i];
+		g1=csqrt(k1_2-sigma[i]*sigma[i]);
+		g2=g0; /* Because T algorithm consider the substrate to be the medium for the first iteration */
+/*printf("\nn_guide: %f+i%f\n",creal(n_guide),cimag(n_guide));
+printf("\nRe{g0, g1, g2}: %f,%f,%f\n",creal(g0),creal(g1),creal(g2));
+printf("\nIm{g0, g1, g2}: %f,%f,%f\n",cimag(g0),cimag(g1),cimag(g2));*/
+		ep=cexp(I*g1*h_guide);
+		em=cexp(-I*g1*h_guide);
+		/* S12 */
+		A=(g1-g0)/(g1+g0)*ep + em;
+		B=g1*(g1-g0)/(g1+g0)*ep -g1*em;
+		S12[i][i] = (g2*A+B)/(g2*A-B);
+		/* S22 */
+		C=(g1+g2)/(2*g1);
+		D=(g1-g2)/(2*g1);
+		E=D*em+C*ep;
+		F=C*em+D*ep;
+		G=D*em-C*ep;
+		H=C*em-D*ep;
+		S22[i][i] = (H*E-F*G)/(H+g0*F/g1);
+	}
+	/* S21 and S11 */
+	if (!strcmp(par->S_matrix_blocks_calculation,"ALL_4_S_MATRIX_BLOCKS")){
+		for (i=0; i<=vec_size-1; i++) {
+			for (j=0; j<=vec_size-1; j++) {
+				S11[i][j] = 0;
+				S21[i][j] = 0;
+			}
+			g0=kz_sub[i];
+			g1=csqrt(k1_2-sigma[i]*sigma[i]);
+			g2=g0; /* Because T algorithm consider the substrate to be the medium for the first iteration */
+			em=cexp(I*g1*h_guide); /* Only difference with S12 & S22 is here */
+			ep=cexp(-I*g1*h_guide);
+			/* S11 */
+			A=(g1-g0)/(g1+g0)*ep + em;
+			B=g1*(g1-g0)/(g1+g0)*ep -g1*em;
+			S11[i][i] = (g2*A+B)/(g2*A-B);
+			/* S21 */
+			C=(g1+g2)/(2*g1);
+			D=(g1-g2)/(2*g1);
+			E=D*em+C*ep;
+			F=C*em+D*ep;
+			G=D*em-C*ep;
+			H=C*em-D*ep;
+			S21[i][i] = (H*E-F*G)/(H+g0*F/g1);
+		}
+	}
+
+
+/*printf("\nswifts_S_guide:\n");
+printf("\nRe(S12)\n");SaveMatrix2file (par->S12, vec_size, vec_size, "Re", "stdout");
+printf("\nIm(S12)\n");SaveMatrix2file (par->S12, vec_size, vec_size, "Im", "stdout");
+printf("\nRe(S22)\n");SaveMatrix2file (par->S22, vec_size, vec_size, "Re", "stdout");
+printf("\nIm(S22)\n");SaveMatrix2file (par->S22, vec_size, vec_size, "Im", "stdout");*/
+
+
+	
 	return 0;
 }
 
@@ -696,6 +1189,71 @@ int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par)
 	return 0;
 }
 
+
+
+
+COMPLEX *FFT_1D(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx)
+{
+	int i, N_tf = 2*N;
+	fftw_plan plan_TF;
+
+	/* Creating the 'plan' for FFTW */
+	plan_TF = fftw_plan_dft_1d(Nx, (fftw_complex *)fx, (fftw_complex *)tmp_fx, FFTW_FORWARD, FFTW_ESTIMATE);	
+
+	/* Calculating the FFT */
+	fftw_execute(plan_TF); 
+
+	/* Keeping only the components between -N_tf & +N_tf and normalizing by 1/Nx */
+	double coefnorm = 1.0/Nx;
+	for (i=0;i<=N_tf-1;i++){
+		TF [i]      = tmp_fx [Nx-N_tf+i] * coefnorm;
+		TF [i+N_tf] = tmp_fx [i] * coefnorm;
+	}
+	TF [2*N_tf] = tmp_fx [N_tf] * coefnorm;
+
+	/* Freeing memory */
+	fftw_destroy_plan(plan_TF);
+
+	return TF;
+}
+
+COMPLEX *FFT_1D_filter(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx, struct Param_struct *par)
+{
+	int i, N_tf = 2*N;
+	fftw_plan plan_TF;
+
+	/* Creating the 'plan' for FFTW */
+	plan_TF = fftw_plan_dft_1d(Nx, (fftw_complex *)fx, (fftw_complex *)tmp_fx, FFTW_FORWARD, FFTW_ESTIMATE);	
+
+	/* Calculating the FFT */
+	fftw_execute(plan_TF); 
+
+	/* Keeping only the components between -N_tf & +N_tf and normalizing by 1/Nx */
+	double coefnorm = 1.0/Nx;
+	for (i=0;i<=N_tf-1;i++){
+		TF [i]      = tmp_fx [Nx-N_tf+i] * coefnorm;
+		TF [i+N_tf] = tmp_fx [i] * coefnorm;
+	}
+	TF [2*N_tf] = tmp_fx [N_tf] * coefnorm;
+
+	/* Filtering */
+	double filter_coeff;
+	if (!strcmp(par->fft_filter,"HAMMING")){
+		for (i=-N_tf;i<=N_tf;i++){
+			filter_coeff=0.54+0.46*cos(2*PI*i/(2*N_tf));
+			TF [i+N_tf] *= filter_coeff;		
+		}
+	}else if(!strcmp(par->fft_filter,"NONE")){
+		/* Leave the TF as it is */
+	}
+
+	/* Freeing memory */
+	fftw_destroy_plan(plan_TF);
+
+	return TF;
+}
+
+
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_QMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, COMPLEX **Qxx, COMPLEX **Qyy, COMPLEX **Qxz, COMPLEX **Qzz, COMPLEX **Qzz_1, struct Param_struct *par)
  *
@@ -707,15 +1265,10 @@ int md2D_QMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, COMPLEX *
 	int i,j,var_tmp01;
 	fftw_plan plan_TFk2, plan_TFinvk2, plan_TFNx2, plan_TFNz2, plan_TFNxNz;
 	int N_x = par->N_x;
+	int N = par->N;
 	int N_tf = 2*par->N;
 	int vec_size = par->vec_size;
 	double coefnorm;
-	COMPLEX *tmp_k2, *tmp_invk2, *tmp_Nx2, *tmp_Nz2, *tmp_NxNz;
-	tmp_k2    = par->tmp_tf_k2;
-	tmp_invk2 = par->tmp_tf_invk2;
-	tmp_Nx2   = par->tmp_tf_Nx2;
-	tmp_Nz2   = par->tmp_tf_Nz2;
-	tmp_NxNz  = par->tmp_tf_NxNz;
 
 	COMPLEX *TF_k2, *TF_invk2, *TF_Nx2, *TF_Nz2, *TF_NxNz;
 	TF_k2    = par->TF_k2;
@@ -734,57 +1287,20 @@ int md2D_QMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, COMPLEX *
 		
 	/*--- Calculations of the Fourier transforms of the necessary 'grandeurs' ---*/
 
-	/* Calculating the values in the direct space, using
-	function pointors to adapt to surface definition type */
+	/* Calculating the values in the direct space, using function pointors to adapt to surface definition type */
 	(*par->k_2)(par, par->k2, z);
 	(*par->invk_2)(par, par->invk2, z);
 /*printf("\nRe(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Re", "stdout"," ");
 printf("\nIm(k2) : \n");SaveCplxTab2file (par->k2, par->N_x, "Im", "stdout"," ");
 */	(*par->Normal_function)(par, par->Nx2, par->NxNz, par->Nz2, z);
 	
-	/* Creating the 'plans' for the FFTW */
-	plan_TFk2    = fftw_plan_dft_1d(N_x, (fftw_complex *)par->k2,    (fftw_complex *)tmp_k2,    FFTW_FORWARD, FFTW_ESTIMATE);	
-	plan_TFinvk2 = fftw_plan_dft_1d(N_x, (fftw_complex *)par->invk2, (fftw_complex *)tmp_invk2, FFTW_FORWARD, FFTW_ESTIMATE);	
-	plan_TFNx2   = fftw_plan_dft_1d(N_x, (fftw_complex *)par->Nx2,   (fftw_complex *)tmp_Nx2,   FFTW_FORWARD, FFTW_ESTIMATE);	
-	plan_TFNz2   = fftw_plan_dft_1d(N_x, (fftw_complex *)par->Nz2,   (fftw_complex *)tmp_Nz2,   FFTW_FORWARD, FFTW_ESTIMATE);	
-	plan_TFNxNz  = fftw_plan_dft_1d(N_x, (fftw_complex *)par->NxNz,  (fftw_complex *)tmp_NxNz,  FFTW_FORWARD, FFTW_ESTIMATE);	
+	/* Calculating FFTs */
+	FFT_1D_filter(par->TF_k2,    par->k2,    par->tmp_tf_k2,    N, N_x, par);
+	FFT_1D_filter(par->TF_invk2, par->invk2, par->tmp_tf_invk2, N, N_x, par);
+	FFT_1D(par->TF_Nx2,   par->Nx2,   par->tmp_tf_Nx2,   N, N_x);
+	FFT_1D(par->TF_Nz2,   par->Nz2,   par->tmp_tf_Nz2,   N, N_x);
+	FFT_1D(par->TF_NxNz,  par->NxNz,  par->tmp_tf_NxNz,  N, N_x);
 
-	/* Calculating the FFT */
-	/* (NOTICE : Real DFT could be used for Nx2, Nz2, etc, which would slightly increase speed but also code COMPLEXity) */	
-	fftw_execute(plan_TFk2); 
-	fftw_execute(plan_TFinvk2); 
-	fftw_execute(plan_TFNx2); 
-	fftw_execute(plan_TFNz2); 
-	fftw_execute(plan_TFNxNz); 
-
-	/* Keeping only the components between -N_tf & +N_tf */ 
-	/* and normalizing by 1/N_x */
-	coefnorm = 1.0/N_x;
-	for (i=0;i<=N_tf-1;i++){
-		TF_k2   [i] = tmp_k2   [N_x-N_tf+i] * coefnorm;
-		TF_invk2[i] = tmp_invk2[N_x-N_tf+i] * coefnorm;
-		TF_Nx2  [i] = tmp_Nx2  [N_x-N_tf+i] * coefnorm;
-		TF_Nz2  [i] = tmp_Nz2  [N_x-N_tf+i] * coefnorm;
-		TF_NxNz [i] = tmp_NxNz [N_x-N_tf+i] * coefnorm;
-		TF_k2   [i+N_tf] = tmp_k2   [i] * coefnorm;
-		TF_invk2[i+N_tf] = tmp_invk2[i] * coefnorm;
-		TF_Nx2  [i+N_tf] = tmp_Nx2  [i] * coefnorm;
-		TF_Nz2  [i+N_tf] = tmp_Nz2  [i] * coefnorm;
-		TF_NxNz [i+N_tf] = tmp_NxNz [i] * coefnorm;
-	}
-	TF_k2   [2*N_tf] = tmp_k2   [N_tf] * coefnorm;
-	TF_invk2[2*N_tf] = tmp_invk2[N_tf] * coefnorm;
-	TF_Nx2  [2*N_tf] = tmp_Nx2  [N_tf] * coefnorm;
-	TF_Nz2  [2*N_tf] = tmp_Nz2  [N_tf] * coefnorm;
-	TF_NxNz [2*N_tf] = tmp_NxNz [N_tf] * coefnorm;
-
-	/* Freeing memory */
-	fftw_destroy_plan(plan_TFk2);
-	fftw_destroy_plan(plan_TFinvk2);
-	fftw_destroy_plan(plan_TFNx2);
-	fftw_destroy_plan(plan_TFNz2);
-	fftw_destroy_plan(plan_TFNxNz);
-	
 	/* Calculating the Toeplitz matrix for k2, 1/k2, Nx2, Nxz & Nz2 */
 	for(i=0;i<=vec_size-1;i++){
 		var_tmp01 = vec_size-1+i;
@@ -897,7 +1413,7 @@ int md2D_zinvarQMatrix(double z, COMPLEX **Toep_k2, COMPLEX **invToep_invk2, str
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©
  *
  */
 /*-------------------------------------------------------------------------------------*/
@@ -920,17 +1436,18 @@ int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné, pour un multicouches
+ *	\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
 	int nx, n_layer=0;
-	
+	double eps = EPS*par->h;
+
 	for (nx=0; nx<=par->N_x-1; nx++){
 		do{
-			if (z <= par->profil[n_layer][nx]){
-				if (z >= par->profil[n_layer+1][nx]){
+			if (z <= par->profil[n_layer][nx] + eps){
+				if (z >= par->profil[n_layer+1][nx] - eps){
 					k2_1D[nx] = par->k2_layer[n_layer];
 					break;
 				}else{
@@ -941,7 +1458,37 @@ int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 			}	
 		}while (1);
 	}
-	
+
+	/* Optional smoothing ot the profile permittivity. For better convergence purpose, useful for metallic structures */
+	/* Doing a linear interpolation by averaging on N_avg consecutive points */
+	if (par->smoothing){
+		int n_avg, n_i;
+		int N_avg = ROUND(par->N_x * par->l_smooth / par->L);
+		int n_avg1 = -FLOOR(N_avg/2);
+		if (N_avg>0){
+			for (nx=0; nx<=par->N_x-1; nx++){
+				par->k2_tmp[nx] = 0;
+				for (n_avg=n_avg1; n_avg<=n_avg1+N_avg-1; n_avg++){
+					if(n_avg+nx<0){
+						n_i = nx + n_avg + par->N_x;
+					}else if (n_avg+nx >= 0 && n_avg+nx <= par->N_x-1){
+						n_i = nx + n_avg;
+					}else if (n_avg+nx > par->N_x-1){
+						n_i = nx + n_avg - par->N_x;
+					}else{
+						fprintf(stderr, "%s, line %d, ERROR: unauthorized value for n_i\n",__FILE__,__LINE__);
+						exit(EXIT_FAILURE);
+					}
+					/*if(n_i > par->N_x) fprintf(stdout,"n_i=%d , n_avg=%d, nx=%d\n",n_i,n_avg,nx);*/
+					par->k2_tmp[nx] += k2_1D[n_i]/N_avg;
+				}
+			}		
+			for (nx=0; nx<=par->N_x-1; nx++){
+				k2_1D[nx] = par->k2_tmp[nx];
+			}
+		}
+	}
+
 	return 0;
 }
 
@@ -949,17 +1496,18 @@ int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn			
  *
- *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné, pour un multicouches
+ *	\brief	DÃ©termine le tableau de COMPLEXes 1/k^2(x) pour un z donnÃ©, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
 	int nx, n_layer=0;
-	
-	for (nx=0; nx<=par->N_x-1; nx++){
+	double eps = EPS*par->h;
+
+/*	for (nx=0; nx<=par->N_x-1; nx++){
 		do{
-			if (z <= par->profil[n_layer][nx]){
-				if (z >= par->profil[n_layer+1][nx]){
+			if (z <= par->profil[n_layer][nx] + eps){
+				if (z >= par->profil[n_layer+1][nx] - eps){
 					invk2_1D[nx] = par->invk2_layer[n_layer];
 					break;
 				}else{
@@ -969,15 +1517,20 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 				n_layer--;
 			}	
 		}while (1);
-	}
+	}*/
 	
+	/* Replacement of previous function */
+	for (nx=0; nx<=par->N_x-1; nx++){
+		invk2_1D[nx] = 1/par->k2[nx];
+	}
+
 	return 0;
 }
 
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)	
  *
- *		\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
+ *		\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©
  */
 /*-------------------------------------------------------------------------------------*/
 int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
@@ -1001,7 +1554,7 @@ int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)	
  *
- *	\brief	Détermine le tableau de COMPLEXes invk^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes invk^2(x) pour un z donnÃ©
  */
 /*-------------------------------------------------------------------------------------*/
 int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -1025,10 +1578,10 @@ int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int invk_2(COMPLEX *invk2_1D, double *profil, struct Param_struct *par, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes 1/k^2(x) pour un z donnÃ©
  *
  *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
- *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
+ *			Doit Ãªtre plus polyvalent : accepter aussi les profils de type n(x,z)
  */
 /*-------------------------------------------------------------------------------------*/
 int invk2_H_X(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -1067,16 +1620,16 @@ int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *N
 {
 	int i;
 	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
-								/* while 'Nx2', corresponds to the x component^2 of the normal to the surface */
+								/* while 'Nx2', corresponds to the square of the surface normal x component */
 	double dhdx, norm_x, norm_z;
 	double two_dx = 2*par->L/Nx;
 
 	double *profil = par->profil[0];
 
 	if (par->HX_Normal_CALCULATED == 1){
-		Nx2  = par->Nx2;
+/*		Nx2  = par->Nx2;
 		NxNz = par->NxNz;
-		Nz2  = par->Nz2;
+		Nz2  = par->Nz2;*/
 		return 0;
 	}else{		
 		dhdx = (profil[1] - profil[Nx-1])/two_dx;
@@ -1104,6 +1657,82 @@ int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *N
 	}
 	return 0;
 }
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *k2_1D, double z)
+ *
+ *		\brief	Determine the Nx2, Nz2 and NxNz arrays, defined as \n
+ * 				Nx2  = norm_x^2,  											\n
+ * 				Nz2  = norm_z^2,  											\n
+ * 				NxNz = norm_x norm_z 										\n
+ * 				norm_x = -dhdx/(csqrt(1+dgdx^2)),      	   		\n
+ * 				norm_z = 1/(csqrt(1+dgdx^2)),         					\n
+ * 				dhdx being the h(x) derivative calculated as 		\n
+ * 				dhdx = [h(x+dx)-h(x-dx)]/2dx
+ *
+ * 	\todo 	The PRECISION can be IMPROVED with a HIGHER ORDER calculation
+ */
+/*-------------------------------------------------------------------------------------*/
+int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z)
+{
+	int nx, nx_left, nx_right;
+	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
+								/* while 'Nx2', corresponds to the square of the surface normal x component */
+	double dhdx, norm_x, norm_z, z1, z2, dhdx1, dhdx2;
+	double two_dx = 2*par->L/Nx;
+
+	double **profil = par->profil;
+
+/* Arrays of Normal vector for each layer */
+
+/* interpolation */
+	int n_layer=0;
+	double eps = EPS*par->h;
+
+	for (nx=0; nx<=Nx-1; nx++){
+		do{
+			if (z <= profil[n_layer][nx] + eps){
+				if (z >= profil[n_layer+1][nx] - eps){
+
+					z1=profil[n_layer+1][nx];
+					z2=profil[n_layer][nx];
+					/* Slope calculated with (f(x+dx)-f(x-dx))/2dx */	
+					/* Because of periodicity: indices Nx+1=0 and 0-1=Nx */	
+					if (nx==0){
+						nx_left  = Nx;
+						nx_right = nx+1;
+					}else if (nx==Nx-1){
+						nx_left  = nx-1;
+						nx_right = 0;
+					}else{
+						nx_left  = nx-1;
+						nx_right = nx+1;
+					} 
+					/* Slopes of profiles surrounding the point under consideraiton */
+					dhdx1 = (profil[n_layer+1][nx_right] - profil[n_layer+1][nx_left])/two_dx;
+					dhdx2 = (profil[n_layer][nx_right] - profil[n_layer][nx_left])/two_dx;
+					/* Interpolation of both slopes */	
+					if (fabs(z2-z1) <= EPS*par->h){ /* in the particular case where z2==z1, use the average of the two slopes */
+						dhdx = dhdx2/2 + dhdx1/2;
+					}else{
+						dhdx = (1/(z2-z1)) * ((z-z1)*dhdx2+(z2-z)*dhdx1); /* Otherwise, Linear interpolation */
+					}
+					norm_x = -dhdx/(csqrt(1+dhdx*dhdx));
+					norm_z = 1.0/(csqrt(1+dhdx*dhdx));
+					Nx2[nx] = norm_x*norm_x;
+					NxNz[nx]= norm_x*norm_z;
+					Nz2[nx] = norm_z*norm_z;
+					break;
+				}else{
+					n_layer++;
+				}
+			}else{
+				n_layer--;
+			}	
+		}while (1);
+	}
+
+	return 0;
+}
 
 
 /*-------------------------------------------------------------------------------------*/
@@ -1123,11 +1752,9 @@ COMPLEX *FFT_k2_directe(double z, COMPLEX *TF_k2, struct Param_struct *par)
 	int N_tf = 2*par->N;
 	double coefnorm = 1.0/N_x;
 
-	/* Calcul de k^2(x) à z fixé, à partir du profil */
+	/* Calcul de k^2(x) Ã  z fixÃ©, Ã  partir du profil */
 	(*par->k_2)(par, par->k2, z);
 
-	/* Calcul de la TF de k2, avec N_x points */
-	
 /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 /*!!!!!!!!!!!!!!!!!!!!!!!   ALLOUER A L'EXTERIEUR   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
 	tmp = (COMPLEX *) malloc(sizeof(COMPLEX) * N_x);
@@ -1146,6 +1773,13 @@ COMPLEX *FFT_k2_directe(double z, COMPLEX *TF_k2, struct Param_struct *par)
 
 	fftw_destroy_plan(plan_TFk2);
 	free(tmp);
+/********** DEBUG **********/
+/*printf("\nRe(k2)\n");SaveCplxTab2file (par->k2, par->N_x, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(k2)\n");SaveCplxTab2file (par->k2, par->N_x, "Im", "stdout", " ", 10000, "\n");*/
+/*printf("\nRe(TF_k2)\n");SaveCplxTab2file (TF_k2, 2*N_tf+1, "Re", "stdout", " ", 10000, "\n");
+printf("\nIm(TF_k2)\n");SaveCplxTab2file (TF_k2, 2*N_tf+1, "Im", "stdout", " ", 10000, "\n");*/
+/***************************/
+
 	
 	return TF_k2;
 }
@@ -1155,7 +1789,7 @@ COMPLEX *FFT_k2_directe(double z, COMPLEX *TF_k2, struct Param_struct *par)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par)
  *
- *	\brief	Calcule la TF de 1/k^2(x) pour un z donné et la tronque entre -N et +N
+ *	\brief	Calcule la TF de 1/k^2(x) pour un z donnÃ© et la tronque entre -N et +N
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par)
@@ -1169,7 +1803,7 @@ COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par
 	int N_tf = 2*par->N;
 	double coefnorm = 1.0/N_x;
 
-	/* Calcul de 1 / k^2(x) à z fixé, à partir du profil */
+	/* Calcul de 1 / k^2(x) Ã  z fixÃ©, Ã  partir du profil */
 	(*par->invk_2)(par, par->invk2, z);
 
 	/* Calcul de la TF de invk2, avec N_x points */
@@ -1195,49 +1829,49 @@ COMPLEX *FFT_invk2_directe(double z, COMPLEX *TF_invk2, struct Param_struct *par
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
  *
- *	\brief	Affichage du temps restant estimé en cours de calculs
+ *	\brief	Affichage du temps restant estimÃ© en cours de calculs
  */
 /*-------------------------------------------------------------------------------------*/
 int md2D_affichTemps(int n, int N, int nS, int NS, int ni, int Ni, struct Param_struct *par)
 {
+	if (par->verbosity >= 1){
+		/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
+		if (CHRONO(clock(), par->last_clock) < 5){
+			return 0;
+		/* Sinon, estimation et affichage de la durÃ©e restante */
+		}else /*if (par->VERBOSE >= 1)*/{
+			int i, n_total;
+			time(&par->last_time);
+			par->last_clock = clock();
+			float t_ecoule = difftime(par->last_time,par->time0);
+			float t_total; 
 
-	/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
-	if (CHRONO(clock(), par->last_clock) < 5){
-		return 0;
-	/* Sinon, estimation et affichage de la durée restante */
-	}else /*if (par->VERBOSE >= 1)*/{
-		int i, n_total;
-		time(&par->last_time);
-		par->last_clock = clock();
-		float t_ecoule = difftime(par->last_time,par->time0);
-		float t_total; 
+			n_total = 4*(2*N+1);
+	/*		if (!strcmp(par->calcul_method,"DM")){
+				t_total = t_ecoule*( Ni*NS*n_total)/(ni*NS*n_total+nS*n_total+n);
+			}else if (!strcmp(par->calcul_method,"RCWA") || !strcmp(par->calcul_method,"IMPROVED_RCWA")){
+				t_total = t_ecoule*NS/(nS+1);
+			}else{
+				fprintf(stderr, "%s, line %d : ERROR, unknown calculation method (\"%s\")\n",__FILE__,__LINE__,par->calcul_method);
+			}*/
+	/*		t_total = t_ecoule*NS/(nS+1);*/
+			t_total = t_ecoule*Ni*NS/( ni*NS+nS+1 );
 
-		n_total = 4*(2*N+1);
-/*		if (!strcmp(par->calcul_method,"DM")){
-			t_total = t_ecoule*( Ni*NS*n_total)/(ni*NS*n_total+nS*n_total+n);
-		}else if (!strcmp(par->calcul_method,"RCWA") || !strcmp(par->calcul_method,"IMPROVED_RCWA")){
-			t_total = t_ecoule*NS/(nS+1);
-		}else{
-			fprintf(stderr, "%s, line %d : ERROR, unknown calculation method (\"%s\")\n",__FILE__,__LINE__,par->calcul_method);
-		}*/
-/*		t_total = t_ecoule*NS/(nS+1);*/
-		t_total = t_ecoule*Ni*NS/( ni*NS+nS+1 );
-
-		float t_restant = t_total - t_ecoule;
-		int pourcent = ROUND(100.0*t_ecoule/t_total);
-				
-		fprintf(stdout,"\r");
-		if (par->Ni > 1){
-			 fprintf(stdout,"%3d %%, i = %d deg [%ds ", pourcent,ROUND(par->theta_i*180/PI),ROUND(t_ecoule));
-		}else{
-			fprintf(stdout,"%3d %% [%ds ", pourcent,ROUND(t_ecoule));
+			float t_restant = t_total - t_ecoule;
+			int pourcent = MIN(ROUND(100.0*t_ecoule/t_total),100.0);
+					
+			fprintf(stdout,"\r");
+			if (par->Ni > 1){
+				 fprintf(stdout,"%3d %%, i = %d deg [%ds ", pourcent,ROUND(par->theta_i*180/PI),ROUND(t_ecoule));
+			}else{
+				fprintf(stdout,"%3d %% [%ds ", pourcent,ROUND(t_ecoule));
+			}
+			for (i=0;i<pourcent/5;i++) {fprintf(stdout,">");}
+			for (i=pourcent/5;i<20;i++) {fprintf(stdout," ");}
+			fprintf(stdout," %ds] %ds     ",ROUND(t_restant), ROUND(t_total));
+			fflush(stdout);
 		}
-		for (i=0;i<pourcent/5;i++) {fprintf(stdout,">");}
-		for (i=pourcent/5;i<20;i++) {fprintf(stdout," ");}
-		fprintf(stdout," %ds] %ds     ",ROUND(t_restant), ROUND(t_total));
-		fflush(stdout);
 	}
-	
 	return 0;
 }
 
@@ -1357,14 +1991,13 @@ int md2D_make_tab_S_steps(struct Param_struct *par)
 		tab_NS[num++] = h;
 
 	}
-	par->NS=num;
+	par->NS=num-1;
 
-printf("\ntab_NS[par->NS-1]=%1.10f\n",tab_NS[par->NS-1]);
+/*printf("\ntab_NS[par->NS-1]=%1.10f\n",tab_NS[par->NS-1]);
 printf("\npar->h=%1.10f\n",par->h);
-
 printf("\ntab_imposed_S_steps[N_imposed_S_steps-1]=%f\n",tab_imposed_S_steps[N_imposed_S_steps-1]);
 printf("\nN_subDiv=%d\n",N_subDiv);
-
+printf("\ntab_NS=");SaveDbleTab2file(tab_NS, num, "stdout", " ", 1000, "\n");*/
 	return 0;
 }
 
@@ -1407,7 +2040,9 @@ int read_S_steps_from_profile(struct Param_struct *par)
 	qsort (tab_imposed_S_steps, Ntab, sizeof(double), compare_doubles);
 
 	par->N_imposed_S_steps = Ntab;
-
+/*for (n_layer=0;n_layer<=N_layers+2;n_layer++){
+printf("\nprofile=");SaveDbleTab2file(profil[n_layer], Nx, "stdout", " ", 1000, "\n");}
+printf("\ntab_imposed_S_steps=");SaveDbleTab2file(tab_imposed_S_steps, Ntab, "stdout", " ", 1000, "\n");*/
 	return 0;
 }
 
@@ -1447,17 +2082,40 @@ int md2D_save_near_field(COMPLEX **S12, COMPLEX **Z, int vec_size, int nS, struc
 }
 
 /*-------------------------------------------------------------------------------------*/
+/*!	\fn	int md2D_save_near_field(COMPLEX **S12, COMPLEX **Z, int vec_size, int nS)
+ *
+ *	\brief	Save Z and S12 matrices for near field reconstruction
+ */
+/*-------------------------------------------------------------------------------------*/
+int md2D_save_T(COMPLEX **T11, COMPLEX **T12, COMPLEX **T21, COMPLEX **T22, COMPLEX ***saved_T, int vec_size, int nS, struct Param_struct *par)
+{
+printf("function not implemented. Uncomment following lines\n");
+#if 0	
+	int i, j;
+	for (i=0;i<vec_size;i++){
+		for (j=0;j<vec_size;j++){
+			par->saved_T[nS][i]         [j]            = T11[i][j]; /* A VERIFIER : Attention Ã  ne pas inverser ligne et col */
+			par->saved_T[nS][i]         [j+vec_size]   = T12[i][j];
+			par->saved_T[nS][i+vec_size][j]            = T21[i][j];
+			par->saved_T[nS][i+vec_size][j+vec_size]   = T22[i][j];
+		}
+	}
+#endif
+	return 0;	
+}
+
+/*-------------------------------------------------------------------------------------*/
 /*!	\fn	int md2D_near_field_map(par)
  *
  *	\brief	Map field reconstruction
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struct *par)
+int md2D_local_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struct *par)
 {
 	int q,i,j,n,nx, NS, N_x, vec_size;
-	COMPLEX *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, **Z_prod, **Z_prod_tmp, k_super2, k_super;
-	COMPLEX *Psi11, *Psi12, *Psi21, *Psi22;
-	double x, **Hpx2, **Hpy2,**Ex2,**Ey2, Hpx, Hpy, Ex, Ey;
+	COMPLEX *Vi, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *EHqz, *sigma, *kz_super, k_super2, k_super, *kz_sub, k_sub, k_sub2, k2;
+	COMPLEX *Psi11, *Psi12, *Psi21, *Psi22, **Z_prod, **Z_prod_tmp, **Hpx, **Hpy, **Hpz, **Ex, **Ey, **Ez;
+	double x;
 
 	NS = par->NS;
 	N_x = par->N_x;
@@ -1465,7 +2123,10 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 	sigma = par->sigma;
 	kz_super = par->kz_super;
 	k_super = par->k_super;
+	kz_sub = par->kz_sub;
+	k_sub = par->k_sub;
 	k_super2 = par->k_super*par->k_super;
+	k_sub2 = par->k_sub*par->k_sub;
 	
 	Z_prod     = allocate_CplxMatrix(vec_size, vec_size);
 	Z_prod_tmp = allocate_CplxMatrix(vec_size, vec_size);
@@ -1473,20 +2134,25 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 	Psi21 = malloc(sizeof(COMPLEX)*vec_size); Psi22 = malloc(sizeof(COMPLEX)*vec_size);
 	
 	if (par->pola == TE){
-		Ex2 = NULL;
-		Hpy2 = NULL;
-		Hpx2 = allocate_DbleMatrix(NS,N_x);
-		Ey2  = allocate_DbleMatrix(NS,N_x);
+		Ex = NULL;
+		Ez = NULL;
+		Hpy = NULL;
+		Hpx = allocate_CplxMatrix(NS,N_x);
+		Hpz = allocate_CplxMatrix(NS,N_x);
+		Ey  = allocate_CplxMatrix(NS,N_x);
 	}else{ /* TM */
-		Ex2 = allocate_DbleMatrix(NS,N_x);
-		Hpy2 = allocate_DbleMatrix(NS,N_x);
-		Hpx2 = NULL;
-		Ey2 = NULL;
+		Ex = allocate_CplxMatrix(NS,N_x);
+		Ez = allocate_CplxMatrix(NS,N_x);
+		Hpy = allocate_CplxMatrix(NS,N_x);
+		Hpx = NULL;
+		Hpz = NULL;
+		Ey = NULL;
 	}
 	
 	Vi = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
 	Vq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
 	Fq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
+	EHqz = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
 	Vq_m = Vq;
 	Vq_p = Vq + vec_size;
 	Eq = Fq;
@@ -1520,66 +2186,85 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 		M_x_V(Vq_p, tab_S12[q], Vq_m, vec_size, vec_size);
 
 		/* Fq = Psi*Vq */
-		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, par->pola);
+		if (q==0){
+			PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_sub, k_sub, vec_size, par->pola);
+			k2=k_sub2;
+		}else{
+			PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, par->pola);
+			k2=k_super2;
+		}
 		for (i=0;i<=vec_size-1;i++){
 			/* Eq = Psi11 * Vq_m + Psi12 * Vq_p */
 			Eq[i] = Psi11[i]*Vq_m[i] + Psi12[i]*Vq_p[i];
 			/* Hq = Psi21 * Vq_m + Psi22 * Vq_p */
 			Hq[i] = Psi21[i]*Vq_m[i] + Psi22[i]*Vq_p[i];
+			if (par->pola == TE){
+				EHqz[i] = sigma[i]*(Vq_m[i] + Vq_p[i]);
+			}else{ /* TM */
+				EHqz[i] = sigma[i]*(Vq_m[i] + Vq_p[i])/k2;
+			}
 		}
 
 		/* Near field in the real space */
 		if (par->pola == TE){
 			for (nx=0;nx<=N_x-1;nx++){
 				x = nx*par->L/N_x;
-				Ey  = 0;
-				Hpx = 0;
+				Ey[q][nx]  = 0+0*I;
+				Hpx[q][nx] = 0+0*I;
+				Hpz[q][nx] = 0+0*I;
 				for (n=0;n<vec_size;n++){
-					Ey  += Eq[n]*cexp(I*sigma[n]*x);
-					Hpx += Hq[n]*cexp(I*sigma[n]*x);
+					Ey[q][nx]  += Eq[n]*cexp(I*sigma[n]*x);
+					Hpx[q][nx] += Hq[n]*cexp(I*sigma[n]*x);
+					Hpz[q][nx] += EHqz[n]*cexp(I*sigma[n]*x);
 				}
-				Ey2[q][nx]  = cabs(Ey)*cabs(Ey);
-				Hpx2[q][nx] = cabs(Hpx)*cabs(Hpx);
 			}
 		}else{ /* TM */
 			for (nx=0;nx<=N_x-1;nx++){
 				x = nx*par->L/N_x;
-				Ex = 0;
-				Hpy = 0;
+				Ex[q][nx] = 0+0*I;
+				Ez[q][nx] = 0+0*I;
+				Hpy[q][nx] = 0+0*I;
 				for (n=0;n<vec_size;n++){
-					Ex  += Eq[n]*cexp(I*sigma[n]*x);
-					Hpy += Hq[n]*cexp(I*sigma[n]*x); 
+					Ex[q][nx]  += Eq[n]*cexp(I*sigma[n]*x);
+					Ez[q][nx]  += EHqz[n]*cexp(I*sigma[n]*x);
+					Hpy[q][nx] += Hq[n]*cexp(I*sigma[n]*x); 
 				}
-				Ex2[q][nx]  = cabs(Ex)*cabs(Ex);
-				Hpy2[q][nx] = Hpy*conj(Hpy); 
 			}
 		}
 	}
 
 	/* Writing results */
 	if (par->pola == TE){
-		fprintf(stdout,"Ey2 = \n");
-		SaveDbleTab2file (Ey2[0], NS*N_x, "stdout", " ", N_x, "\n");
-		fprintf(stdout,"Hpx2 = \n");
-		SaveDbleTab2file (Hpx2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"\nReEy = \n"); SaveMatrix2file(Ey, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImEy = \n"); SaveMatrix2file(Ey, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReHpx = \n");SaveMatrix2file(Hpx, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImHpx = \n");SaveMatrix2file(Hpx, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReHpz = \n");SaveMatrix2file(Hpz, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImHpz = \n");SaveMatrix2file(Hpz, NS, N_x, "Im", "stdout");
 	}else{ /* TM */
-		fprintf(stdout,"Ex2 = \n");
-		SaveDbleTab2file (Ex2[0], NS*N_x, "stdout", " ", N_x, "\n");
-		fprintf(stdout,"Hpy2 = \n");
-		SaveDbleTab2file (Hpy2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"\nReEx = \n"); SaveMatrix2file(Ex, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImEx = \n"); SaveMatrix2file(Ex, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReEz = \n"); SaveMatrix2file(Ez, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImEz = \n"); SaveMatrix2file(Ez, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReHpy = \n");SaveMatrix2file(Hpy, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImHpy = \n");SaveMatrix2file(Hpy, NS, N_x, "Im", "stdout");
 	}
 
 	/* freeing memory... */
 	if (par->pola == TE){
-		free(Hpx2[0]);
-		free(Hpx2);
-		free(Ey2[0]);
-		free(Ey2);
+		free(Hpx[0]);
+		free(Hpx);
+		free(Hpz[0]);
+		free(Hpz);
+		free(Ey[0]);
+		free(Ey);
 	}else{ /* TM */
-		free(Ex2[0]);
-		free(Ex2);
-		free(Hpy2[0]);
-		free(Hpy2);
+		free(Ex[0]);
+		free(Ex);
+		free(Ez[0]);
+		free(Ez);
+		free(Hpy[0]);
+		free(Hpy);
 	}
 
 	free(Z_prod[0]);
@@ -1589,24 +2274,26 @@ int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struc
 	free(Vi);
 	free(Vq);
 	free(Fq);
+	free(EHqz);
 	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
 
 	return 0;
 }
 
+
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn	int md2D_near_field_map_evanescent(struct Param_struct *par)
+/*!	\fn	int md2D_local_field_by_T_products(struct Param_struct *par)
  *
- *	\brief	Map field reconstruction in case of evanescent field for guided waves simulation
+ *	\brief	Field map reconstruction using simple T-matrix integration
  */
 /*-------------------------------------------------------------------------------------*/
-int md2D_near_field_map_evanescent(struct Param_struct *par)
+int md2D_local_field_map_by_T_products(COMPLEX *V0m, struct Param_struct *par)
 {
 	COMPLEX **T,**T11,**T12,**T21,**T22,**T_tmp,**T_local,**T_tmp2,**T11_tmp,**T12_tmp,**T21_tmp,**T22_tmp;
 	int q,i,j,n,nx, NS, N_x, vec_size;
-	COMPLEX *V1_m, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *sigma, *kz_super, k_super2, k_super;
-	COMPLEX *Psi11, *Psi12, *Psi21, *Psi22;
-	double x, **Hpx2, **Hpy2,**Ex2,**Ey2, Hpx, Hpy, Ex, Ey;
+	COMPLEX *V1_m, *Vq, *Fq, *Vq_m, *Vq_p, *Eq, *Hq, *EHqz, *sigma, *kz_super, k_super2, k_super, *kz_sub, k_sub, k_sub2, k2;
+	COMPLEX *Psi11, *Psi12, *Psi21, *Psi22, **Hpx, **Hpy, **Hpz, **Ex, **Ey, **Ez;
+	double x;
 
 	NS = par->NS;
 	N_x = par->N_x;
@@ -1614,26 +2301,34 @@ int md2D_near_field_map_evanescent(struct Param_struct *par)
 	sigma = par->sigma;
 	kz_super = par->kz_super;
 	k_super = par->k_super;
+	kz_sub = par->kz_sub;
+	k_sub = par->k_sub;
 	k_super2 = par->k_super*par->k_super;
+	k_sub2 = par->k_sub*par->k_sub;
 	
 	Psi11 = malloc(sizeof(COMPLEX)*vec_size); Psi12 = malloc(sizeof(COMPLEX)*vec_size);
 	Psi21 = malloc(sizeof(COMPLEX)*vec_size); Psi22 = malloc(sizeof(COMPLEX)*vec_size);
 	
 	if (par->pola == TE){
-		Ex2 = NULL;
-		Hpy2 = NULL;
-		Hpx2 = allocate_DbleMatrix(NS,N_x);
-		Ey2  = allocate_DbleMatrix(NS,N_x);
+		Ex = NULL;
+		Ez = NULL;
+		Hpy = NULL;
+		Hpx = allocate_CplxMatrix(NS,N_x);
+		Hpz = allocate_CplxMatrix(NS,N_x);
+		Ey  = allocate_CplxMatrix(NS,N_x);
 	}else{ /* TM */
-		Ex2 = allocate_DbleMatrix(NS,N_x);
-		Hpy2 = allocate_DbleMatrix(NS,N_x);
-		Hpx2 = NULL;
-		Ey2 = NULL;
+		Ex = allocate_CplxMatrix(NS,N_x);
+		Ez = allocate_CplxMatrix(NS,N_x);
+		Hpy = allocate_CplxMatrix(NS,N_x);
+		Hpx = NULL;
+		Hpz = NULL;
+		Ey = NULL;
 	}
 	
 	V1_m = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
 	Vq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
 	Fq = (COMPLEX *) malloc(sizeof(COMPLEX)*2*vec_size);
+	EHqz = (COMPLEX *) malloc(sizeof(COMPLEX)*vec_size);
 	Vq_m = Vq;
 	Vq_p = Vq + vec_size;
 	Eq = Fq;
@@ -1666,9 +2361,8 @@ int md2D_near_field_map_evanescent(struct Param_struct *par)
 
 	/* Field at bottom of structure */
 	for (i=0;i<vec_size;i++){
-		V1_m[i]=0;
+		V1_m[i]=V0m[i];
 	}
-	V1_m[par->vec_middle] = 1.0;
 
 	/* T-Matrix initialisation, T= Id */
 	for (i=0; i<=2*vec_size-1; i++) {
@@ -1679,7 +2373,7 @@ int md2D_near_field_map_evanescent(struct Param_struct *par)
 	}
 
 	/* Iterations */
-NS--;
+/*NS--;*/
 	for (q=0; q<=NS-1; q++) {
 
 		/* T-Matrix calculation */
@@ -1696,45 +2390,54 @@ NS--;
 		M_x_V(Vq_p, T21, V1_m, vec_size, vec_size);
 
 		/* Fq = Psi*Vq */
-		PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, par->pola);
+		if (q==0){
+			PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_sub, k_sub, vec_size, par->pola);
+			k2=k_sub2;
+		}else{
+			PsiMatrix(Psi11, Psi12, Psi21, Psi22, kz_super, k_super, vec_size, par->pola);
+			k2=k_super2;
+		}
 		for (i=0;i<=vec_size-1;i++){
 			/* Eq = Psi11 * Vq_m + Psi12 * Vq_p */
 			Eq[i] = Psi11[i]*Vq_m[i] + Psi12[i]*Vq_p[i];
-			Eq[i] = Psi11[i]*0 + Psi12[i]*Vq_p[i];
 			/* Hq = Psi21 * Vq_m + Psi22 * Vq_p */
 			Hq[i] = Psi21[i]*Vq_m[i] + Psi22[i]*Vq_p[i];
+			if (par->pola == TE){
+				EHqz[i] = sigma[i]*(Vq_m[i] + Vq_p[i]);
+			}else{ /* TM */
+				EHqz[i] = sigma[i]*(Vq_m[i] + Vq_p[i])/k2;
+			}
 		}
 
 		/* Near field in the real space */
 		if (par->pola == TE){
 			for (nx=0;nx<=N_x-1;nx++){
 				x = nx*par->L/N_x;
-				Ey  = 0;
-				Hpx = 0;
+				Ey[q][nx]  = 0+0*I;
+				Hpx[q][nx] = 0+0*I;
+				Hpz[q][nx] = 0+0*I;
 				for (n=0;n<vec_size;n++){
-					Ey  += Eq[n]*cexp(I*sigma[n]*x);
-					Hpx += Hq[n]*cexp(I*sigma[n]*x);
+					Ey[q][nx]  += Eq[n]*cexp(I*sigma[n]*x);
+					Hpx[q][nx] += Hq[n]*cexp(I*sigma[n]*x);
+					Hpz[q][nx] += EHqz[n]*cexp(I*sigma[n]*x);
 				}
-				Ey2[q][nx]  = cabs(Ey)*cabs(Ey);
-				Hpx2[q][nx] = cabs(Hpx)*cabs(Hpx);
 			}
 		}else{ /* TM */
 			for (nx=0;nx<=N_x-1;nx++){
 				x = nx*par->L/N_x;
-				Ex = 0;
-				Hpy = 0;
+				Ex[q][nx] = 0+0*I;
+				Ez[q][nx] = 0+0*I;
+				Hpy[q][nx] = 0+0*I;
 				for (n=0;n<vec_size;n++){
-					Ex  += Eq[n]*cexp(I*sigma[n]*x);
-					Hpy += Hq[n]*cexp(I*sigma[n]*x); 
+					Ex[q][nx]  += Eq[n]*cexp(I*sigma[n]*x);
+					Ez[q][nx]  += EHqz[n]*cexp(I*sigma[n]*x);
+					Hpy[q][nx] += Hq[n]*cexp(I*sigma[n]*x); 
 				}
-				Ex2[q][nx]  = cabs(Ex)*cabs(Ex);
-				Hpy2[q][nx] = Hpy*conj(Hpy); 
 			}
 		}
-		
 	}
 
-/* ICI Calculer les amplitudes puis les efficacités, puis écrire les résultats... */
+/* ICI Calculer les amplitudes puis les efficacitÃ©s, puis Ã©crire les rÃ©sultats... */
 	for (i=0;i<=vec_size-1;i++){
 		par->Ar[i]=Vq_p[i];
 		par->At[i]=V1_m[i];
@@ -1750,28 +2453,36 @@ NS--;
 	
 	/* Writing results */
 	if (par->pola == TE){
-		fprintf(stdout,"Ey2 = \n");
-		SaveDbleTab2file (Ey2[0], NS*N_x, "stdout", " ", N_x, "\n");
-		fprintf(stdout,"Hpx2 = \n");
-		SaveDbleTab2file (Hpx2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"\nReEy = \n"); SaveMatrix2file(Ey, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImEy = \n"); SaveMatrix2file(Ey, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReHpx = \n");SaveMatrix2file(Hpx, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImHpx = \n");SaveMatrix2file(Hpx, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReHpz = \n");SaveMatrix2file(Hpz, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImHpz = \n");SaveMatrix2file(Hpz, NS, N_x, "Im", "stdout");
 	}else{ /* TM */
-		fprintf(stdout,"Ex2 = \n");
-		SaveDbleTab2file (Ex2[0], NS*N_x, "stdout", " ", N_x, "\n");
-		fprintf(stdout,"Hpy2 = \n");
-		SaveDbleTab2file (Hpy2[0], NS*N_x, "stdout", " ", N_x, "\n");
+		fprintf(stdout,"\nReEx = \n"); SaveMatrix2file(Ex, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImEx = \n"); SaveMatrix2file(Ex, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReEz = \n"); SaveMatrix2file(Ez, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImEz = \n"); SaveMatrix2file(Ez, NS, N_x, "Im", "stdout");
+		fprintf(stdout,"ReHpy = \n");SaveMatrix2file(Hpy, NS, N_x, "Re", "stdout");
+		fprintf(stdout,"ImHpy = \n");SaveMatrix2file(Hpy, NS, N_x, "Im", "stdout");
 	}
 
 	/* freeing memory... */
 	if (par->pola == TE){
-		free(Hpx2[0]);
-		free(Hpx2);
-		free(Ey2[0]);
-		free(Ey2);
+		free(Hpx[0]);
+		free(Hpx);
+		free(Hpz[0]);
+		free(Hpz);
+		free(Ey[0]);
+		free(Ey);
 	}else{ /* TM */
-		free(Ex2[0]);
-		free(Ex2);
-		free(Hpy2[0]);
-		free(Hpy2);
+		free(Ex[0]);
+		free(Ex);
+		free(Ez[0]);
+		free(Ez);
+		free(Hpy[0]);
+		free(Hpy);
 	}
 
 	free(T[0]);
@@ -1791,6 +2502,7 @@ NS--;
 	free(V1_m);
 	free(Vq);
 	free(Fq);
+	free(EHqz);
 	free(Psi11);free(Psi12);free(Psi21);free(Psi22);
 
 	return 0;
@@ -1861,7 +2573,7 @@ printf("\nIm(par->T) :\n");
 SaveMatrix2file (par->T, 2*par->vec_size, 2*par->vec_size, "Im", "stdout");*/
 
 
-	/*Affichage du temps restant à l'écran */
+	/*Affichage du temps restant Ã  l'Ã©cran */
 	md2D_affichTemps(par->N,par->N,nS,par->NS,par->ni,par->Ni,par);
 	
 	return 0;

@@ -177,7 +177,7 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 	/* Allocations */	
 	if (par->profile_type == N_XYZ || par->profile_type == N_XY_ZINVAR) {
 		par->n_xyz = allocate_CplxMatrix(par->Nprz,par->Nprx*par->Npry);
-	}else if(par->profile_type == H_XY){
+	}else if(par->profile_type == H_XY || par->profile_type == MULTICOUCHES){
 		par->profil = allocate_DbleMatrix(par->N_layers+3,par->Nprx*par->Npry);
 		par->k2_layer    = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));
 		par->invk2_layer = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));
@@ -206,6 +206,7 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 			par->md3D_lire_profil = md3D_lire_profil_MULTI;
 			par->k_2 = k2_MULTI;
 			par->invk_2 = invk2_MULTI;
+			par->Normal_function = Normal_MULTI;
 			break;
 		case N_XYZ        : 
 			par->md3D_lire_profil = md3D_lire_profil_N_XYZ;
@@ -221,7 +222,7 @@ printf("\n***************\nWARNING: Normal_N_XYZ not defined yet.\n*************
 			par->Normal_function = Normal_N_XY_ZINVAR;
 			break;
 		default:
-			fprintf(stderr, "%s, line %d : ERROR, unknown profile_type\n",__FILE__,__LINE__);
+			fprintf(stderr, "%s, line %d : ERROR, (%d) is an unknown profile_type\n",__FILE__,__LINE__,par->profile_type);
 			exit(EXIT_FAILURE);
 
 	}
@@ -475,7 +476,7 @@ int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)
 	if (par->profile_type == N_XYZ || par->profile_type == N_XY_ZINVAR) {
 		free(par->n_xyz[0]);
 		free(par->n_xyz);
-	}else if(par->profile_type == H_XY){
+	}else if(par->profile_type == H_XY || par->profile_type == MULTICOUCHES){
 		free(par->profil[0]);
 		free(par->profil);
 		free(par->k2_layer);

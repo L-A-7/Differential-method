@@ -44,7 +44,7 @@ int md3D_incident_field(struct Param_struct *par, struct Efficacites_struct *eff
 		par->Ai[vec_mid+vec_size] = Hpyi;
 		 
 	}else{
-		fprintf(stderr, "%s, ligne %d : ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
+		fprintf(stderr, "%s, line %d : ERROR, \"%s\" : unsupported i_field_mode type\n",__FILE__,__LINE__,par->i_field_mode);
 		exit(EXIT_FAILURE);
 	}
 
@@ -405,17 +405,18 @@ int S_matrix(struct Param_struct *par)
 		/* Following blocks only usefull when some light is coming from below */
 		/* NOT TESTED YET, but carrefully written... (should work !) */
 		/* (Matrices should also be initialized ... !) */
+		/* The order (S22, S12),S21,S11 must not be changed */
+		/* S21 = S21 - S22*T12*S11 */
+/*		sub_M(S21, S21, M_x_M(T_tmp, 
+			S22, 
+			M_x_M(T_tmp2, T12, S11, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
+*/
 		/* S11 = (T22 - S12*T12)*S11 */
 /*		M_equals(T_tmp, S11, 2*vec_size, 2*vec_size);
 		M_x_M(S11,
 			sub_M(T_tmp2, T22, M_x_M(T_tmp3,
 					S12,T12, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size),
 			T_tmp, 2*vec_size, 2*vec_size);
-*/
-		/* S21 = S21 - S22*T12*S11 */
-/*		sub_M(S21, S21, M_x_M(T_tmp, 
-			S22, 
-			M_x_M(T_tmp2, T12, S11, 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size), 2*vec_size, 2*vec_size);
 */
 		/* if NEAR_FIELD, field components are saved in the Near_field_matrix */
 /*		if (par->SAVE_NEAR_FIELD){
@@ -1497,7 +1498,7 @@ int md3D_toepNorm(double z, struct Param_struct *par)
 		normyz = allocate_CplxMatrix(Npry,Nprx);
 		normzz = allocate_CplxMatrix(Npry,Nprx);
 	
-		(*par->Normal_function)(normx, normy, normz, z, par);	
+		(*par->Normal_function)(normx, normy, normz, z, par->profil[0], par);	
 
 		for (i=0;i<=Npry-1;i++){
 			for (j=0;j<=Nprx-1;j++){
@@ -1536,7 +1537,11 @@ int md3D_toepNorm(double z, struct Param_struct *par)
 		free(normyz);
 		free(normzz[0]);
 		free(normzz);
-		par->toepNorm_CALCULATED = 1;
+		if (par->profile_type == H_XY){ /* N have to be calculated only once for this type of profiles */
+			par->toepNorm_CALCULATED = 1;
+		}else{
+			par->toepNorm_CALCULATED = 0;
+		}
 		
 		return 0;
 	}
@@ -1783,21 +1788,21 @@ printf("\nCOUCOU, I am in invk2_homog !\n\n");
 
 
 /*-------------------------------------------------------------------------------------*/
-/*!	\fn			COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
+/*!	\fn			COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné, pour un multicouches
+ *	\brief	Détermine le tableau de COMPLEXes k^2(xy) pour un z donné, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
-COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
+COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
 {
 	
-	int nx, n_layer=0;
+	int nxy, n_layer=0;
 	
-	for (nx=0; nx<=par->Nprx*par->Npry-1; nx++){
+	for (nxy=0; nxy<=par->Nprx*par->Npry-1; nxy++){
 		do{
-			if (z <= par->profil[n_layer][nx]){
-				if (z >= par->profil[n_layer+1][nx]){
-					k2_1D[nx] = par->k2_layer[n_layer];
+			if (z <= par->profil[n_layer][nxy]){
+				if (z >= par->profil[n_layer+1][nxy]){
+					k2_2D[nxy] = par->k2_layer[n_layer];
 					break;
 				}else{
 					n_layer++;
@@ -1808,7 +1813,7 @@ COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 		}while (1);
 	}
 	
-	return k2_1D;
+	return k2_2D;
 }
 
 
@@ -1928,7 +1933,7 @@ COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
  * 	\todo 	The PRECISION can be IMPROVED with a HIGHER ORDER calculation
  */
 /*-------------------------------------------------------------------------------------*/
-int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par)
+int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par)
 {
 	int i,j;
 	int Nprx = par->Nprx;
@@ -1937,11 +1942,9 @@ int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, 
 	double two_dx = 2*par->Lx/Nprx;
 	double two_dy = 2*par->Ly/Npry;
 
-	double *profil = par->profil[0];
+/*	double *profil = par->profil[0];*/
 
-	if (par->HXY_Normal_CALCULATED == 1139876){
-		return 0;
-	}else{		
+	if (Npry >= 2){ /* 2D Profile (general case) */
 		for (i=1;i<=Npry-2;i++){
 			for (j=1;j<=Nprx-2;j++){
 				dhdx = (profil[Nprx*i+j+1]-profil[Nprx*i+j-1])/two_dx;
@@ -1981,22 +1984,39 @@ int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, 
 		norm_y[0][0] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[0][0] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		dhdx = (profil[(Npry-1)*Nprx]-profil[(Npry-1)*Nprx+Nprx-2])/two_dx;
-		dhdy = (profil[Nprx-1]-profil[(Npry-2)*Nprx+Nprx-1])/two_dx;
+		dhdy = (profil[Nprx-1]-profil[(Npry-2)*Nprx+Nprx-1])/two_dy;
 		norm_x[Npry-1][Nprx-1] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_y[Npry-1][Nprx-1] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[Npry-1][Nprx-1] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		dhdx = (profil[0]-profil[Nprx-2])/two_dx;
-		dhdy = (profil[2*Nprx-1]-profil[(Nprx-1)*Nprx+Nprx-1])/two_dx;
+		dhdy = (profil[2*Nprx-1]-profil[(Npry-1)*Nprx+Nprx-1])/two_dy;
 		norm_x[0][Nprx-1] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_y[0][Nprx-1] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[0][Nprx-1] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		dhdx = (profil[(Npry-1)*Nprx+1]-profil[(Npry-1)*Nprx+Nprx-1])/two_dx;
-		dhdy = (profil[0]-profil[(Npry-2)*Nprx])/two_dx;
+		dhdy = (profil[0]-profil[(Npry-2)*Nprx])/two_dy;
 		norm_x[Npry-1][0] = -dhdx/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_y[Npry-1][0] = -dhdy/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
 		norm_z[Npry-1][0] = 1.0/(csqrt(1+dhdx*dhdx+dhdy*dhdy));
+	}else if (Npry == 1){ /* Particular case of treatment of 1D profile (useful if you don't have the specific code but slower) */
+		for (j=1;j<=Nprx-2;j++){
+			dhdx = (profil[j+1]-profil[j-1])/two_dx;
+			norm_x[0][j] = -dhdx/(csqrt(1+dhdx*dhdx));
+			norm_y[0][j] = 0.0;
+			norm_z[0][j] = 1.0/(csqrt(1+dhdx*dhdx));
+		}
+		dhdx = (profil[1]-profil[Nprx-1])/two_dx;
+		norm_x[0][0] = -dhdx/(csqrt(1+dhdx*dhdx));
+		norm_y[0][0] = 0.0;
+		norm_z[0][0] = 1.0/(csqrt(1+dhdx*dhdx));
+		dhdx = (profil[0]-profil[Nprx-2])/two_dx;
+		norm_x[0][Nprx-1] = -dhdx/(csqrt(1+dhdx*dhdx));
+		norm_y[0][Nprx-1] = 0.0;
+		norm_z[0][Nprx-1] = 1.0/(csqrt(1+dhdx*dhdx));
+	}else{ /* We should not be here... */
+		fprintf(stderr, "%s, line %d : ERROR, Impossible value for Npry.\n",__FILE__,__LINE__);
+		exit(EXIT_FAILURE);
 	}
-	par->HXY_Normal_CALCULATED = 1;
 
 #if 0
 /********************************************************/
@@ -2030,13 +2050,85 @@ norm_z[i][j] = 1.0;
 
 	return 0;
 }
+
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn		int Normal_H_XY(COMPLEX **normx, COMPLEX **normy, COMPLEX **normz, double z, struct Param_struct *par)
+ *
+ *	\brief	Determine normx, normy, normz. Normal vector is obtained as a linear interpolation beetwen normal vectors of the 2 adjacent interfaces.
+ */
+/*-------------------------------------------------------------------------------------*/
+int Normal_MULTI(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par)
+{
+	int nx,ny,nxy, n_layer=0;
+	double zb,zt,dz,ct,cb, check_norm;
+
+	COMPLEX ***tab_normx, ***tab_normy, ***tab_normz;
+	tab_normx = allocate_CplxMatrix_3(par->Npry,par->Nprx, par->N_layers+3);
+	tab_normy = allocate_CplxMatrix_3(par->Npry,par->Nprx, par->N_layers+3);
+	tab_normz = allocate_CplxMatrix_3(par->Npry,par->Nprx, par->N_layers+3);
+	
+	/* Calculation of normal vectors of each interface */
+	for (n_layer=0; n_layer<=par->N_layers+2; n_layer++){
+		Normal_H_XY(tab_normx[n_layer], tab_normy[n_layer], tab_normz[n_layer], 0, par->profil[n_layer], par);
+	}
+
+	/* Linear interpolation (since most points are situated beetwen 2 interfaces and a continuous variation is desired) */
+	n_layer=0;
+	for (ny=0; ny<=par->Npry-1; ny++){
+		for (nx=0; nx<=par->Nprx-1; nx++){
+			nxy=par->Nprx*ny+nx;
+			do{
+				if (z <= par->profil[n_layer][nxy]){
+					if (z >= par->profil[n_layer+1][nxy]){
+						zt=par->profil[n_layer][nxy];
+						zb=par->profil[n_layer+1][nxy];
+						dz=zt-zb;
+						if (dz <= par->h*1e-10){
+							ct=0.5;
+							cb=0.5;
+						}else{
+							ct=(zt-z)/dz;
+							cb=(z-zb)/dz;
+						}
+						norm_x[ny][nx]=ct*tab_normx[n_layer][ny][nx]+cb*tab_normx[n_layer+1][ny][nx];
+						norm_y[ny][nx]=ct*tab_normy[n_layer][ny][nx]+cb*tab_normy[n_layer+1][ny][nx];
+						norm_z[ny][nx]=ct*tab_normz[n_layer][ny][nx]+cb*tab_normz[n_layer+1][ny][nx];
+						check_norm=sqrt(cabs(norm_x[ny][nx]*norm_x[ny][nx]+norm_y[ny][nx]*norm_y[ny][nx]+norm_z[ny][nx]*norm_z[ny][nx]));
+						norm_x[ny][nx]=norm_x[ny][nx]/check_norm;
+						norm_y[ny][nx]=norm_y[ny][nx]/check_norm;
+						norm_z[ny][nx]=norm_z[ny][nx]/check_norm;
+						break;
+					}else{
+						n_layer++;
+					}
+				}else{
+					n_layer--;
+				}	
+			}while (1);
+		}
+	}
+
+	free(tab_normx[0][0]);
+	free(tab_normx[0]);
+	free(tab_normx);
+	free(tab_normy[0][0]);
+	free(tab_normy[0]);
+	free(tab_normy);
+	free(tab_normz[0][0]);
+	free(tab_normz[0]);
+	free(tab_normz);
+
+	return 0;
+}
+
+
 /*!-------------------------------------------------------------------------------------
  * \fn int Normal_N_XY_ZINVAR(COMPLEX **normx, COMPLEX **normy, COMPLEX **normz, double z, struct Param_struct *par)
  *
  * \brief Determine normx, normy, normz for N_XY profile
  *
  *-------------------------------------------------------------------------------------*/
-int Normal_N_XY_ZINVAR(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par)
+int Normal_N_XY_ZINVAR(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par)
 {
 	int i,j;
 	int Nprx = par->Nprx;
@@ -2104,14 +2196,13 @@ int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
 	if (CHRONO(clock(), par->last_clock) < 5){
 		return 0;
 	/* Sinon, estimation et affichage de la durée restante */
-	}else /*if (par->VERBOSE >= 1)*/{
-		int i, n_total;
+	}else if (par->verbosity >= 1){
+		int i;
 		time(&par->last_time);
 		par->last_clock = clock();
 		float t_ecoule = difftime(par->last_time,par->time0);
 		float t_total; 
 
-		n_total = 4*(2*N+1);
 		t_total = t_ecoule*NS/(nS+1);
 		
 		float t_restant = t_total - t_ecoule;

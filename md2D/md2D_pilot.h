@@ -18,7 +18,10 @@
 
 
 /* fonctions */
-int md2D_classical_FFF (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);int md2D_standard (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
+int md2D_classical_FFF (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
+int md2D_standard (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
+int md2D_guided (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
+int md2D_swifts (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
 int md2D_var_i (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
 int md2D_conical_FFF_ellipso (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
 int md2D_near_field (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier);
@@ -43,7 +46,6 @@ int md2D_read_mat_S(struct Param_struct *par);
 int PsiMatrixTE(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par);
 int PsiMatrixTM(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par);
 int md2D_make_tab_S_steps(struct Param_struct* par);
-int md2D_near_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struct *par);
 
 /* fonctions attribuées à des pointeurs de fonctions */
 int k2_H_X  (struct Param_struct *par, COMPLEX *invk2_1D, double z);
@@ -53,6 +55,7 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int k2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z);
+int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z);
 int M_matrix_TE(COMPLEX **M, double z, struct Param_struct *par);
 int M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par);
 int zinvar_M_matrix_TM(COMPLEX **M, double z, struct Param_struct *par);

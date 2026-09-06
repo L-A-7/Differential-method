@@ -46,8 +46,8 @@ int lire_int(FILE *fp, const char *label, int *value){
 /*---------------------------------------------------------------------------------------------*/
 int lire_double(FILE *fp, const char *label, double *value){
 
-	char *pos, *pos2, stmp[SIZE_LINE_BUFFER];
-	float tmp;
+	char *pos, *pos2, stmp[SIZE_LINE_BUFFER], stmp2[SIZE_LINE_BUFFER], *endptr;
+	double tmp;
 
 	rewind(fp);
 	while(!feof(fp)){
@@ -55,9 +55,12 @@ int lire_double(FILE *fp, const char *label, double *value){
 		skip_comment(stmp); /* Vire les commentaires */
 		if ((pos = label_search(stmp,label)) != NULL){ /* Recherche le label */	
 			if((pos2 = strchr(pos+strlen(label),'=')) != NULL) *pos2 = ' '; /* remplace '=' par un espace */
-			if (sscanf(pos+strlen(label)," %f", &tmp) == 1){ /* Lit la valeur */
-				*value = (double) tmp;
-				return 0;
+			if (sscanf(pos+strlen(label)," %s", stmp2) == 1){ /* Lit la valeur */
+				tmp = strtod(stmp2, &endptr);
+				if (stmp2 != endptr){
+					*value = tmp;
+					return 0; 
+				}
 			}
 		}
 	}
@@ -93,17 +96,17 @@ int lire_string(FILE *fp, const char *label, char *value){
 }
 
 /*---------------------------------------------------------------------------------------------*/
-/*! \fn    int lire_COMPLEX(FILE *fp,  char *label, COMPLEX *value)
+/*! \fn    int lire_complex(FILE *fp,  char *label, COMPLEX *value)
  *
  *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
  *			sous la forme label = value (ex.: Z1 = 1.0 + i0.5 )
  *  \return	0 si lecture réussie 1 sinon
  */
 /*---------------------------------------------------------------------------------------------*/
-int lire_COMPLEX(FILE *fp, const char *label, COMPLEX *value){
+int lire_complex(FILE *fp, const char *label, COMPLEX *value){
 
 	char *pos, *pos2, stmp[SIZE_LINE_BUFFER];
-	float tmp1, tmp2;
+	double tmp1, tmp2;
 
 	rewind(fp);
 	while(!feof(fp)){
@@ -111,7 +114,10 @@ int lire_COMPLEX(FILE *fp, const char *label, COMPLEX *value){
 		skip_comment(stmp); /* Vire les commentaires */
 		if ((pos = label_search(stmp,label)) != NULL){ /* Recherche le label */	
 			if((pos2 = strchr(pos+strlen(label),'=')) != NULL) *pos2 = ' '; /* remplace '=' par un espace */
-			if (sscanf(pos+strlen(label)," %f + i%f", &tmp1, &tmp2) == 2){ /* Lit les valeurs */
+			if (sscanf(pos+strlen(label)," %lf + i%lf", &tmp1, &tmp2) == 2){
+				*value = tmp1 + I*tmp2;
+				return 0;
+			}else if (sscanf(pos+strlen(label)," %lf+i%lf", &tmp1, &tmp2) == 2){
 				*value = tmp1 + I*tmp2;
 				return 0;
 			}
@@ -165,7 +171,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 	return 1;
 
 	/* Lecture des valeurs */
-	while(!feof(fp)){ /* Tant qu'on est pas à la fin du fichier */
+	while(!feof(fp)){
 		if (lire_ligne(fp,line) != 0) {goto LECTURE_FINIE;}
 		line_cpt++;
 		skip_comment(line); 
@@ -187,7 +193,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 	if (cpt != N) {
 		fprintf(stderr, "%s line %d: ERROR, %s contains %d elements instead of %d in %s (line %d)\n", __FILE__, __LINE__, label, cpt, N, nom_fichier, line_cpt);
 		fclose(fp);
-		return 1;
+		return 2;
 	}
 	fclose(fp);
 	return 0;
@@ -332,42 +338,6 @@ int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, 
 }
 
 
-
-
-/*PAS FINIE, pas utile pour l'insant*/
-int ecrire_col(double *tab, char *nomtab, char *nom_fichier) 
-{
-	char line[SIZE_LINE_BUFFER];
-	FILE *fp, *fp_tmp;
-	
-	/* Ouverture du fichier */	
-	if (!(fp = fopen(nom_fichier,"w+"))){
-		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
-		return 1;
-	}
-	
-	/* Copie dans un fichier temporaire */
-	char nom_fichier_tmp[] = "md3D_fichier_tmp_68gIg78GUgkd.tmp";
-	if (!(fp_tmp = fopen(nom_fichier_tmp,"w+"))){
-		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier_tmp);
-		return 1;
-	}
-
-	
-	/* Comptage du nombre de caractères de la plus longue ligne */
-	int max = 0;
-	while(!feof(fp)){ 
-		if (lire_ligne(fp,line) != 0) break;
-		max = MAX(max,strlen(line));
-	}
-	
-
-	/* Fermeture des fichiers */
-
-	return 0;
-}
-
-
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int lire_str_arg(char *dest, char *label, int argc, char **argvcp)
  *
@@ -437,4 +407,104 @@ int lire_int_arg(int *res, char *label, int argc, char **argvcp)
 }
 
 
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int lire_complex_arg(COMPLEX *res, char *label, int argc, char **argvcp)
+ *
+ *	\brief	Read a complex argument in the command line. The format must be re+iIm, eg. 1.5+i0.1 with no space
+ */
+/*---------------------------------------------------------------------------------------------*/
+int lire_complex_arg(COMPLEX *res, char *label, int argc, char **argvcp)
+{
+	int i;
+	char strtmp[SIZE_STR_BUFFER];
+	double Re, Im;
 
+	for(i=1;i<=argc-2;i++){
+		if (!strcmp(argvcp[i],label)){
+			strncpy(strtmp, argvcp[i+1], SIZE_STR_BUFFER);
+			if (sscanf(strtmp, "%lf+i%lf",&Re,&Im) == 2){
+				*res= Re +I*Im;
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+/*---------------------------------------------------------------------------------------------*/
+/*!	\fn		int arg_read(int argc, char **argvcp, FILE *fp, char *type, void *var, char *flag, int exit_or_not)
+ *	
+ *	\brief	Lecture des paramètres dans un fichier
+ *
+ *---------------------------------------------------------------------------------------------*/
+int arg_read(int argc, char **argvcp, FILE *fp, char *type, void *var, char *flag, int exit_or_not)
+{
+	int read_error=0;
+	char cmd_line_flag[SIZE_STR_BUFFER];
+	snprintf(cmd_line_flag, SIZE_STR_BUFFER*sizeof(char), "-%s",flag);
+
+	if (!strcmp(type,"double")){
+		if (lire_dble_arg((double *) var, cmd_line_flag, argc, argvcp)) {
+			if (lire_double (fp, flag, (double *) var)) read_error = 1;}
+	}else if (!strcmp(type,"int")){
+		if (lire_int_arg((int *) var, cmd_line_flag, argc, argvcp)) {
+			if (lire_int (fp, flag, (int *) var)) read_error = 1;}
+	}else if (!strcmp(type,"complex")){
+		if (lire_complex_arg((COMPLEX *) var, cmd_line_flag, argc, argvcp)) {
+			if (lire_complex (fp, flag, (COMPLEX *) var)) read_error = 1;}
+	}else if (!strcmp(type,"string")){
+		if (lire_str_arg((char *) var, cmd_line_flag, argc, argvcp)) {
+			if (lire_string (fp, flag, (char *) var)) read_error = 1;}
+	}else{
+		fprintf(stderr, "%s line %d: ERROR, no type \"%s\"\n",__FILE__,__LINE__,type);
+		if (exit_or_not==EXIT_ON_ERROR) exit(EXIT_FAILURE);
+		return -2;
+	}
+
+	if (read_error != 0){
+		if (exit_or_not == EXIT_ON_ERROR){
+			fprintf(stderr, "%s line %d: ERROR, can't read \"%s\"\n",__FILE__,__LINE__,flag);
+			exit(EXIT_FAILURE);
+			return -1;
+		}else{
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+
+#if 0
+/*PAS FINIE, pas utile pour l'insant*/
+int ecrire_col(double *tab, char *nomtab, char *nom_fichier) 
+{
+	char line[SIZE_LINE_BUFFER];
+	FILE *fp, *fp_tmp;
+	
+	/* Ouverture du fichier */	
+	if (!(fp = fopen(nom_fichier,"w+"))){
+		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
+		return 1;
+	}
+	
+	/* Copie dans un fichier temporaire */
+	char nom_fichier_tmp[] = "md3D_fichier_tmp_68gIg78GUgkd.tmp";
+	if (!(fp_tmp = fopen(nom_fichier_tmp,"w+"))){
+		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier_tmp);
+		return 1;
+	}
+
+	
+	/* Comptage du nombre de caractères de la plus longue ligne */
+	int max = 0;
+	while(!feof(fp)){ 
+		if (lire_ligne(fp,line) != 0) break;
+		max = MAX(max,strlen(line));
+	}
+
+	/* Fermeture des fichiers */
+
+	return 0;
+}
+#endif

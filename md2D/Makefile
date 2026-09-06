@@ -1,16 +1,29 @@
 #
 #
 #
-ACML_INCLUDE_DIR = /opt/acml4.3.0/gfortran64/include 
-ACML_LIB_DIR = /opt/acml4.3.0/gfortran64/lib
-ATLAS_INCLUDE_DIR = /usr/include/atlas
-ATLAS_LIB_DIR = /usr/lib64/atlas
 
-HAVE_ACML=1
-HAVE_BLAS=0
+#HOME = /home/arnaud
+ATLAS_INCLUDE_DIR = /usr/include/atlas
+ATLAS_LIB_DIR = /usr/lib/atlas-base
+LAPACK_INCLUDE_DIR = /usr/include/atlas
+ICC_DIR = /opt/intel/compilers_and_libraries/linux/bin/intel64/
+
+MKL = /opt/intel/mkl
+MKL_LIB = $(MKL)/lib/em64t
+MKL_INC = $(MKL)/include
+#FFTW_PATH = /opt/scilibs/FFTW/fftw-3.2.1_Bull.9010
+#FFTW_LIB = $(FFTW_PATH)/lib
+#FFTW_INC = $(FFTW_PATH)/include
+#LOCAL_INC = $(HOME)/include
+#LOCAL_LIB = $(HOME)/lib
+
+HAVE_MKL=0
+HAVE_BLAS=1
 HAVE_CBLAS=0
 HAVE_LAPACK=1
 HAVE_ATLAS=0
+#COMPIL=ICC
+COMPIL=GCC
 
 NAME = md2D
 STD_H = std_include.h
@@ -21,15 +34,20 @@ PILOT = $(NAME)_pilot
 MATHS = md_maths
 ODE = md_odesolve
 
+######## FFTW ###########
 #LIB1 = -static -lfftw3
-LIB+= /usr/lib/libfftw3.a
-INC=
+#LIB= -L$(LOCAL_LIB) $(LOCAL_LIB)/libfftw3.a
+#INC= -I$(LOCAL_INC) -I$(FFTW_INC)
+LIB= -lfftw3
 DEFS=
 
-ifeq ($(HAVE_ACML),1)
-INC+= -I$(ACML_INCLUDE_DIR)
-LIB+= -L$(ACML_LIB_DIR) -lacml
-DEFS+= -D_ACML
+ifeq ($(HAVE_MKL),1)
+INC+= -I$(MKL_INC) -I$(LAPACK_INCLUDE_DIR)
+#LIB+= -L$(MKL_LIB) $(MKL_LIB)/libmkl_solver_lp64.a -Wl,--start-group $(MKL_LIB)/libmkl_intel_lp64.a $(MKL_LIB)/libmkl_intel_thread.a $(MKL_LIB)/libmkl_core.a -Wl,--end-group -openmp -lpthread
+LIB+=  -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_intel_lp64.a /opt/intel/mkl/lib/intel64/libmkl_gnu_thread.a /opt/intel/mkl/lib/intel64/libmkl_core.a -Wl,--end-group -lgomp -lpthread -lm -ldl
+#LIB+= -mkl
+DEFS+= -D_BLAS -D_LAPACK  -m64
+
 endif
 
 ifeq ($(HAVE_BLAS),1)
@@ -47,7 +65,7 @@ DEFS+= -D_CBLAS
 endif
 
 ifeq ($(HAVE_LAPACK),1)
-#INC+= -I$(LAPACK_INCLUDE_DIR)
+INC+= -I$(LAPACK_INCLUDE_DIR)
 #LIB+= -L$(LAPACK_LIB_DIR) -llapack
 LIB+= -llapack
 DEFS+= -D_LAPACK
@@ -61,24 +79,21 @@ DEFS+= -D_BLAS -D_LAPACK
 endif
 
 ifeq ($(COMPIL),ICC)
-CC=/opt/intel/cce/9.1.047/bin/icc
-LIB3 = -L/opt/intel/cce/9.1.047/lib
+#CC=$(ICC_DIR)/icc -wd981
+CC = $(ICC_DIR)/icc
+#LIB3 = -L/opt/intel/cce/9.1.047/lib
 else
 CC=gcc
 endif
 
-#ifeq ($(SCHED),FIFO)
-#OPTIM_FLAGS+=-DSCHED_FIFO=1
-#endif
-
-#LIB =$(LIB) -lf2c -lm
 LIB+= -lm
 
 all : $(NAME)
 
 # Options de compilation :
 #CFLAGS = -g -Wall -ansi $(DEFS)
-CFLAGS = -O3 -Wall -ansi $(DEFS)
+CFLAGS = -O3 -ansi $(DEFS)
+
 
 # Profiling
 #PG = -pg
@@ -119,7 +134,7 @@ $(NAME) : $(NAME).o $(IN_OUT).o $(IO_UTILS).o $(UTILS).o $(PILOT).o $(MATHS).o $
 # Archivage du projet en .tar
 tar :  
 #	tar -cvf $(NAME).tar ./*.c ./*.h  ./Makefile ./*.txt
-	tar -cvf $(NAME).tar ./*.c ./*.h ./*.txt
+	tar -cvf $(NAME).tar ./*.c ./*.h 
 
 # Archivage et Compression du projet en .tar.bz2
 bz2 : tar
@@ -136,8 +151,10 @@ zip :
 	zip $(NAME) ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./doc/*
 
 
-# Nettoyage du répertoire de travail	
+# Nettoyage du rÃ©pertoire de travail	
 clean :
 	rm -f ./*.o
 	rm -f ./*~
+
+
 

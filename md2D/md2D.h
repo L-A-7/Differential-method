@@ -31,7 +31,16 @@ int PsiMatrix(COMPLEX *Psi11, COMPLEX *Psi12, COMPLEX *Psi21, COMPLEX *Psi22, CO
 int invPsiMatrix(COMPLEX *Psi11, COMPLEX *Psi12, COMPLEX *Psi21, COMPLEX *Psi22, COMPLEX *kz, COMPLEX k, int vec_size, int pola);
 int md2D_make_tab_S_steps(struct Param_struct *par);
 int read_S_steps_from_profile(struct Param_struct *par);
-int md2D_near_field_map_evanescent(struct Param_struct *par);
+int md2D_local_field_map_by_T_products(COMPLEX *V0m, struct Param_struct *par);
+int md2D_local_field_map(COMPLEX ***tab_S12, COMPLEX ***tab_Z, struct Param_struct *par);
+int md2D_energy_flux(struct Param_struct *par, struct Efficacites_struct *eff);
+int monolayer_S_matrix(COMPLEX n_guide, double h_guide, struct Param_struct *par);
+int swifts_md2D_energy_flux(double h_guide, struct Param_struct *par, struct Efficacites_struct *eff);
+int S_matrix_init(struct Param_struct *par);
+COMPLEX *FFT_1D(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx);
+COMPLEX *FFT_1D_filter(COMPLEX *TF, COMPLEX *fx, COMPLEX *tmp_fx, int N, int Nx, struct Param_struct *par);
+
+
 
 /* Redondants */
 /*

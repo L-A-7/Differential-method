@@ -289,3 +289,43 @@ double **allocate_DbleMatrix(int nlign,int ncol)
   return tabl;
 }
 
+/*-------------------------------------------------------------------------------------*/
+/*!	\fn	double ***allocate_DbleMatrix_3(int nlign, int ncol, int ntab)
+ *
+ *	\brief	acces avec mat_3[i_tab][i_col][i_ligne]
+ */
+/*-------------------------------------------------------------------------------------*/
+double ***allocate_DbleMatrix_3(int nlign, int ncol, int ntab)
+{
+  int i;
+  double ***tabl;
+	
+  tabl = (double ***) malloc (ntab * sizeof (double **));
+  if (tabl == NULL) {
+    fprintf (stderr, "%s : Error, allocate_DbleMatrix_3() can't allocate memory\n", __FILE__); 
+    exit (EXIT_FAILURE);
+  }
+  tabl[0] = (double **) malloc (ntab*ncol * sizeof (double *));
+  if (tabl[0] == NULL) {
+    free (tabl); 
+    fprintf (stderr, "%s : Error, allocate_DbleMatrix_3() can't allocate memory\n", __FILE__); 
+    exit (EXIT_FAILURE);
+  }
+  for(i = 1; i < ntab; i++){
+    tabl[i] = tabl[i-1] + ncol; /* ncol*sizeof(double **) */
+  }	
+	
+  tabl[0][0] = (double *) malloc (ntab*ncol*nlign * sizeof (double));
+  if (tabl[0][0] == NULL) {
+    free(tabl[0]);
+    free (tabl); 
+    fprintf (stderr, "%s : Error, allocate_DbleMatrix_3() can't allocate memory\n", __FILE__); 
+    exit (EXIT_FAILURE);
+  }
+  for(i = 1; i < ncol*ntab; i++){
+    tabl[0][i] = tabl[0][i-1] + nlign; /* nlign*sizeof(double *) */
+  }	
+  return tabl;
+}
+
+

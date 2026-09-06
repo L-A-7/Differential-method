@@ -87,13 +87,13 @@ int md3D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 			if (lire_int (fp, "N_imposed_S_steps", &(par->N_imposed_S_steps) )) erreur="N_imposed_S_steps";}
 	}
 	if (lire_dble_arg(&nu_super_re, "-nu_super_re", argc, argvcp)) {
-		if (lire_COMPLEX(fp, "nu_super", &(par->nu_super))) erreur="nu_super";
+		if (lire_complex(fp, "nu_super", &(par->nu_super))) erreur="nu_super";
 	}else{
 		if (lire_dble_arg(&nu_super_im, "-nu_super_im", argc, argvcp)) {
 			nu_super_im =0;}
 		par->nu_super = nu_super_re +I*nu_super_im;}
 	if (lire_dble_arg(&nu_sub_re, "-nu_sub_re", argc, argvcp)) {
-		if (lire_COMPLEX(fp, "nu_sub", &(par->nu_sub))) erreur="nu_sub";
+		if (lire_complex(fp, "nu_sub", &(par->nu_sub))) erreur="nu_sub";
 	}else{
 		if (lire_dble_arg(&nu_sub_im, "-nu_sub_im", argc, argvcp)) {
 			nu_sub_im =0;}
@@ -290,7 +290,7 @@ int md3D_lire_profil_H_XY(const char *nom_fichier, struct Param_struct *par)
 		for (i=0; i<=par->N_stack-1; i++){
 			if (i != par->n_patterned_layer){
 				sprintf(index_name,"n%d",i);
-				if (lire_COMPLEX(fp, index_name, &index_tmp)) fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,index_name);
+				if (lire_complex(fp, index_name, &index_tmp)) fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,index_name);
 				par->nu_stack[i] = index_tmp;
 				sprintf(h_name,"h%d",i);
 				if (lire_double(fp, h_name, &hstack_tmp))  fprintf(stderr, "%s line %d: Error, can't read %s\n",__FILE__, __LINE__,h_name);
@@ -383,7 +383,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	/* Lecture des indices des couches et calculs des k2 et 1/k2 */
 	for (i=1; i<=N_layers; i++){
 		sprintf(nom_indice,"n%d",i);
-		if (lire_COMPLEX(fp, nom_indice, &indice)) erreur=nom_indice;
+		if (lire_complex(fp, nom_indice, &indice)) erreur=nom_indice;
 		par->k2_layer[i]    = (indice*par->k_super/par->nu_super)*(indice*par->k_super/par->nu_super); 
 		par->invk2_layer[i] = 1/par->k2_layer[i]; 
 	}
@@ -428,7 +428,7 @@ int md3D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	}else if (fabs(par->h - h_tmp) > eps*par->h) {
 		fprintf(stderr,  "+---------------------------------------------------------------------\
 				\n|                        CAUTION !\
-				\n| h determined for from the profile %s is %f while h indicated is %f !\
+				\n| h determined for %s is %f and h indicated %f !\
 				\n+---------------------------------------------------------------------\
 				\n",nom_fichier,h_tmp, par->h);
 	}
@@ -540,7 +540,7 @@ int md3D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 		}
 		for (i=1;i>0;i++){
  			snprintf(nu_name, SIZE_STR_BUFFER*sizeof(char), "n%d",i);
-			if (lire_COMPLEX(fp, nu_name, &nu[i-1])){
+			if (lire_complex(fp, nu_name, &nu[i-1])){
 				i_max = i;
 				break;
 			}

@@ -6,20 +6,23 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <errno.h>
 #include <ctype.h>
 #include <time.h>
 
-#if defined (_ACML) || defined (_BLAS) || defined (_CBLAS)
+
+/* TODO: CARREFULL!!! There is a problem her. Should be fixed. Not robust */
+#if defined (_MKL) || defined (_BLAS) || defined (_CBLAS)
 #define _LOWLEVEL_MAT_LIB
 #else
 #define _NO_LOWLEVEL_MAT_LIB
 #endif
 
-#ifdef _ACML
+/*#ifdef _ACML
 #undef _BLAS
 #undef _CBLAS
 #undef _LAPACK
-#endif
+#endif*/
 
 #ifdef _BLAS
 /*#include <blas.h>*/
@@ -30,8 +33,8 @@
 #ifdef _LAPACK
 #include <clapack.h>
 #endif
-#ifdef _ACML
-#include <acml.h>
+#ifdef _MKL
+#include <mkl.h>
 #endif
 
 #define COMPLEX double complex
@@ -53,7 +56,7 @@
 #define SIZE_LINE_BUFFER 50000
 
 #define NON_LU "Et_non_c_pas_lu"
-#define SUPER_BIG_HMIN_SSTEP 9999999999
+#define SUPER_BIG_HMIN_SSTEP 999999999
 #define SIGMA0_NORMED_NOT_DEFINED 84997454.405487582
 /* Macros */
 #define c_omplex(a,b) (a+I*b) 
@@ -77,11 +80,15 @@ struct Param_struct {
 	int pola;
 	char calcul_type[SIZE_STR_BUFFER];
 	char calcul_method[SIZE_STR_BUFFER];
+	char calculation_on_layer[SIZE_STR_BUFFER]; /* if value is ON_1_LAYER the initial S matrix value is set to the one of a homogeneous layer */
+	char S_matrix_blocks_calculation[SIZE_STR_BUFFER]; /* by default: only S12 and S22 are calculated (enough for illumination from top) ALL_4_S_MATRIX_BLOCKS: all blocks are calculated (necessary for illumination from top and below) */
+	char fft_filter[SIZE_STR_BUFFER];
 	COMPLEX n_super;
 	COMPLEX n_sub;
+	COMPLEX nu_layer;
 	double L;
 	double h;
-	double coef_h;
+	double h_layer;
 	double lambda;
 	double theta_i;
 	double phi_i;
@@ -97,6 +104,8 @@ struct Param_struct {
 	int Ni;
 	int ni;
 	double Delta_sigma;
+	int smoothing;
+	double l_smooth;
 	COMPLEX sigma0_normed; /* sigma0_normed: used to define evenescent incident field (replaces theta_i which value will not be taken into account). By defintion sigma0_normed=sigma0/k0, ie sigma0_normed=1 corresponds to theta_i=90° in void */ 
 	COMPLEX sigma0;
 	COMPLEX ky_0;
@@ -142,6 +151,7 @@ struct Param_struct {
 	COMPLEX **tab_TF_invk2;
 	
 	COMPLEX *k2;
+	COMPLEX *k2_tmp;
 	COMPLEX *invk2;
 	COMPLEX *Nx2;
 	COMPLEX *Nz2;
@@ -281,7 +291,10 @@ struct Efficacites_struct {
 
 	double *eff_r;
 	double *eff_t;
-	
+
+	double *arg_Ar;
+	double *arg_At;
+
 	double *N_eff_r;	
 	double *N_eff_t;
 	
@@ -289,7 +302,7 @@ struct Efficacites_struct {
 	double *theta_t;
 	double *phi_r;
 	double *phi_t;
-	
+
 	double sum_eff_r;
 	double sum_eff_t;
 	double sum_eff;

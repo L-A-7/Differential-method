@@ -30,8 +30,6 @@ int M_matrix(COMPLEX **M, double z, struct Param_struct *par);
 int zinvar_M_matrix(COMPLEX **M, double z, struct Param_struct *par);
 COMPLEX *invk_2(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 COMPLEX *k_2(struct Param_struct *par, COMPLEX *k2_1D, double z);
-int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par);
-int Normal_N_XY_ZINVAR(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par);
 int md3D_toepNorm(double z, struct Param_struct *par);
 int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par);
 int md3D_save_S_matrix(double h_partial, struct Param_struct *par);
@@ -67,6 +65,9 @@ COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 COMPLEX *k2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 COMPLEX *invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 COMPLEX **PsiMatrix(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, COMPLEX *sigma_x, COMPLEX *sigma_y, int vec_size);
+int Normal_H_XY(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par);
+int Normal_N_XY_ZINVAR(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par);
+int Normal_MULTI(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par);
 
 #endif /* _md3D_H */
 
