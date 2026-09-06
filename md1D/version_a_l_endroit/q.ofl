@@ -1,4 +1,0 @@
-PWD /home/lau/Programmes/md1D
-INPUT /var/lib/texmf/web2c/lambda.oft
-INPUT /usr/share/texmf/tex/latex/tools/q.tex
-OUTPUT q.log

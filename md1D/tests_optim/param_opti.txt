@@ -1,7 +1,0 @@
-n_super = 1.000000 + i0.000000
-n_sub = 3.951432 + i0.022909
-h = AUTO
-i_field_mode  = PLANE_WAVE
-calcul_type   = ELLIPSO
-pola = TE
-delta_h = 0.05

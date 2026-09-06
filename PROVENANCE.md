@@ -175,6 +175,95 @@ wrong, that numeric check (cheap - both had working Makefiles and test
 parameter files, retrievable from this commit's parent) is the way to
 verify it properly.
 
+## md1D/ (removed): subsumed by md2D, in-plane incidence only
+
+`md1D/` ("Methode Differentielle 1D", per its own `README.txt`) was removed
+as fully subsumed by `md2D/`, confirmed by reading both codebases.
+
+Both solve a periodic-grating diffraction problem with the same shape of
+machinery (`md1D/std_include.h`'s `Param_struct` has `L`, `N`, and an
+`Efficacites_struct` with per-order efficiency arrays, exactly analogous
+to `md2D`'s). Two real differences were found, not just a naming change:
+
+- **Generality, and a correction:** `md1D`'s `Param_struct` has no
+  `phi_i`/`psi` fields at all - only `theta_i` and a scalar `pola` (TE or
+  TM): classical, in-plane incidence, decoupled scalar TE/TM. `md2D`'s
+  struct does have `phi_i`/`psi`, and `md2D_classical_FFF`'s own docstring
+  claims to handle "a 1D structure with conical incidence" - but tracing
+  the actual dispatch in `md2D_pilot.c` shows this is not a real, complete
+  vector-coupled treatment:
+  - The function-pointer selection (`if (par->pola == TE) par->M_matrix =
+    M_matrix_TE; ... else par->M_matrix = M_matrix_TM;`) branches only on
+    `pola`, never on `phi_i` - the grating-region calculation is always
+    the scalar TE-only or TM-only matrix, never both, never coupled.
+  - `psi` (which would be needed to represent a mixed/elliptical incident
+    polarization for genuine conical coupling) is declared in the struct
+    but never read or used anywhere in `md2D.c`/`md2D_pilot.c`.
+  - `phi_i` does correctly enter the homogeneous super-/substrate
+    dispersion relation via `ky_0 = sigma0*tan(phi_i)` (used in
+    `kz_super`/`kz_sub`), but that same `ky_0` term is commented out in
+    `md2D.c`'s grating-region field equations - so the tilt is applied
+    outside the grating but ignored inside it. The `ky_0` formula itself
+    carries the original author's own `/* TODO: A verifier */` (not
+    verified) comment.
+
+  So `md2D`'s conical support, as coded, is at best partial/unverified,
+  not a clean superset - the actually-correct vector-coupled treatment
+  for genuine conical mounting lives in `mdConical`/`md3D` (see above),
+  not in `md2D`'s own `STD` path. What *is* solid: at `phi_i=0`, `ky_0`
+  is identically zero either way, `psi` is irrelevant since it's unused,
+  and `pola` alone selects the same scalar `M_matrix_TE`/`M_matrix_TM`
+  `md1D` itself would need - so `md2D` reproduces `md1D`'s classical
+  in-plane case exactly, and correctly, regardless of this caveat.
+  It also means there is no calculation-cost penalty for this unused
+  capability: since the dispatch never builds a larger or coupled system
+  for nonzero `phi_i` in the first place, `md2D` costs exactly the same
+  (same `vec_size = 2*N+1`, same scalar `M_matrix_TE`/`M_matrix_TM`)
+  whether `phi_i` is zero or not - `md1D`'s removal loses no efficiency
+  headroom to a "conical" code path that, in practice, isn't really there.
+- **Integration algorithm:** `md1D/eq_diff.c` calls GSL's generic adaptive
+  stepper (`gsl_odeiv_step_rk4`) - a general-purpose library routine.
+  `md2D/md_odesolve.c` has custom analytically-derived solvers instead:
+  `zinvar_P_matrix`/`zinvar_M_matrix_TM` (closed-form propagation through
+  homogeneous sublayers, no numerical integration needed under
+  `calcul_method = Z_INVAR`), and `implicit_rk_P_matrix` (a custom implicit
+  RK exploiting the block-diagonal structure of the Psi matrices - per the
+  recovered Bazaar commit history, O(N^2) instead of O(N^3), with an
+  analytic rather than numerical matrix inverse). A genuine algorithmic
+  upgrade, not just different tuning.
+
+`md1D/README.txt` described basic usage: parameters in a config file
+(conventionally one file per calculation type, invoked as
+`md1D -param param_file_name`), with the profile defined in a separate
+file. `md1D/version_a_l_endroit/Structure_md1D.txt` sketched the internal
+pipeline: profile -> `k2_xyz`/`invk2_xyz` -> Fourier-transformed
+(`TFk2_xyz`/`TFinvk2_xyz`) -> `S_matrix`. Both are recorded here since
+they're a reasonable template for `md2D`/`md3D` usage documentation, even
+though `md1D`'s own runnable files (in `TESTS/`, `tests_optim/`, and
+`md1D_usage_examples/`) only made sense run against the now-removed
+`md1D` binary.
+
+Everything else in `md1D/` was confirmed redundant before removal:
+`evolv/`, `version_a_l_endroit/`, `version_shakti_01/` were further
+frozen duplicate snapshots of `md1D` itself (same pattern as
+`PourAlex/new_DM` vs `md2D`, described above); `tests_optim/` duplicated
+the CD/thickness reconstruction study already preserved, more completely,
+in `md2D/Optimization_var_lambda/` (same material index files, same
+vendored `liblevmar.a`); the material index files (`AIR_index.txt`,
+`SI_CRISTAL_index.txt`, `POLY03_index.txt`, `OXIDE_THERM_index.txt`) were
+checked and are essentially identical to the copies already in
+`md2D/Optimization_var_lambda/`; and `md1D/utils/` held nothing beyond
+the same generic tools already in `md2D/utils/`.
+
+The two Octave/Matlab scripts `inverse_reflexion_TE.m` and
+`inverse_reflexion_TM.m` were kept (relocated to `Applications/`) as
+genuine standalone post-processing tools, not duplicated elsewhere.
+
+`md1D/CVS/`, `md1D/utils/CVS/`, and `md1D/TESTS/CVS/` metadata is not
+repeated here - it is the same CVS provenance already fully documented
+above (October 2004 onward), just re-encountered at its original
+location; removing it loses no information not already recorded.
+
 ### A related, unexplored lead
 
 `~/Programs/M_files/MethodDiff/m_methodDiff/CVS` (outside this project,
