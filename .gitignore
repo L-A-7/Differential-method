@@ -12,11 +12,15 @@ gmon.out
 octave-core
 
 # Legacy version-control metadata recovered/superseded during 2026 git import
-# (bzr/CVS/nested-git history has been imported into this repo's git history;
+# (bzr and nested-git history has been imported into this repo's git history;
 #  these directories are left on disk but excluded from tracking)
 .bzr/
-CVS/
 .git/
+
+# NOTE: CVS/ metadata (Entries/Root/Repository) is intentionally NOT ignored.
+# Unlike .bzr/nested-git, its history was never recoverable/re-imported (the
+# repository root it points to no longer exists) - these small files are the
+# only surviving trace of it, so they are tracked. See PROVENANCE.md.
 
 # Compiled binaries (source has no extension; these are the built executables)
 md1D/evolv/md1D
