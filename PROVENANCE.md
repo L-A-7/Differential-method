@@ -139,6 +139,42 @@ comparison at some point. So: the benchmark comparison lineage survives
 in `md2D/`, but the alternate RCWA code path that once produced one side
 of it is a lost capability, not just lost data.
 
+## mdConical/ (removed): subsumed by md3D with Ny=0
+
+`mdConical/` (a 3-file, ~1400-line standalone program for a 1D grating at
+conical incidence) was removed as redundant with `md3D/`, based on reading
+both codebases (not on running them - see caveat below).
+
+`md3D`'s `struct Param_struct` (`md3D/std_include.h`) already provisions
+independent harmonic truncation in both periodic directions (`Nx`, `Ny`,
+with `Lx`/`Ly`, per-order arrays `sigma_x`/`sigma_y`, and the full coupling
+tensor `Qxx,Qxy,Qxz,Qyy,Qyz,Qzz`). In `md3D_pilot.c`:
+
+```c
+par->vec_size = (2*par->Nx+1)*(2*par->Ny+1);
+for (i=-Ny;i<=Ny;i++)
+    for (j=-Nx;j<=Nx;j++){ par->nx[...] = j; par->ny[...] = i; }
+```
+
+Setting `Ny=0` makes the outer loop run once, giving every harmonic the
+same `sigma_y = sigma_y0` (independent of `Ly`) and collapsing
+`vec_size` to exactly `2*Nx+1` - precisely `mdConical`'s own
+`vec_size = 2*N+1`. `mdConical`'s `M_matrix` only ever uses
+`Qxx, Qxz, Qyy, Qzz` (never `Qxy`/`Qyz`), and its `mdC_QMatrix` function
+still carries a doc-comment copied verbatim from `md3D`'s `md3D_QMatrix`
+listing `Qxy`/`Qyz` in the argument list, even though the actual function
+signature had already dropped them - a leftover trace of `mdConical`
+having been derived by trimming md3D's general Q-tensor routine down to
+this y-invariant case. `md3D_in_out.c` reads `Ny` as a plain integer with
+no lower-bound check, so `Ny=0` is not rejected.
+
+**Caveat:** this was confirmed by reading the code, not by building both
+and comparing numeric output on a shared test case. If `md3D` output with
+`Ny=0` is ever needed as a stand-in for `mdConical` and the result looks
+wrong, that numeric check (cheap - both had working Makefiles and test
+parameter files, retrievable from this commit's parent) is the way to
+verify it properly.
+
 ### A related, unexplored lead
 
 `~/Programs/M_files/MethodDiff/m_methodDiff/CVS` (outside this project,
