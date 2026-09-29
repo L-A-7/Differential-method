@@ -96,6 +96,56 @@ int lire_string(FILE *fp, const char *label, char *value){
 }
 
 /*---------------------------------------------------------------------------------------------*/
+/*! \fn    int parse_complex(const char *str, COMPLEX *value)
+ *
+ *  \brief	Reads a complex number at the start of str (leading blanks are skipped).
+ *			Accepted forms, with or without blanks around the sign:
+ *			  a + ib   a - ib   a + i b   a + bi   a + b*i   a   (real number, imaginary part 0)
+ *			and the historical form a + i-b. Text after the number is ignored.
+ *  \return	0 on success, 1 otherwise (value is then left unchanged)
+ */
+/*---------------------------------------------------------------------------------------------*/
+int parse_complex(const char *str, COMPLEX *value){
+
+	const char *s = str;
+	char *end;
+	double re, im, sign;
+
+	while (isspace((unsigned char)*s)) s++;
+	re = strtod(s, &end);
+	if (end == s) return 1;                 /* no real part */
+	s = end;
+	while (isspace((unsigned char)*s)) s++;
+
+	if (*s != '+' && *s != '-'){            /* real number only */
+		*value = re;
+		return 0;
+	}
+	sign = (*s == '-') ? -1.0 : 1.0;
+	s++;
+	while (isspace((unsigned char)*s)) s++;
+
+	if (*s == 'i' || *s == 'I'){            /* a + ib, a + i b, a + i-b */
+		s++;
+		while (isspace((unsigned char)*s)) s++;
+		im = strtod(s, &end);
+		if (end == s) return 1;
+	}else{                                  /* a + bi, a + b*i */
+		im = strtod(s, &end);
+		if (end == s) return 1;
+		s = end;
+		while (isspace((unsigned char)*s)) s++;
+		if (*s == '*'){
+			s++;
+			while (isspace((unsigned char)*s)) s++;
+		}
+		if (*s != 'i' && *s != 'I') return 1;
+	}
+	*value = re + I*sign*im;
+	return 0;
+}
+
+/*---------------------------------------------------------------------------------------------*/
 /*! \fn    int lire_complex(FILE *fp,  char *label, COMPLEX *value)
  *
  *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
@@ -106,7 +156,6 @@ int lire_string(FILE *fp, const char *label, char *value){
 int lire_complex(FILE *fp, const char *label, COMPLEX *value){
 
 	char *pos, *pos2, stmp[SIZE_LINE_BUFFER];
-	double tmp1, tmp2;
 
 	rewind(fp);
 	while(!feof(fp)){
@@ -114,11 +163,7 @@ int lire_complex(FILE *fp, const char *label, COMPLEX *value){
 		skip_comment(stmp); /* Vire les commentaires */
 		if ((pos = label_search(stmp,label)) != NULL){ /* Recherche le label */	
 			if((pos2 = strchr(pos+strlen(label),'=')) != NULL) *pos2 = ' '; /* remplace '=' par un espace */
-			if (sscanf(pos+strlen(label)," %lf + i%lf", &tmp1, &tmp2) == 2){
-				*value = tmp1 + I*tmp2;
-				return 0;
-			}else if (sscanf(pos+strlen(label)," %lf+i%lf", &tmp1, &tmp2) == 2){
-				*value = tmp1 + I*tmp2;
+			if (parse_complex(pos+strlen(label), value) == 0){ /* Lit la valeur */
 				return 0;
 			}
 		}
@@ -417,13 +462,11 @@ int lire_complex_arg(COMPLEX *res, char *label, int argc, char **argvcp)
 {
 	int i;
 	char strtmp[SIZE_STR_BUFFER];
-	double Re, Im;
 
 	for(i=1;i<=argc-2;i++){
 		if (!strcmp(argvcp[i],label)){
 			strncpy(strtmp, argvcp[i+1], SIZE_STR_BUFFER);
-			if (sscanf(strtmp, "%lf+i%lf",&Re,&Im) == 2){
-				*res= Re +I*Im;
+			if (parse_complex(strtmp, res) == 0){
 				return 0;
 			}
 		}

@@ -16,6 +16,7 @@
 int lire_int(FILE *fp, const char *label, int *value);
 int lire_double(FILE *fp, const char *label, double *value);
 int lire_string(FILE *fp, const char *label, char *value);
+int parse_complex(const char *str, COMPLEX *value);
 int lire_complex(FILE *fp, const char *label, COMPLEX *value);
 int ecrire_dble_tab(FILE *fp, double *tab, int N, char *separateur1, int Nmax1, char *separateur2);
 int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2);
