@@ -58,6 +58,9 @@ def main():
                             capture_output=True, text=True).stdout.strip()
     times, cpu_times = {}, {}
     load_before = os.getloadavg()[0]
+    print("BLAS: %s  (OPENBLAS_NUM_THREADS=%s)" % (
+        next((l.split("=>")[1].split("(")[0].strip() for l in subprocess.run(["ldd", MD2D], capture_output=True,
+              text=True).stdout.splitlines() if "libblas.so" in l), "?"), os.environ.get("OPENBLAS_NUM_THREADS", "default")))
     print("%-34s %9s %9s   %s" % ("benchmark", "wall [s]", "cpu [s]", "sum_eff"))
     with tempfile.TemporaryDirectory() as tmp:
         for k, (name, prog, params, prof, quick) in enumerate(BENCHMARKS):
@@ -77,7 +80,10 @@ def main():
             times[name] = round(best, 3)
             cpu_times[name] = round(best_cpu, 3)
             print("%-34s %9.2f %9.2f   %.10f" % (name, best, best_cpu, res.sum_eff))
+    ldd = subprocess.run(["ldd", MD2D], capture_output=True, text=True).stdout
+    blas = next((l.split("=>")[1].split("(")[0].strip() for l in ldd.splitlines() if "libblas.so" in l), "?")
     entry = dict(commit=commit, date=datetime.datetime.now().isoformat(timespec="seconds"),
+                 blas=blas, blas_threads=os.environ.get("OPENBLAS_NUM_THREADS", "default"),
                  host=platform.node(), cpu=platform.processor() or platform.machine(),
                  load=round(load_before, 2), times=times, cpu_times=cpu_times)
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "bench_history.jsonl"), "a") as f:
