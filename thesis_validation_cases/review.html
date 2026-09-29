@@ -148,7 +148,7 @@ pre{font:13px/1.55 var(--mono);background:var(--panel);border:1px solid var(--ru
   <div class="finding"><h3>Lost inputs can be rebuilt</h3><p>The echelette, pyramid and circular-hole profiles were lost. <code>tools/mkprofile.py</code> regenerates them from their analytic description, and each one was checked against a saved result.</p></div>
   <div class="finding"><h3>RCWA is not lost</h3><p><code>calcul_method = Z_INVAR</code> treats every slice as z-invariant. With 1000 slices it reproduces the thesis RCWA column to every printed digit.</p></div>
   <div class="finding"><h3>Slices are the integration steps</h3><p>md2D takes one RK4 step per S-matrix slice, and <code>delta_h</code> is read but never used. A thesis run with "5000 steps" needs <code>NS = 5000</code> today. Metals in TM need at least 1000.</p></div>
-  <div class="finding"><h3>Parameter-file traps</h3><p><code>fft_filter</code> and <code>delta_h</code> are required. <code>smoothing</code> must be set explicitly, because a missing value is left uninitialised and the parser may then ask for <code>l_smooth</code>.</p></div>
+  <div class="finding"><h3>Parameter-file traps</h3><p><code>fft_filter</code> and <code>delta_h</code> are required. <code>smoothing</code> used to be left uninitialised when missing; it now defaults to 0.</p></div>
   <div class="finding"><h3>Two thesis errata</h3><p>The conical-incidence table (3.1) was computed with h = 1λ and φ = 45°, not the caption's 0.1λ and 30°. The biperiodic sine (4.5) uses h = 0.1 period, not 0.1λ.</p></div>
   <div class="finding"><h3>Normal vectors in 3D</h3><p>For surface profiles (<code>H_XY</code>) md3D computes the normal field itself, so no separate file is needed. For index maps (<code>N_XY_ZINVAR</code>) the normal is hard-coded as radial, and the code that reads a normal file is never reached.</p></div>
   <div class="finding"><h3>3D cost limits the check</h3><p>Cost grows roughly as (2N+1)⁶. With reference BLAS the pyramid took 22 min at N = 9 on a shared machine, so the thesis's N = 15 points were not reached.</p></div>
@@ -162,10 +162,9 @@ pre{font:13px/1.55 var(--mono);background:var(--panel);border:1px solid var(--ru
 <ol class="todo">
   <li><b>Run case 12, the deep aluminium grating.</b><span>Inputs are ready. With 250 slices it costs about 12× case 11 per N.</span></li>
   <li><b>Reach N = 15 for the 3D cases (08–12).</b><span>About 10 h per point with reference BLAS. Installing OpenBLAS (<code>libopenblas0-pthread</code>) should make it practical.</span></li>
-  <li><b>Fix the uninitialised <code>smoothing</code> in md2D.</b><span>A one-line default of 0 in <code>md2D_in_out.c</code> removes the trap.</span></li>
-  <li><b>Decide on the UTF-8 conversion.</b><span>113 source and data files are Latin-1/CP1252, with accents in comments only. The conversion is safe as a separate commit.</span></li>
   <li><b>Write the user documentation.</b><span>The parameter-file findings above are the starting point for the research group.</span></li>
 </ol>
+<p class="relkey">Done since the first version of this review: md2D initialises <code>smoothing</code> and <code>phi_i</code>, complex indices accept <code>a - ib</code>, and all sources are UTF-8.</p>
 
 <h2>How to rerun</h2>
 <p>Each case folder in <code>thesis_validation_cases/</code> has a <code>param.txt</code> and a <code>run.sh</code>. The script builds any missing profile, runs the solver in <code>run/</code> and prints this comparison.</p>

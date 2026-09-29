@@ -163,7 +163,7 @@ profile_name = alu_TE ; profile_file = sin_2048.txt</code></pre>
 <tr><td><code>i_field_mode</code></td><td><span class="req">req</span></td><td><code>PLANE_WAVE</code></td><td>only plane waves are implemented</td></tr>
 <tr><td><code>fft_filter</code></td><td><span class="req">req</span></td><td><code>NONE</code> | <code>HAMMING</code></td><td>optional Hamming window on the Fourier coefficients of the permittivity</td></tr>
 <tr><td><code>delta_h</code></td><td><span class="req">req</span></td><td>length</td><td><b>read but not used</b> (one integration step per slice)</td></tr>
-<tr><td><code>smoothing</code></td><td><span class="req">set it</span></td><td><code>0</code> | <code>1</code></td><td><code>1</code> adds a transition layer of thickness <code>l_smooth</code> that smooths the permittivity at interfaces (convergence aid for metals). Always write <code>smoothing = 0</code> otherwise (<a href="#limits">§ 8</a>)</td></tr>
+<tr><td><code>smoothing</code></td><td><span class="opt">opt</span></td><td><code>0</code> | <code>1</code>, default 0</td><td><code>1</code> adds a transition layer of thickness <code>l_smooth</code> that smooths the permittivity at interfaces (convergence aid for metals)</td></tr>
 <tr><td><code>verbosity</code></td><td><span class="opt">opt</span></td><td>0 | 1 | 2</td><td>terminal output, default 2</td></tr>
 <tr><td><code>sigma0_normed</code></td><td><span class="opt">opt</span></td><td>complex</td><td><i>σ₀/k₀</i>; replaces <code>theta_i</code> and allows an evanescent incident wave (|σ₀/k₀| &gt; ν₁)</td></tr>
 <tr><td><code>imposed_S_steps</code></td><td><span class="opt">opt</span></td><td><code>AUTO</code> | <code>FROM_FILE</code></td><td>put slice boundaries on horizontal interfaces (multilayers); with <code>hmin_Sstep</code>, <code>imposed_S_steps_filename</code></td></tr>
@@ -285,14 +285,13 @@ profil =
 <h2 id="limits"><span class="num">8</span>Limitations and known issues</h2>
 <ul>
   <li><b>Isotropic, non-magnetic, linear media only</b> (μ = μ₀). Only plane-wave illumination (<code>PLANE_WAVE</code>) is implemented.</li>
-  <li><b>md2D <code>smoothing</code></b> is left uninitialised when absent, and the parser may then ask for <code>l_smooth</code>. Always write <code>smoothing = 0</code>.</li>
-  <li><b>md2D <code>phi_i</code></b> is never read (the code is commented out) but enters σ₀ = k sin θ cos φ. It happens to be 0 in practice; the fix is to initialise it to 0. Do not use md2D for conical incidence: use md3D with <code>Ny = 0</code>.</li>
+  <li><b>md2D is for classical incidence only</b> (φ = 0). For conical incidence use md3D with <code>Ny = 0</code>.</li>
   <li><b><code>delta_h</code></b> is required but unused in both programs.</li>
   <li><b>The shooting method</b> of the thesis (Table 2.1) is disabled; the matrix RK4 scheme replaces it and gives the same results.</li>
   <li><b>Normal fields</b> are automatic only for single surfaces and stacks of interfaces. md2D <code>N_XYZ</code> has none (TE only). md3D <code>N_XY_ZINVAR</code> uses a hard-coded radial field centred on the cell (<code>Normal_N_XY_ZINVAR</code> in <code>md3D.c</code>); the code that would read <code>norm_x</code>/<code>norm_y</code> from the structure file is never reached. Any other shape needs a code change.</li>
   <li><b>Experimental</b>: md3D <code>N_XYZ</code>, <code>H_XY_plus_STACK</code> (a sample run violates energy conservation), md2D <code>GUIDED</code>/<code>SWIFTS</code> modes and the <code>IMPLICIT_RK</code>/<code>EULER</code> schemes.</li>
   <li><b>3D size</b>: the cost grows as the cube of the number of harmonics. Structures larger than a few wavelengths per period need an optimised BLAS and patience.</li>
-  <li>Source comments are in French and in Latin-1/CP1252 encoding.</li>
+  <li>Source comments are mostly in French (files are UTF-8).</li>
 </ul>
 
 <!-- ============================================================ -->

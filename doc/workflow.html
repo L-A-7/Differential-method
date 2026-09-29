@@ -150,7 +150,7 @@ EOF</code></pre>
 <thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
 <tbody>
 <tr><td><code>ERROR, can't read "fft_filter"</code> (or another key)</td><td>A required key is missing from the parameter file (manual § 4). Old parameter files lack <code>fft_filter</code>.</td></tr>
-<tr><td><code>can't read "l_smooth"</code> although you do not smooth</td><td><code>smoothing</code> is missing and was left uninitialised. Add <code>smoothing = 0</code>.</td></tr>
+<tr><td><code>can't read "l_smooth"</code></td><td><code>smoothing = 1</code> requires <code>l_smooth</code> (thickness of the transition layer). Older builds also showed this when <code>smoothing</code> was absent; the current code defaults it to 0.</td></tr>
 <tr><td><code>nan</code> efficiencies</td><td>An order is exactly grazing (Rayleigh anomaly). Change <i>L</i> or θ slightly. With a metal substrate, <code>nan</code> in <code>theta_t</code> is normal.</td></tr>
 <tr><td>Efficiencies far above 1 or wildly varying (metal, TM)</td><td>Too few slices: increase <code>NS</code> until h/NS ≤ λ/1000.</td></tr>
 <tr><td>Good energy balance but results change with N</td><td>Not converged in N; energy conservation cannot detect it. Increase N.</td></tr>

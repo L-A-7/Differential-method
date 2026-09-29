@@ -39,8 +39,8 @@ Requirements: the md2D/md3D build dependencies (FFTW3, BLAS, LAPACK) and python3
 - **md2D requires `fft_filter` and `delta_h`** in the parameter file, but `delta_h`
   is not used: md2D takes exactly one RK4 step per S-matrix slice, so the thesis'
   "number of integration steps" corresponds to `NS` today.
-- **md2D `smoothing`**: if absent, the variable is left uninitialised and the
-  parser may then demand `l_smooth`. Always set `smoothing = 0` (or 1 + `l_smooth`).
+- **md2D `smoothing`** defaults to 0 (before September 2026 it was left
+  uninitialised when absent, and the parser could then demand `l_smooth`).
 - **Profiles are rescaled** to `[0, h]` using the `h` of the parameter file, so a
   profile file only defines the shape.
 - **Normal vectors in md3D**: for `H_XY` profiles md3D computes the normal field
