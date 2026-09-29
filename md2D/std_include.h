@@ -31,7 +31,10 @@
 #include <cblas.h>
 #endif
 #ifdef _LAPACK
-#include <clapack.h>
+/* clapack.h intentionally not included: nothing in this codebase calls the
+   CLAPACK C API - lapack_eigen_values/lapack_invM in md_maths.c declare
+   their own extern prototypes for the raw Fortran-mangled LAPACK symbols
+   (zgeev_, zgetrf_, zgetri_) and link directly against liblapack/libblas. */
 #endif
 #ifdef _MKL
 #include <mkl.h>
