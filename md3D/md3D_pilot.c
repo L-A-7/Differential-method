@@ -177,6 +177,7 @@ int md3D_alloc_init_profil(struct Param_struct *par)
 	/* Allocations */	
 	if (par->profile_type == N_XYZ || par->profile_type == N_XY_ZINVAR) {
 		par->n_xyz = allocate_CplxMatrix(par->Nprz,par->Nprx*par->Npry);
+		par->profil = NULL; /* no h(x,y) profile for index maps */
 	}else if(par->profile_type == H_XY || par->profile_type == MULTICOUCHES){
 		par->profil = allocate_DbleMatrix(par->N_layers+3,par->Nprx*par->Npry);
 		par->k2_layer    = (COMPLEX *) malloc(sizeof(COMPLEX)*(par->N_layers+2));

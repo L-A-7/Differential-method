@@ -1498,7 +1498,7 @@ int md3D_toepNorm(double z, struct Param_struct *par)
 		normyz = allocate_CplxMatrix(Npry,Nprx);
 		normzz = allocate_CplxMatrix(Npry,Nprx);
 	
-		(*par->Normal_function)(normx, normy, normz, z, par->profil[0], par);	
+		(*par->Normal_function)(normx, normy, normz, z, (par->profil != NULL ? par->profil[0] : NULL), par);
 
 		for (i=0;i<=Npry-1;i++){
 			for (j=0;j<=Nprx-1;j++){
