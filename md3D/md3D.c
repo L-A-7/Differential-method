@@ -939,10 +939,17 @@ int rk4_P_matrix(COMPLEX **P, double z0, double dz, struct Param_struct *par)
 	double dz_3 = dz/3.0;
 	double dz_6 = dz/6.0;
 
-	M_tmp1 = allocate_CplxMatrix(P_size,P_size);
-	M_tmp2 = allocate_CplxMatrix(P_size,P_size);
-	M_tmp3 = allocate_CplxMatrix(P_size,P_size);
-
+	/* Work matrices are kept between calls (one allocation per run instead of three per slice) */
+	static COMPLEX **buf[3] = {NULL, NULL, NULL};
+	static int buf_size = 0;
+	if (buf_size != P_size){
+		for (i=0;i<3;i++){
+			if (buf[i] != NULL){ free(buf[i][0]); free(buf[i]); }
+			buf[i] = allocate_CplxMatrix(P_size,P_size);
+		}
+		buf_size = P_size;
+	}
+	M_tmp1 = buf[0]; M_tmp2 = buf[1]; M_tmp3 = buf[2];
 
 	/* M matrix calculation */
 
@@ -1011,13 +1018,6 @@ int rk4_P_matrix(COMPLEX **P, double z0, double dz, struct Param_struct *par)
 		}
 	}
 	par->N_steps++;
-
-	free(M_tmp1[0]);
-	free(M_tmp2[0]);
-	free(M_tmp3[0]);
-	free(M_tmp1);
-	free(M_tmp2);
-	free(M_tmp3);
 
 	return 0;
 }

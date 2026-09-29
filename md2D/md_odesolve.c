@@ -76,14 +76,19 @@ int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 {
 	int i,j, vec_size = par->vec_size;
 	COMPLEX **Mz, **Mzd, **Mzdd, **M2, **M3, **M4, **rkM_tmp;
-	Mz    = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	Mzd   = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	Mzdd  = allocate_CplxMatrix(2*vec_size,2*vec_size);
-/*	M1    = allocate_CplxMatrix(2*vec_size,2*vec_size);*/
-	M2    = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	M3    = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	M4    = allocate_CplxMatrix(2*vec_size,2*vec_size);
-	rkM_tmp = allocate_CplxMatrix(2*vec_size,2*vec_size);
+
+	/* Work matrices are kept between calls (one allocation per run instead of seven per
+	   slice: each is 2V x 2V complex, large enough that malloc/free went to the system). */
+	static COMPLEX **buf[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+	static int buf_size = 0;
+	if (buf_size != 2*vec_size){
+		for (i=0;i<7;i++){
+			if (buf[i] != NULL){ free(buf[i][0]); free(buf[i]); }
+			buf[i] = allocate_CplxMatrix(2*vec_size,2*vec_size);
+		}
+		buf_size = 2*vec_size;
+	}
+	Mz = buf[0]; Mzd = buf[1]; Mzdd = buf[2]; M2 = buf[3]; M3 = buf[4]; M4 = buf[5]; rkM_tmp = buf[6];
 
 	double dz_2 = 0.5*dz;
 
@@ -133,22 +138,6 @@ int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 	}
 
 	par->N_steps++;
-
-	free(Mz[0]);
-	free(Mzd[0]);
-	free(Mzdd[0]);
-/*	free(M1[0]); free(M1);*/
-	free(M2[0]);
-	free(M3[0]);
-	free(M4[0]);
-	free(rkM_tmp[0]);
-	free(Mz);
-	free(Mzd);
-	free(Mzdd);
-	free(M2);
-	free(M3);
-	free(M4);
-	free(rkM_tmp);
 
 	return 0;
 }
