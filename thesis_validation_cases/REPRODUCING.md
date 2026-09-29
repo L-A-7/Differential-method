@@ -22,17 +22,17 @@ Requirements: the md2D/md3D build dependencies (FFTW3, BLAS, LAPACK) and python3
 |---|---|---|---|---|
 | 01 | 2.1 | reproduced (matrix column) | 8e-5 rel. (order -1) | shooting method is commented out in md2D - that column cannot be recomputed |
 | 02 | 2.2 | reproduced | 1-3% on small orders, 1.5e-3 on the reciprocal pair; reciprocity itself holds to 5e-5 | echelette profile regenerated, mirrored w.r.t. old md1D `echelle.txt` |
-| 03 | 2.3 | reproduced | ~1e-6 abs. vs MFS, TE and TM | needs the 2048-point sine (256 points alias at N=100) |
+| 03 | 2.3 | reproduced | TE: ~1e-8 abs. vs MFS at NS=5000 (~1e-6 at NS=1000); TM ~1e-6 at NS=1000 | needs the 2048-point sine (256 points alias at N=100) |
 | 04 | 2.4 | reproduced | 2e-4 abs. | TM on metal needs NS >= 1000 |
 | 05 | 2.5 | reproduced | RCWA column: all 6 digits; DM column ~1e-5 | RCWA column = `calcul_method = Z_INVAR`, NS=1000 |
-| 06 | 3.1 | reproduced, not digit-exact | 0.02-1.2% (same level as thesis DM vs GSolver) | thesis caption parameters are wrong (see `param.txt`); now computed with md3D, Ny=0 |
+| 06 | 3.1 | reproduced, not digit-exact | 0.01-0.3% at NS=1000 (same level as thesis DM vs GSolver) | thesis caption parameters are wrong (see `param.txt`); now computed with md3D, Ny=0 |
 | 07 | 4.1 | scaling only | - | absolute times are machine-dependent |
-| 08 | 4.2 | reproduced | ~1e-4 rel. at N=7 vs thesis N=15 | pyramid profile regenerated |
-| 09 | 4.3 | reproduced | constant ~3.5e-4 rel. offset, same convergence | idem |
-| 10 | 4.4 | reproduced | ~5e-4 rel. | idem |
-| 11 | 4.5 | reproduced | 1e-8 abs. at N=6 | `md3D/pr_sin3D_256x256.txt` |
+| 08 | 4.2 | reproduced | 5e-6 to 5e-4 rel. at N=9 vs thesis N=15 | pyramid profile regenerated |
+| 09 | 4.3 | reproduced N=1-9 | constant ~3.5e-4 rel. offset, same convergence | idem |
+| 10 | 4.4 | reproduced N=1-9 | ~5e-4 rel. | idem |
+| 11 | 4.5 | reproduced N=1-8 | 1e-8 abs. from N=6 | `md3D/pr_sin3D_256x256.txt` |
 | 12 | 4.6 | not yet run | - | inputs prepared, unvalidated |
-| 13 | 4.7 | reproduced | ~4e-5 abs. | circle index map regenerated (1024x1024) |
+| 13 | 4.7 | reproduced N=0-12 (full table) | ~4e-5 abs. | circle index map regenerated (1024x1024) |
 
 ## Things that are not obvious from the code
 
@@ -51,7 +51,7 @@ Requirements: the md2D/md3D build dependencies (FFTW3, BLAS, LAPACK) and python3
 - **Order labels**: the thesis tables are not consistent between chapters;
   `tools/compare.py` documents the mapping to md2D/md3D order indices.
 - **Speed**: 3D cost grows as N^6. With reference BLAS N=10 takes about an hour,
-  N=15 about ten hours per point; an optimised BLAS (e.g. OpenBLAS) helps a lot.
+  N=15 about ten hours per point (pyramid, NS=20: N=5 1.5 min, N=9 22 min on a shared 8-core machine); an optimised BLAS (e.g. OpenBLAS) helps a lot.
 
 ## Where the original inputs were found
 

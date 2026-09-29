@@ -17,6 +17,6 @@ calcul_method = RK4
 verbosity = 1
 Nx = 50
 Ny = 0
-NS = 200
+NS = 1000       # NS=200 gives up to 1.2% deviation, NS=1000 ~0.1-0.3%
 delta_h = 0.00005
 profile_name = c06 ; profile_file = carre_256_1D.txt
