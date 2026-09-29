@@ -32,6 +32,7 @@ See [`tests/README.md`](tests/README.md).
 
 - [`doc/index.html`](doc/index.html): user manual ([PDF](doc/manual.pdf))
 - [`doc/workflow.html`](doc/workflow.html): practical guide with recipes and troubleshooting ([PDF](doc/practical_guide.pdf))
+- [`doc/optimization_report.html`](doc/optimization_report.html): what was optimized and how it was checked ([PDF](doc/optimization_report.pdf))
 - [`thesis_validation_cases/review.html`](thesis_validation_cases/review.html): reproduction of the thesis validation tables with the current code
 - [`thesis_validation_cases/REPRODUCING.md`](thesis_validation_cases/REPRODUCING.md): how to rerun each validation case
 - [`references/Arnaud_2008_PhD_thesis.pdf`](references/Arnaud_2008_PhD_thesis.pdf): the thesis (in French), with the full derivations

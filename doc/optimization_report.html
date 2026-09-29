@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>md2D / md3D Optimization Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="manual.css">
+<style>
+:root{ --s1:#2a78d6; --s2:#eb6834; --bar:#2a78d6; }
+@media screen and (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --s1:#3987e5; --s2:#d95926; --bar:#3987e5; } }
+@media screen{ :root[data-theme="dark"]{ --s1:#3987e5; --s2:#d95926; --bar:#3987e5; } }
+svg .grid{stroke:var(--rule-2);stroke-width:1}
+svg .tick{fill:var(--ink-3);font:11px var(--mono)}
+svg .lab{fill:var(--ink-2);font:500 12.5px var(--sans)}
+svg .val{fill:var(--ink);font:500 12px var(--mono)}
+svg .bar{fill:var(--bar)}
+svg .s1{stroke:var(--s1);stroke-width:2} svg .s2{stroke:var(--s2);stroke-width:2}
+svg .m1{fill:var(--s1);stroke:var(--panel);stroke-width:1.5} svg .m2{fill:var(--s2);stroke:var(--panel);stroke-width:1.5}
+.chartbox{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px;margin-top:12px}
+.chartbox svg{display:block;max-width:100%;height:auto}
+.smallmult{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:8px;margin-top:12px}
+.smallmult figure{margin:0}
+.smallmult svg{width:100%;height:auto;border:0}
+.legend{display:flex;gap:18px;font-size:13px;color:var(--ink-2);margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:16px;height:2px;margin-right:6px;vertical-align:middle;background:var(--k)}
+.delta{font-size:11px;color:var(--ink-3);margin-left:3px}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+th.num{font-size:10px}
+.kpi{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:16px}
+.kpi div{font-size:13px;color:var(--ink-2)}
+.kpi b{display:block;font:600 26px var(--cond);color:var(--ink)}
+@media print{ .chartbox,.smallmult{break-inside:avoid} .kpi b{font-size:18pt} }
+</style>
+</head>
+<body>
+<div class="doc">
+<nav class="docnav" aria-label="Documentation">
+  <a href="index.html">User manual</a>
+  <a href="workflow.html">Practical guide</a>
+  <a href="optimization_report.html" aria-current="page">Optimization report</a>
+  <a href="../thesis_validation_cases/review.html">Validation review</a>
+</nav>
+
+<header>
+  <span class="eyebrow">Performance work · September 2026</span>
+  <h1>md2D / md3D Optimization Report</h1>
+  <p class="lede">What made the codes faster, how each change was checked, and one numerical correction found along the way. Every step kept the full test suite passing and was measured with the same benchmark.</p>
+  <p class="meta">Branch <code>optimization</code> (merged into <code>master</code>) · 8-core x86-64 PC, Debian · measurements in <code>tests/bench_history.jsonl</code></p>
+  <div class="kpi">
+    <div><b>3–20×</b>faster on the benchmark runs</div>
+    <div><b>128</b>automated tests, all passing</div>
+    <div><b>≤10⁻⁹</b>change of results from the speed-ups</div>
+    <div><b>exact</b>flat interfaces with RK4 after the slice-boundary fix</div>
+  </div>
+</header>
+
+<h2 id="summary"><span class="num">1</span>Summary</h2>
+<p>Six configurations are timed by <code>make bench</code>. From the starting point to now, they run 3–20 times faster; the largest gains are on the biggest problems. Most of the gain comes from two changes: using OpenBLAS instead of the reference BLAS, and no longer reallocating large work matrices at every slice. The speed-ups did not change any result beyond rounding.</p>
+<div class="chartbox"><svg viewBox="0 0 640 246" width="640" role="img" aria-label="Speed-up per benchmark, start to now"><line x1="230.0" x2="230.0" y1="24" y2="216" class="grid"/><text x="230.0" y="232" class="tick" text-anchor="middle">×0</text><line x1="298.0" x2="298.0" y1="24" y2="216" class="grid"/><text x="298.0" y="232" class="tick" text-anchor="middle">×5</text><line x1="366.0" x2="366.0" y1="24" y2="216" class="grid"/><text x="366.0" y="232" class="tick" text-anchor="middle">×10</text><line x1="434.0" x2="434.0" y1="24" y2="216" class="grid"/><text x="434.0" y="232" class="tick" text-anchor="middle">×15</text><line x1="502.0" x2="502.0" y1="24" y2="216" class="grid"/><text x="502.0" y="232" class="tick" text-anchor="middle">×20</text><line x1="570.0" x2="570.0" y1="24" y2="216" class="grid"/><text x="570.0" y="232" class="tick" text-anchor="middle">×25</text><text x="220" y="45" class="lab" text-anchor="end">md2D TE, Al, N=40, NS=1000</text><rect x="230.0" y="32" width="100.3" height="18" rx="3" class="bar"><title>md2D TE, Al, N=40, NS=1000: ×7.4</title></rect><text x="336.3" y="45" class="val">×7.4</text><text x="220" y="75" class="lab" text-anchor="end">md2D TM, Al, N=40, NS=1000</text><rect x="230.0" y="62" width="76.9" height="18" rx="3" class="bar"><title>md2D TM, Al, N=40, NS=1000: ×5.7</title></rect><text x="312.9" y="75" class="val">×5.7</text><text x="220" y="105" class="lab" text-anchor="end">md2D TE, glass, N=100, NS=300</text><rect x="230.0" y="92" width="225.3" height="18" rx="3" class="bar"><title>md2D TE, glass, N=100, NS=300: ×16.6</title></rect><text x="461.3" y="105" class="val">×16.6</text><text x="220" y="135" class="lab" text-anchor="end">md2D TM, Z_INVAR, N=40, NS=200</text><rect x="230.0" y="122" width="42.4" height="18" rx="3" class="bar"><title>md2D TM, Z_INVAR, N=40, NS=200: ×3.1</title></rect><text x="278.4" y="135" class="val">×3.1</text><text x="220" y="165" class="lab" text-anchor="end">md3D pyramid, N=4, NS=20</text><rect x="230.0" y="152" width="119.3" height="18" rx="3" class="bar"><title>md3D pyramid, N=4, NS=20: ×8.8</title></rect><text x="355.3" y="165" class="val">×8.8</text><text x="220" y="195" class="lab" text-anchor="end">md3D pyramid, N=6, NS=20</text><rect x="230.0" y="182" width="276.5" height="18" rx="3" class="bar"><title>md3D pyramid, N=6, NS=20: ×20.3</title></rect><text x="512.5" y="195" class="val">×20.3</text><text x="230" y="16" class="tick">speed-up (time at start / time now)</text></svg></div>
+<p>The <code>Z_INVAR</code> benchmark gains least (×3.1). It computes each slice through an eigen-decomposition of M rather than RK4, a path none of the changes targeted and that has not been profiled yet.</p>
+
+<h2 id="method"><span class="num">2</span>How the work was checked</h2>
+<ul>
+  <li><b>Tests before speed.</b> An automated test suite was built first (<code>make test</code>, about 110 checks in under a minute; <code>make test-validation</code>, the thesis tables at reduced resolution in about 1.5 min). It compares with stored reference results to a relative 10⁻⁹, with exact solutions (Fresnel, thin-film Airy formula) to 10⁻¹², checks physical laws (energy conservation, reciprocity, symmetries) and that md2D and md3D agree where both apply. Each optimization had to pass all of it.</li>
+  <li><b>Benchmark.</b> <code>make bench</code> records wall and CPU time of the six configurations, the BLAS library, the thread count and the machine load before the run, with the commit, in <code>tests/bench_history.jsonl</code>. The machine was shared (load 1.7–3.2), so single-threaded steps are compared on CPU time, which barely depends on the load, and differences below ~5 % are treated as noise.</li>
+  <li><b>Profile.</b> valgrind's callgrind showed where the time goes before any code was touched (§ 3).</li>
+</ul>
+
+<h2 id="profile"><span class="num">3</span>Where the time went</h2>
+<p>One routine dominated: <code>zgemm</code>, the complex matrix-matrix product of BLAS, took <b>86–96 %</b> of the run time in md2D TE, md2D TM and md3D. The programs' own code was a few percent. By caller:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Share of run time</th><th class="num">md2D TE</th><th class="num">md2D TM</th><th class="num">md3D</th></tr></thead>
+<tbody>
+<tr><td>RK4 step of a slice (<code>rk4_P_matrix</code>)</td><td class="num">82 %</td><td class="num">91 %</td><td class="num">59 %</td></tr>
+<tr><td>… of which building M (Fourier, Toeplitz, products)</td><td class="num">1.5 %</td><td class="num">53 %</td><td class="num">14 %</td></tr>
+<tr><td>rest of the T-matrix computation</td><td class="num">~1 %</td><td class="num">~1 %</td><td class="num">~30 %</td></tr>
+<tr><td>S-matrix recursion and inversions</td><td class="num">~17 %</td><td class="num">~8 %</td><td class="num">~9 %</td></tr>
+</tbody></table></div>
+<p>Two conclusions followed: a faster BLAS would help everything at once, and within the code the RK4 step was the place to look.</p>
+
+<h2 id="steps"><span class="num">4</span>The steps</h2>
+<p>Times in seconds for each benchmark after each step; the small figure is the change from the previous row. Rows up to "RK4 work matrices" are single-threaded CPU times; the last two rows are wall times with automatic threads.</p>
+<div class="tablewrap"><table><thead><tr><th>Step</th><th>Commit</th><th class="num">md2D TE<br>Al, N=40, NS=1000</th><th class="num">md2D TM<br>Al, N=40, NS=1000</th><th class="num">md2D TE<br>glass, N=100, NS=300</th><th class="num">md2D TM<br>Z_INVAR, N=40, NS=200</th><th class="num">md3D pyramid<br>N=4, NS=20</th><th class="num">md3D pyramid<br>N=6, NS=20</th></tr></thead><tbody><tr><td>Starting point: reference BLAS, md3D built with -g</td><td><code>0453a8b</code></td><td class="num">32.6 </td><td class="num">63.7 </td><td class="num">146.1 </td><td class="num">27.2 </td><td class="num">9.30 </td><td class="num">92.9 </td></tr><tr><td>md3D built with -O3</td><td><code>f26e652</code></td><td class="num">32.6 <span class="delta">+0%</span></td><td class="num">63.7 <span class="delta">+0%</span></td><td class="num">146.1 <span class="delta">+0%</span></td><td class="num">27.2 <span class="delta">+0%</span></td><td class="num">9.30 <span class="delta">+0%</span></td><td class="num">87.6 <span class="delta">-6%</span></td></tr><tr><td>OpenBLAS instead of the reference BLAS (1 thread)</td><td><code>system</code></td><td class="num">6.78 <span class="delta">-79%</span></td><td class="num">14.3 <span class="delta">-77%</span></td><td class="num">24.9 <span class="delta">-83%</span></td><td class="num">8.58 <span class="delta">-68%</span></td><td class="num">1.67 <span class="delta">-82%</span></td><td class="num">10.4 <span class="delta">-88%</span></td></tr><tr><td>Matrix product without copies</td><td><code>161cb71</code></td><td class="num">6.06 <span class="delta">-11%</span></td><td class="num">13.2 <span class="delta">-8%</span></td><td class="num">23.8 <span class="delta">-4%</span></td><td class="num">9.22 <span class="delta">+7%</span></td><td class="num">1.56 <span class="delta">-7%</span></td><td class="num">10.2 <span class="delta">-2%</span></td></tr><tr><td>RK4 work matrices kept between slices</td><td><code>501ac73</code></td><td class="num">4.09 <span class="delta">-33%</span></td><td class="num">10.8 <span class="delta">-18%</span></td><td class="num">18.4 <span class="delta">-23%</span></td><td class="num">8.76 <span class="delta">-5%</span></td><td class="num">1.50 <span class="delta">-4%</span></td><td class="num">9.66 <span class="delta">-5%</span></td></tr><tr><td>Automatic OpenBLAS thread count (wall time)</td><td><code>68b69d8</code></td><td class="num">4.65 <span class="delta">+14%</span></td><td class="num">10.5 <span class="delta">-3%</span></td><td class="num">8.90 <span class="delta">-52%</span></td><td class="num">8.73 <span class="delta">-0%</span></td><td class="num">0.90 <span class="delta">-40%</span></td><td class="num">4.37 <span class="delta">-55%</span></td></tr><tr><td>One-sided sampling at slice boundaries (wall time)</td><td><code>d76dc21</code></td><td class="num">4.42 <span class="delta">-5%</span></td><td class="num">11.3 <span class="delta">+7%</span></td><td class="num">8.82 <span class="delta">-1%</span></td><td class="num">8.73 <span class="delta">+0%</span></td><td class="num">1.06 <span class="delta">+18%</span></td><td class="num">4.57 <span class="delta">+5%</span></td></tr></tbody></table></div>
+<h3>md3D built with -O3 <code>f26e652</code></h3>
+<p>md3D was compiled with debugging flags only (its <code>-O3</code> line was commented out). Switching was only safe after a memory bug was fixed: for index-map structures md3D read an uninitialised pointer, which the debug build survived by chance and an optimized build turned into a crash (fixed in <code>5903b05</code>, results unchanged). Gain: 6 % at N = 6, since most of the time is in BLAS.</p>
+<h3>OpenBLAS</h3>
+<p>Replacing the reference BLAS by OpenBLAS needs no rebuild: on Debian, installing <code>libopenblas0-pthread</code> switches <code>libblas.so.3</code> and <code>liblapack.so.3</code> system-wide. All tests pass with it (results within 10⁻⁹). Single-threaded, the benchmarks run <b>3.2–8.4 times faster</b>.</p>
+<h3>Matrix product without copies <code>161cb71</code></h3>
+<p>Each product allocated two temporary matrices, copied and transposed both inputs, and transposed the result, to bridge C's row-major storage and Fortran's column-major. A row-major matrix is its own transpose in column-major order, so C = A·B is obtained directly as Cᵀ = Bᵀ·Aᵀ by passing B and A in swapped order. The old path is kept, and taken automatically, if the output overlaps an input or a matrix is not stored contiguously. Gain: 2–11 %.</p>
+<h3>RK4 work matrices kept between slices <code>501ac73</code></h3>
+<p>The RK4 step allocated and freed seven 2V×2V complex matrices per slice in md2D (three in md3D). Each is a few hundred kilobytes, so every allocation went to the operating system and every page was zeroed again. The matrices are now allocated once per run. Results are bit-identical; md2D gains <b>18–33 %</b>.</p>
+<h3>Automatic OpenBLAS thread count <code>68b69d8</code></h3>
+<p>OpenBLAS uses every core by default, which made md2D's small matrices slower. Measurements showed one thread is best below a matrix dimension of about 300, and four threads are 1.5–2.3 times faster above ~400. The programs now choose (1 or 4, never more than the cores) unless <code>OPENBLAS_NUM_THREADS</code> or <code>OMP_NUM_THREADS</code> is set; the OpenBLAS functions are weak references, so the programs still link and run with any BLAS. Wall time: md2D N = 100 from 18.5 to 8.9 s, md3D N = 6 from 9.7 to 4.4 s.</p>
+
+<h2 id="accuracy"><span class="num">5</span>An accuracy correction: sampling at slice boundaries <code>d76dc21</code></h2>
+<p>While testing the idea of reusing M between consecutive slices, three reference results changed: in those cases a profile sample or an interface lies exactly on a slice boundary, where the permittivity is undetermined. The code chose the material by the floating-point rounding of z ± Δz/2.</p>
+<p>Each S-matrix slice is integrated on its own, between two zero-thickness layers where the field is re-expressed in plane waves. The integration step of a slice must therefore see the structure as the limit from inside that slice: from above at its bottom, from below at its top. Both programs now do so (a <code>z_side</code> flag read by the structure functions). The effect on structures whose interfaces lie on slice boundaries:</p>
+<div class="smallmult"><figure class="mini"><svg viewBox="0 0 250 210" width="250" role="img" aria-label="Flat interface vs Fresnel"><text x="4" y="14" class="lab">Flat interface vs Fresnel</text><line x1="52" x2="238" y1="26.0" y2="26.0" class="grid"/><text x="47" y="30.0" class="tick" text-anchor="end">1e0</text><line x1="52" x2="238" y1="60.8" y2="60.8" class="grid"/><text x="47" y="64.8" class="tick" text-anchor="end">1e-4</text><line x1="52" x2="238" y1="95.6" y2="95.6" class="grid"/><text x="47" y="99.6" class="tick" text-anchor="end">1e-8</text><line x1="52" x2="238" y1="130.5" y2="130.5" class="grid"/><text x="47" y="134.5" class="tick" text-anchor="end">1e-12</text><line x1="52" x2="238" y1="165.3" y2="165.3" class="grid"/><text x="47" y="169.3" class="tick" text-anchor="end">1e-16</text><text x="70.5" y="189" class="tick" text-anchor="middle">10</text><text x="145.0" y="189" class="tick" text-anchor="middle">40</text><text x="219.5" y="189" class="tick" text-anchor="middle">160</text><text x="238" y="206" class="tick" text-anchor="end">NS</text><polyline points="70.5,60.5 145.0,70.9 219.5,81.4" class="s2" fill="none"/><circle cx="70.5" cy="60.5" r="4" class="m2"><title>before, NS=10: 1.1e-04</title></circle><circle cx="145.0" cy="70.9" r="4" class="m2"><title>before, NS=40: 6.9e-06</title></circle><circle cx="219.5" cy="81.4" r="4" class="m2"><title>before, NS=160: 4.3e-07</title></circle><polyline points="70.5,163.5 145.0,163.5 219.5,163.5" class="s1" fill="none"/><circle cx="70.5" cy="163.5" r="4" class="m1"><title>one-sided, NS=10: 1.6e-16</title></circle><circle cx="145.0" cy="163.5" r="4" class="m1"><title>one-sided, NS=40: 1.6e-16</title></circle><circle cx="219.5" cy="163.5" r="4" class="m1"><title>one-sided, NS=160: 1.6e-16</title></circle></svg></figure><figure class="mini"><svg viewBox="0 0 250 210" width="250" role="img" aria-label="Lamellar layer (TE) vs exact"><text x="4" y="14" class="lab">Lamellar layer (TE) vs exact</text><line x1="52" x2="238" y1="26.0" y2="26.0" class="grid"/><text x="47" y="30.0" class="tick" text-anchor="end">1e0</text><line x1="52" x2="238" y1="60.8" y2="60.8" class="grid"/><text x="47" y="64.8" class="tick" text-anchor="end">1e-4</text><line x1="52" x2="238" y1="95.6" y2="95.6" class="grid"/><text x="47" y="99.6" class="tick" text-anchor="end">1e-8</text><line x1="52" x2="238" y1="130.5" y2="130.5" class="grid"/><text x="47" y="134.5" class="tick" text-anchor="end">1e-12</text><line x1="52" x2="238" y1="165.3" y2="165.3" class="grid"/><text x="47" y="169.3" class="tick" text-anchor="end">1e-16</text><text x="70.5" y="189" class="tick" text-anchor="middle">25</text><text x="145.0" y="189" class="tick" text-anchor="middle">100</text><text x="219.5" y="189" class="tick" text-anchor="middle">400</text><text x="238" y="206" class="tick" text-anchor="end">NS</text><polyline points="70.5,31.4 145.0,37.0 219.5,42.1" class="s2" fill="none"/><circle cx="70.5" cy="31.4" r="4" class="m2"><title>before, NS=25: 2.4e-01</title></circle><circle cx="145.0" cy="37.0" r="4" class="m2"><title>before, NS=100: 5.5e-02</title></circle><circle cx="219.5" cy="42.1" r="4" class="m2"><title>before, NS=400: 1.4e-02</title></circle><polyline points="70.5,53.4 145.0,74.3 219.5,95.3" class="s1" fill="none"/><circle cx="70.5" cy="53.4" r="4" class="m1"><title>one-sided, NS=25: 7.1e-04</title></circle><circle cx="145.0" cy="74.3" r="4" class="m1"><title>one-sided, NS=100: 2.8e-06</title></circle><circle cx="219.5" cy="95.3" r="4" class="m1"><title>one-sided, NS=400: 1.1e-08</title></circle></svg></figure><figure class="mini"><svg viewBox="0 0 250 210" width="250" role="img" aria-label="Layered index map vs exact"><text x="4" y="14" class="lab">Layered index map vs exact</text><line x1="52" x2="238" y1="26.0" y2="26.0" class="grid"/><text x="47" y="30.0" class="tick" text-anchor="end">1e0</text><line x1="52" x2="238" y1="60.8" y2="60.8" class="grid"/><text x="47" y="64.8" class="tick" text-anchor="end">1e-4</text><line x1="52" x2="238" y1="95.6" y2="95.6" class="grid"/><text x="47" y="99.6" class="tick" text-anchor="end">1e-8</text><line x1="52" x2="238" y1="130.5" y2="130.5" class="grid"/><text x="47" y="134.5" class="tick" text-anchor="end">1e-12</text><line x1="52" x2="238" y1="165.3" y2="165.3" class="grid"/><text x="47" y="169.3" class="tick" text-anchor="end">1e-16</text><text x="70.5" y="189" class="tick" text-anchor="middle">40</text><text x="145.0" y="189" class="tick" text-anchor="middle">160</text><text x="219.5" y="189" class="tick" text-anchor="middle">640</text><text x="238" y="206" class="tick" text-anchor="end">NS</text><polyline points="70.5,41.0 145.0,43.9 219.5,49.1" class="s2" fill="none"/><circle cx="70.5" cy="41.0" r="4" class="m2"><title>before, NS=40: 1.9e-02</title></circle><circle cx="145.0" cy="43.9" r="4" class="m2"><title>before, NS=160: 8.8e-03</title></circle><circle cx="219.5" cy="49.1" r="4" class="m2"><title>before, NS=640: 2.2e-03</title></circle><polyline points="70.5,75.1 145.0,96.0 219.5,116.9" class="s1" fill="none"/><circle cx="70.5" cy="75.1" r="4" class="m1"><title>one-sided, NS=40: 2.3e-06</title></circle><circle cx="145.0" cy="96.0" r="4" class="m1"><title>one-sided, NS=160: 9.2e-09</title></circle><circle cx="219.5" cy="116.9" r="4" class="m1"><title>one-sided, NS=640: 3.6e-11</title></circle></svg></figure></div>
+<div class="legend"><span style="--k:var(--s2)">before (rounding decides)</span><span style="--k:var(--s1)">one-sided rule</span></div>
+<ul>
+  <li>A flat interface is now exact at any number of slices (the 10⁻¹⁶ points are rounding), in md2D and md3D.</li>
+  <li>Lamellar layers and layered index maps converge at fourth order in NS instead of first.</li>
+  <li>Smooth profiles are unaffected in accuracy: both versions converge to the same limit (7 × 10⁻⁷ apart at NS = 80 000).</li>
+  <li>Agreement with the thesis is unchanged for smooth structures and better for the lamellar grating in conical incidence (case 06: 1.3 × 10⁻² → 3.2 × 10⁻³ against GSolver).</li>
+  <li>The stored reference results of RK4 cases were regenerated; they moved within their discretization error. Speed is unchanged.</li>
+</ul>
+
+<h2 id="findings"><span class="num">6</span>Other findings</h2>
+<ul>
+  <li>RK4 converges only at about second order in NS on smooth profiles: the profile crosses the slices, so the permittivity is discontinuous inside them.</li>
+  <li><code>Z_INVAR</code> with a single thick slice overflows at large N (evanescent orders grow like e<sup>2πN t/L</sup> inside a slice of thickness t); the manual now gives the rule NS ≥ N·h/L.</li>
+  <li>In TM the energy balance has a small floor (about 3 × 10⁻⁶ in the test case) set by the finite-N factorization, so it measures NS convergence only in TE.</li>
+  <li><code>fft_filter</code> acts only in TM and <code>smoothing</code> only on stacks; both are now documented.</li>
+</ul>
+
+<h2 id="next"><span class="num">7</span>What could come next</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Idea</th><th>Expected effect</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Reuse M at a slice boundary when both sides sample the same material</td><td>~20 % in md2D TM, less elsewhere</td><td>now well defined thanks to the one-sided rule; cheap check of the sampled permittivity; results bit-identical</td></tr>
+<tr><td>Compute the slices in parallel</td><td>up to the number of cores for md2D</td><td>the T matrices of the slices are independent; only the S-matrix recursion is sequential (~10–17 %)</td></tr>
+<tr><td>Exploit the block structure of M in TE</td><td>several × on the TE RK4 step</td><td>one block of M is a multiple of the identity in md2D TE</td></tr>
+<tr><td>Profile md3D's T-matrix products outside RK4</td><td>up to ~30 % of md3D</td><td>not yet analysed</td></tr>
+<tr><td>Faster <code>Z_INVAR</code></td><td>unknown</td><td>least improved so far (×3.1); not yet profiled</td></tr>
+</tbody></table></div>
+
+<h2 id="reproduce"><span class="num">8</span>Reproducing the measurements</h2>
+<pre><code>make                    # build
+make test               # fast tests (~40 s with OpenBLAS)
+make test-validation    # thesis tables at reduced resolution (~1.5 min)
+make bench              # timings, appended to tests/bench_history.jsonl
+OPENBLAS_NUM_THREADS=1 make bench   # single-thread CPU comparison</code></pre>
+<p>Benchmarks from a loaded machine are comparable on CPU time only; the load before each run is stored with it.</p>
+<footer>md2D / md3D Optimization Report, September 2026.</footer>
+</div>
+</body>
+</html>
