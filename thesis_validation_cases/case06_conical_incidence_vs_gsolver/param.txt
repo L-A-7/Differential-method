@@ -1,0 +1,22 @@
+# Thesis Table 3.1 - lamellar grating in conical incidence vs GSolver, with md3D (Ny=0).
+# NOTE: the thesis caption says h=0.1 lambda and phi_i=30 deg, but the tabulated
+# values correspond to h=1 lambda and phi_i=45 deg (a GSolver run at the caption
+# values gives very different efficiencies). md3D order nx = -(thesis order).
+nu_super = 1.0 + i0.0
+nu_sub   = 1.5 + i0.0
+Lx       = 3.1
+Ly       = 0.1        # profile invariant along y; value arbitrary
+h        = 1.0
+lambda   = 1.0
+i_field_mode = PLANE_WAVE
+theta_i  = 30.0
+phi_i    = 45.0
+psi      = 45.0
+calcul_type   = STD
+calcul_method = RK4
+verbosity = 1
+Nx = 50
+Ny = 0
+NS = 200
+delta_h = 0.00005
+profile_name = c06 ; profile_file = carre_256_1D.txt

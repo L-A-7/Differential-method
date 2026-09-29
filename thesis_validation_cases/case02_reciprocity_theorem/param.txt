@@ -1,0 +1,19 @@
+# Thesis Table 2.2 - reciprocity theorem, dielectric echelette grating.
+# run.sh computes theta_i = 5.00 deg (A) and theta_i = -30.60 deg (B).
+n_super = 1.0 + i0.0
+n_sub   = 1.5 + i0.0
+L       = 1500
+h       = 500
+lambda  = 632.8
+theta_i = 5.0
+pola    = TM
+i_field_mode  = PLANE_WAVE
+calcul_type   = STD
+calcul_method = RK4
+fft_filter    = NONE
+smoothing     = 0
+verbosity     = 1
+N  = 40
+NS = 500
+delta_h = 0.1   # required by the parser, not used
+profile_name = c02 ; profile_file = echelette_256.txt

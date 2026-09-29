@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shooting method vs. matrix (Runge-Kutta) integration</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body><div class="wrap">
+<div class="crumb"><a href="../index.html">&#8592; all test cases</a> &nbsp;/&nbsp; <span class="groupname">2D classical differential method</span></div>
+<h1>Shooting method vs. matrix (Runge-Kutta) integration</h1>
+<div class="source">Source: Table 2.1 (chap-1-2.tex, \label{tab:compare_shoot_matrix_formulation}), § "Algorithme d'intégration matriciel", chapter "Formulation stable et efficace des algorithmes et validation", p.~46-48</div>
+<p class="desc">Internal cross-check: the new matrix (Runge-Kutta order 4) integration scheme proposed in the thesis to replace the classical shooting method is run on the same grating and compared order-by-order. This is not a comparison against another author's method, but a self-consistency test showing the two numerical schemes give identical reflected efficiencies (to the displayed precision) while the matrix scheme is dramatically faster: for N=100 and 10 integration steps, about 4500&nbsp;s with the shooting method vs. ≈&nbsp;20&nbsp;s with the matrix scheme, on the same Opteron 1.8&nbsp;GHz processor.</p>
+<h2>Parameters</h2>
+<dl class='params'><div class='param'><dt>Grating</dt><dd>sinusoidal, metallic (aluminium-like)</dd></div><div class='param'><dt>Refractive index</dt><dd>ν = 1.3 + i·7.6</dd></div><div class='param'><dt>Period L</dt><dd>0.5 μm</dd></div><div class='param'><dt>Height h</dt><dd>0.2 μm</dd></div><div class='param'><dt>Incidence angle θ_i</dt><dd>40°</dd></div><div class='param'><dt>Wavelength λ</dt><dd>632.8 nm</dd></div><div class='param'><dt>Polarization</dt><dd>TM</dd></div><div class='param'><dt>Truncation N</dt><dd>30</dd></div><div class='param'><dt>S-matrix slices N_S</dt><dd>1000</dd></div></dl>
+
+<h2>Data</h2>
+<div class='tablewrap'><table><thead><tr><th>order</th><th>e_shooting_method</th><th>e_matrix_integration</th></tr></thead><tbody><tr><td>-1</td><td>0.8785309971543</td><td>0.8785309971543</td></tr><tr><td>0</td><td>0.0022205495271</td><td>0.0022205495271</td></tr></tbody></table></div>
+<p class="dl">Full data: <a href="data.csv">data.csv</a></p>
+
+<div class="footer-nav"><a href="../index.html">&#8592; back to all test cases</a></div>
+</div></body></html>

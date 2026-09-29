@@ -1,0 +1,19 @@
+# Thesis Table 2.3 - dielectric sinusoidal grating vs MFS (Tayeb, ACES 1994).
+# Use the 2048-point profile: 256 points alias at N=100.
+n_super = 1.0 + i0.0
+n_sub   = 1.732050807568877 + i0.0
+L       = 3.9
+h       = 0.5
+lambda  = 1.0
+theta_i = 30.0
+pola    = TE
+i_field_mode  = PLANE_WAVE
+calcul_type   = STD
+calcul_method = RK4
+fft_filter    = NONE
+smoothing     = 0
+verbosity     = 1
+N  = 100
+NS = 1000
+delta_h = 0.0001   # required by the parser, not used
+profile_name = c03 ; profile_file = sin_2048.txt

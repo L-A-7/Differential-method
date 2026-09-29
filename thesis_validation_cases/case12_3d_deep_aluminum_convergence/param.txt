@@ -1,0 +1,21 @@
+# Thesis Table 4.6 - deep aluminium biperiodic sinusoidal grating, convergence vs N.
+# Same geometry as case 11 but 5x deeper (h = 0.5) and aluminium.
+# NOT YET VALIDATED (not run in the 2026 reproduction).
+nu_super = 1.0 + i0.0
+nu_sub   = 1.3 + i7.1
+Lx = 1.0
+Ly = 1.0
+h  = 0.5
+lambda = 0.83
+i_field_mode = PLANE_WAVE
+theta_i = 0.0
+phi_i   = 0.0
+psi     = 0.0
+calcul_type   = STD
+calcul_method = RK4
+verbosity = 1
+Nx = 5
+Ny = 5
+NS = 250
+delta_h = 0.00001
+profile_name = c12 ; profile_file = pr_sin3D_256x256.txt

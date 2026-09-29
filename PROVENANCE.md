@@ -139,6 +139,14 @@ comparison at some point. So: the benchmark comparison lineage survives
 in `md2D/`, but the alternate RCWA code path that once produced one side
 of it is a lost capability, not just lost data.
 
+**Correction (2026 reproduction of the thesis tables):** the capability is
+not actually lost. md2D's `calcul_method = Z_INVAR` (and its alias
+`IMPROVED_RCWA`) propagates each S-matrix slice as a z-invariant layer, i.e.
+a staircase/RCWA computation. With `NS = 1000` it reproduces the RCWA column
+of thesis Table 2.5 to all six printed digits (TE, N = 0..50; see
+`thesis_validation_cases/case05_rcwa_convergence_metallic_TE/`). Only the
+separate `calcul_method : RCWA` label is gone.
+
 ## mdConical/ (removed): subsumed by md3D with Ny=0
 
 `mdConical/` (a 3-file, ~1400-line standalone program for a 1D grating at

@@ -1,0 +1,4 @@
+quantity,differential_method,variation_of_boundaries
+"e(-1,0)",0.00327759,0.0032774
+"e(0,-1)",0.00372975,0.0037296
+"e(0,0)",0.09627385,0.0962746

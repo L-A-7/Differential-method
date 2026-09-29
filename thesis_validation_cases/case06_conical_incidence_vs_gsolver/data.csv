@@ -1,0 +1,15 @@
+direction,order,e_DM,e_GSolver
+reflection,3,0.002044,0.002050
+reflection,2,0.002473,0.002472
+reflection,1,0.004218,0.004216
+reflection,0,0.012033,0.012037
+reflection,-1,0.009170,0.009151
+transmission,5,0.017123,0.017136
+transmission,4,0.046808,0.046865
+transmission,3,0.029673,0.029760
+transmission,2,0.056981,0.056918
+transmission,1,0.395220,0.395209
+transmission,0,0.040444,0.040365
+transmission,-1,0.240370,0.240517
+transmission,-2,0.105740,0.105639
+transmission,-3,0.037699,0.037664

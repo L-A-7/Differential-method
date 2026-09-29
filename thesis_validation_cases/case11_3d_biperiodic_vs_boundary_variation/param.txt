@@ -1,0 +1,21 @@
+# Thesis Table 4.5 - biperiodic sinusoidal dielectric grating vs Bruno & Reitich
+# (method of variation of boundaries). Lengths in units where L = 1, lambda = 0.83
+# (lambda/L = 0.83); h = 0.1 in the same units reproduces the thesis values.
+nu_super = 1.0 + i0.0
+nu_sub   = 2.0 + i0.0
+Lx = 1.0
+Ly = 1.0
+h  = 0.1
+lambda = 0.83
+i_field_mode = PLANE_WAVE
+theta_i = 0.0
+phi_i   = 0.0
+psi     = 0.0
+calcul_type   = STD
+calcul_method = RK4
+verbosity = 1
+Nx = 5
+Ny = 5
+NS = 50
+delta_h = 0.00001
+profile_name = c11 ; profile_file = pr_sin3D_256x256.txt

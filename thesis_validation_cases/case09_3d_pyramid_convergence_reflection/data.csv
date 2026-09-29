@@ -1,0 +1,19 @@
+method,N,"r(0,-1)","r(0,0)"
+differential method,1,0.00246529,0.01956514
+differential method,2,0.00245478,0.01952242
+differential method,3,0.00245555,0.01950448
+differential method,4,0.00245574,0.01949597
+differential method,5,0.00245611,0.01949127
+differential method,6,0.00245636,0.01948843
+differential method,7,0.00245656,0.01948658
+differential method,8,0.00245670,0.01948531
+differential method,9,0.00245681,0.01948437
+differential method,10,0.00245690,0.01948368
+differential method,11,0.00245699,0.01948312
+differential method,12,0.00245705,0.01948268
+differential method,13,0.00245712,0.01948228
+differential method,14,0.00245717,0.01948196
+differential method,15,0.00245723,0.01948168
+Chandezon method,3,0.00246,0.01962
+Chandezon method,5,0.00246,0.01954
+Chandezon method,7,0.00246,0.01951
