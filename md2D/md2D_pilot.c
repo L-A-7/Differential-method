@@ -32,6 +32,7 @@ int main(int argc, char *argv[]){
 
 	/* Program initialisation: inputs reading, memory allocations, etc. */
 	md2D_init(&param, &effic, &nomfichier);
+	md_blas_threads(2*param.vec_size, param.verbosity);
 
 /*********************************** DEBUG *************************************************************/
 /*check_complex(1);

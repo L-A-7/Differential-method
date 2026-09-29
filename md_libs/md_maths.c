@@ -35,6 +35,34 @@ COMPLEX **M_x_M(COMPLEX **matrix_out, COMPLEX **matrix_1, COMPLEX **matrix_2, in
 
 
 /*!------------------------------------------------------------------------------------
+ *	\fn		int md_blas_threads(int matrix_size, int verbosity)
+ *
+ *	\brief	Chooses the number of OpenBLAS threads from the size of the matrices.
+ *
+ *	OpenBLAS uses every core by default, which slows down small products. Measured
+ *	(Sept. 2026): below a matrix dimension of ~300 one thread is fastest; from ~400 on,
+ *	4 threads are about twice as fast as one. Does nothing if the user set
+ *	OPENBLAS_NUM_THREADS or OMP_NUM_THREADS, or if the BLAS in use is not OpenBLAS
+ *	(the OpenBLAS functions are weak references, so the code links with any BLAS).
+ *	\return	the number of threads set, 0 if unchanged
+ *-------------------------------------------------------------------------------------*/
+extern void openblas_set_num_threads(int) __attribute__((weak));
+extern int openblas_get_num_procs(void) __attribute__((weak));
+
+int md_blas_threads(int matrix_size, int verbosity)
+{
+	int n;
+	if (openblas_set_num_threads == NULL) return 0;
+	if (getenv("OPENBLAS_NUM_THREADS") != NULL || getenv("OMP_NUM_THREADS") != NULL) return 0;
+	n = (matrix_size < 300) ? 1 : 4;
+	if (openblas_get_num_procs != NULL && openblas_get_num_procs() < n) n = openblas_get_num_procs();
+	if (n < 1) n = 1;
+	openblas_set_num_threads(n);
+	if (verbosity >= 2) fprintf(stdout, "OpenBLAS threads: %d (matrix size %d)\n", n, matrix_size);
+	return n;
+}
+
+/*!------------------------------------------------------------------------------------
  *	\fn		int blas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
  *
  *	\brief	Matrix product using BLAS Library

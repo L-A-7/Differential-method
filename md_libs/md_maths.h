@@ -24,6 +24,7 @@ double *Im_tab1D(COMPLEX *, double *, int);
 COMPLEX **invM(COMPLEX **inv, COMPLEX **A, int N);
 int nolib_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N);
 int blas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N);
+int md_blas_threads(int matrix_size, int verbosity);
 int cblas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N);
 int blas_MxV(COMPLEX *v_out, COMPLEX **A, COMPLEX *v_in, int N);
 int lapack_invM(COMPLEX **inv, COMPLEX **A, int N);

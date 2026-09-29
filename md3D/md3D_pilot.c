@@ -30,6 +30,7 @@ int main(int argc, char *argv[]){
 
 	/* Initialisation du programme : lecture des données, allocation de mémoire, etc. */
 	md3D_init(&param, &effic, &nomfichier);
+	md_blas_threads(4*param.vec_size, param.verbosity);
 
 /*********************************** DEBUG *************************************************************/
 /*int M_matrix(COMPLEX **M, double z, struct Param_struct *par);
