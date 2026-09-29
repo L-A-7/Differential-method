@@ -90,8 +90,8 @@ LIB+= -lm
 all : $(NAME)
 
 # Options de compilation :
-CFLAGS = -g -Wall -ansi $(DEFS)
-#CFLAGS = -O3 -ansi $(DEFS)
+#CFLAGS = -g -Wall -ansi $(DEFS)
+CFLAGS = -O3 -ansi $(DEFS)
 
 
 # Profiling

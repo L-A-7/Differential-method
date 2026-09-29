@@ -7,7 +7,7 @@ successive builds can be compared. CPU time (user + system of the solver process
 more robust figure on a shared machine; wall time is what users see. For a clean reference,
 run on an idle machine (the load before the run is recorded).
 
-    python3 tests/bench.py [--quick] [--repeat N]
+    python3 tests/bench.py [--quick] [--repeat N] [--only TEXT]
 """
 import argparse
 import datetime
@@ -51,6 +51,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--quick", action="store_true", help="only the short benchmarks (about 2 min)")
     ap.add_argument("--repeat", type=int, default=1, help="runs per benchmark; the minimum time is kept")
+    ap.add_argument("--only", default="", help="run only benchmarks whose name contains this text (e.g. md3D)")
     args = ap.parse_args()
 
     commit = subprocess.run(["git", "describe", "--always", "--dirty"], cwd=REPO,
@@ -60,7 +61,7 @@ def main():
     print("%-34s %9s %9s   %s" % ("benchmark", "wall [s]", "cpu [s]", "sum_eff"))
     with tempfile.TemporaryDirectory() as tmp:
         for k, (name, prog, params, prof, quick) in enumerate(BENCHMARKS):
-            if args.quick and not quick:
+            if (args.quick and not quick) or args.only not in name:
                 continue
             best, best_cpu, res = math.inf, math.inf, None
             for rep in range(args.repeat):
