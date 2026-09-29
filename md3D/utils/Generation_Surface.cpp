@@ -19,7 +19,7 @@ int main()
 	Fichier = fopen("FichierNbresAleatoires.xls", "w+");
 	//srand(time(0));
 	
-	// Initialisation de RandomValue à 0
+	// Initialisation de RandomValue Ã  0
 	for (int i = - TAILLE_FILTRE; i < N + TAILLE_FILTRE; i++)
 		RandomValue[i] = 0;
 
@@ -40,7 +40,7 @@ int main()
 
 	// CONVOLUTION DES NOMBRES ALEATOIRES PAR UNE GAUSSIENNE + UNE EXPONENTIELLE
 	double Result[N + 2 * TAILLE_FILTRE + 1];
-	// Initialisation de Result à 0
+	// Initialisation de Result Ã  0
 	for (i = - TAILLE_FILTRE; i < N + TAILLE_FILTRE; i++)
 		Result[i] = 0;
 		  

@@ -27,7 +27,7 @@ CFLAGS = -O3 -Wall -ansi
 #PATH1 = -I/usr/local/include -I/home/lau/Programmes/md1D/fftw -I/opt/acml3.6.0/gnu64/include
 #PATH2 = -L/opt/acml3.6.0/gnu64/lib
 
-# Librairies à inclure :
+# Librairies Ã  inclure :
 #LIB = -lfftw3 -lgsl -lgslcblas -lm
 #LIB = -lm
 #LIB = -lfftw3 -llapack -lblas -lacml -lg2c -lm
@@ -39,44 +39,44 @@ PG =
 
 utils : $(PROFIL_GEN) $(FFT_TEST) lire_tab lire_ligne lire_N1N2 add_col lire_plot lire_string diffsum $(TESTS)
 
-# ProfilGen (indépendant) :
+# ProfilGen (indÃ©pendant) :
 $(PROFIL_GEN) : $(PROFIL_GEN).c
 	$(CC) -c $(CFLAGS) $(PROFIL_GEN).c 
 	$(CC) -o $(PROFIL_GEN) $(PROFIL_GEN).o -lm
 		
-# lire_tab (indépendant)
+# lire_tab (indÃ©pendant)
 lire_tab : lire_tab.c 
 	$(CC) -o lire_tab $(CFLAGS) lire_tab.c
 
-# lire_tab (indépendant)
+# lire_tab (indÃ©pendant)
 lire_tab2 : lire_tab2.c 
 	$(CC) -o lire_tab2 $(CFLAGS) lire_tab2.c
 
-# lire_ligne (indépendant)
+# lire_ligne (indÃ©pendant)
 lire_ligne : lire_ligne.c 
 	$(CC) -o lire_ligne $(CFLAGS) lire_ligne.c
 
-# lire_N1N2 (indépendant)
+# lire_N1N2 (indÃ©pendant)
 lire_N1N2 : lire_N1N2.c 
 	$(CC) -o lire_N1N2 $(CFLAGS) lire_N1N2.c
 
-# add_col (indépendant)
+# add_col (indÃ©pendant)
 add_col : add_col.c 
 	$(CC) -o add_col $(CFLAGS) add_col.c
 
-# lire_plots (indépendant)
+# lire_plots (indÃ©pendant)
 lire_plot : lire_plot.c 
 	$(CC) -o lire_plot $(CFLAGS) lire_plot.c
 
-# lire_string (indépendant)
+# lire_string (indÃ©pendant)
 lire_string : lire_string.c 
 	$(CC) -o lire_string $(CFLAGS) lire_string.c
 
-# diffsum (indépendant)
+# diffsum (indÃ©pendant)
 diffsum : diffsum.c 
 	$(CC) -o diffsum $(CFLAGS) diffsum.c -lm
 	
-#tests (indépendant)
+#tests (indÃ©pendant)
 $(TESTS) : $(TESTS).c 
 	$(CC) -o $(TESTS) $(CFLAGS) $(TESTS).c -lm -lfftw3
 	

@@ -36,7 +36,7 @@ int md1D_temps(int n, int N, int nS, int NS, struct Param_struct *par){
 	/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
 	if (CHRONO(clock(), par->last_clock) < .5){
 		return 0;
-	/* Sinon, estimation et affichage de la durée restante */
+	/* Sinon, estimation et affichage de la durÃ©e restante */
 	}else{
 	int i;
 		par->last_clock = clock();

@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 		strncpy(argvcp[i], argv[i],STR_SIZE);
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (argc < 11){
 		err_message();
 		return 1;
@@ -154,11 +154,11 @@ int SaveDbleMatrix2file (double **M, int Nlign, int Ncol, char *filename)
   int i,j;
   FILE *fp;
 	
-  /* Affichage à l'écran si filename = "stdout" */										
+  /* Affichage Ã  l'Ã©cran si filename = "stdout" */										
   if(!strcmp(filename,"stdout")) fp = stdout;
   else fp = fopen(filename, "w");
 	
-  /* Mode = "Re"/"Im" : enregistrement de la partie réelle/Imaginaire */
+  /* Mode = "Re"/"Im" : enregistrement de la partie rÃ©elle/Imaginaire */
   for (i=0;i<=Nlign-1;i++){
     for (j=0;j<=Ncol-1;j++){
 		fprintf(fp,"% 1.6e  ",M[i][j]);

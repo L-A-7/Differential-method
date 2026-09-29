@@ -1,8 +1,8 @@
 /*	lire_ligne
  *
- *	Lit les valeurs de format double dans un fichier et les affiche à l'écran.      
- *	Les valeurs doivent être séparées par un ou plusieurs espaces, tabulations     
- *	ou sauts de lignes et précédées d'un label éventuellement suivi d'un signe '='.
+ *	Lit les valeurs de format double dans un fichier et les affiche Ã  l'Ã©cran.      
+ *	Les valeurs doivent Ãªtre sÃ©parÃ©es par un ou plusieurs espaces, tabulations     
+ *	ou sauts de lignes et prÃ©cÃ©dÃ©es d'un label Ã©ventuellement suivi d'un signe '='.
  *  ex. : (...) tab1 = 3.4  4.5e-3  +46  -7.6e+2 ...                               
  *
  *	Utilisation :
@@ -32,11 +32,11 @@ int main(int argc, char *argv[])
 
 	/**/
 	if (argc<2) {
-		fprintf(stderr,"Utilisation : cat file | lire_ligne ligne_n°\n");
+		fprintf(stderr,"Utilisation : cat file | lire_ligne ligne_nÂ°\n");
 		return -1;
 	}
 			
-	/* Lecture de label en argument n°1 */
+	/* Lecture de label en argument nÂ°1 */
 	line_N = atoi(argv[1]);
 
 	for (i=1;i<=line_N;i++)	{
@@ -49,14 +49,14 @@ int main(int argc, char *argv[])
 
 /*! \fn		static void lire_ligne(FILE *fp, char *line)
  *
- *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactères 
+ *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactÃ¨res 
  */
 static int lire_ligne(FILE *fp, char *line)
 {
 	if (fgets(line, SIZE_LINE_BUFFER, fp) == NULL) return 1;
 	if (strlen(line) == SIZE_LINE_BUFFER-1) {
 		fprintf(stderr, "%s ligne %d : ERREUR, taille de buffer insuffisante,impossible de lire plus de "
-						"%d caractères par ligne.\n",__FILE__, __LINE__,SIZE_LINE_BUFFER-1);
+						"%d caractÃ¨res par ligne.\n",__FILE__, __LINE__,SIZE_LINE_BUFFER-1);
 		exit(EXIT_FAILURE);
 	}
 	return 0;

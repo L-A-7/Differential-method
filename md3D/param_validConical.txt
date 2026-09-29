@@ -20,11 +20,11 @@
 # -3    0,037699 0,037664
 # 
 # Tableau 3.1 Comparaison des efficacites obtenues a partir de la formulation (3.22) et
-# par le logiciel commercial GSolver base sur la methode RCWA, dans le cas d’un reseau
+# par le logiciel commercial GSolver base sur la methode RCWA, dans le cas dâ€™un reseau
 # lamellaire en incidence conique. Le reseau utilise a un indice de refraction nu = 1,5,
-# une periode d = 3,1 lmabda, une hauteur h = 0,1 lambda, la largeur d’une ligne est d/2. Les angles
-# d’incidence sont theta_i = 30 deg et phi_i = 30 deg, la polarisation fait un angle Psi = 45 deg avec la
-# normale au plan d’incidence.
+# une periode d = 3,1 lmabda, une hauteur h = 0,1 lambda, la largeur dâ€™une ligne est d/2. Les angles
+# dâ€™incidence sont theta_i = 30 deg et phi_i = 30 deg, la polarisation fait un angle Psi = 45 deg avec la
+# normale au plan dâ€™incidence.
 #
 # Errata: phi_i = 45 deg and h = 1 lambda
 

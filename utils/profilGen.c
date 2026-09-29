@@ -55,13 +55,13 @@ int main(int argc, char *argv[]){
 		strncpy(argvcp[i], argv[i],SIZE_STR);
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (argc <= 1){
 		message_erreur();
 		return 1;
 	}
 	
-	/* Valeurs par défaut */
+	/* Valeurs par dÃ©faut */
 	int N_profil = 512;
 	lire_int_arg(&N_profil, "-N_profil", argc, argvcp);
 	strncpy(pr_name,argvcp[1],SIZE_STR);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]){
 	   pr2 ---------------------------------  -	
 	*/
 fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -87,7 +87,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_dble_arg(&h1, "-h1", argc, argvcp);
 	
 		if (h1>1) {
-			fprintf(stderr,"CMINCES : Problème de paramètre(s)");
+			fprintf(stderr,"CMINCES : ProblÃ¨me de paramÃ¨tre(s)");
 			free(pr);
 			return 1;
 		}
@@ -107,7 +107,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -123,7 +123,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (L1>1 || L1<0) {
-			fprintf(stderr,"CARRE01 : Problème de paramètre(s), L1 doit être compris entre 0 et 1");
+			fprintf(stderr,"CARRE01 : ProblÃ¨me de paramÃ¨tre(s), L1 doit Ãªtre compris entre 0 et 1");
 			free(pr);
 			return 1;
 		}
@@ -202,7 +202,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	   pr2 ---------------------------------  -	
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 1;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -214,7 +214,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (h1>1 || L1>1) {
-			fprintf(stderr,"CARRE02 : Problème de paramètre(s), L1 et h1 doivent être entre 0 et 1");
+			fprintf(stderr,"CARRE02 : ProblÃ¨me de paramÃ¨tre(s), L1 et h1 doivent Ãªtre entre 0 et 1");
 			free(pr);
 			return 1;
 		}
@@ -241,7 +241,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 1;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -255,7 +255,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (h1>1 || L1>1) {
-			fprintf(stderr,"CARRE02_B : Problème de paramètre(s), L1 et h1 doivent être entre 0 et 1");
+			fprintf(stderr,"CARRE02_B : ProblÃ¨me de paramÃ¨tre(s), L1 et h1 doivent Ãªtre entre 0 et 1");
 			free(pr);
 			return 1;
 		}
@@ -285,7 +285,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 1;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -362,7 +362,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	   pr2 ---------------------------------  -	
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 2;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -378,7 +378,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (h1<0 || h2<0 || h3<0 || L1>1 || L1<0) {
-			fprintf(stderr,"MULTI01 : Problème de paramètre(s), L1 doit être entre 0 et 1, h1, h2, h3 doivent etre > 0");
+			fprintf(stderr,"MULTI01 : ProblÃ¨me de paramÃ¨tre(s), L1 doit Ãªtre entre 0 et 1, h1, h2, h3 doivent etre > 0");
 			free(pr);
 			return 1;
 		}
@@ -518,7 +518,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_int_arg(&N_patterns, "-N_patterns", argc, argvcp);
 		lire_int_arg(&N_voids, "-N_voids", argc, argvcp);
 	
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_pr = N_profil;
 		N_profil = N_pr*(N_voids+N_patterns);
 		N_layers = 1;
@@ -575,7 +575,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -594,17 +594,17 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		double tan_alpha = tan(alpha*PI/180.0);
 	
 		if (h1<0 || L1<0 || L1>=Ltotal) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s) h1<0 || L1<0 || L1>=Ltotal");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s) h1<0 || L1<0 || L1>=Ltotal");
 			free(pr);
 			return 1;
 		}
 		if (alpha <=0) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s) alpha <=0");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s) alpha <=0");
 			free(pr);
 			return 1;
 		}
 		if (h1*tan_alpha>L1/2) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s) h1*tan_alpha>L1/2");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s) h1*tan_alpha>L1/2");
 			free(pr);
 			return 1;
 		}
@@ -649,7 +649,7 @@ printf("i2 = %d\n",i2);fflush(stdout);
 		  alpha 1    alpha2
 	*/
 fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 2;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 		int i0, imid;
@@ -671,7 +671,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		double tan_alpha = tan(alpha*PI/180.0);
 	
 		if (h1<0 || h2<0 || h3<0 || L1>1 || L1<0) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s), L1 doit être entre 0 et 1, h1, h2, h3 doivent etre > 0");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s), L1 doit Ãªtre entre 0 et 1, h1, h2, h3 doivent etre > 0");
 			free(pr);
 			return 1;
 		}
@@ -681,7 +681,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 			pr[1][i] = h1+h2;
 			pr[2][i] = h1+h2+h3;
 		}
-		/* _/¨ part  */
+		/* _/Â¨ part  */
 		i0 = N_profil*(1-L1);
 		imid = N_profil*(1-0.5*L1);
 		for(i=i0;i<=imid-1;i++){
@@ -698,7 +698,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 				pr[0][i] = 0;
 			}
 		}
-		/* ¨\_ part  */
+		/* Â¨\_ part  */
 		for(i=imid;i<=N_profil-1;i++){
 			pr[2][i] = h1+h2+h3;
 			x=(i-N_profil)*Ltotal/N_profil;
@@ -718,11 +718,11 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	/* 
 
-   _.-°¨°-._                   _.-°¨°-._
--°¨         ¨°-._         _.-°¨         ¨°-._         _.-
-   _.-°¨°-._     ¨°-._.-°¨     _.-°¨°-._     ¨°-._.-°¨
--°¨         ¨°-._         _.-°¨         ¨°-._         _.-
-                 ¨°-._.-°¨                   ¨°-._.-°¨
+   _.-Â°Â¨Â°-._                   _.-Â°Â¨Â°-._
+-Â°Â¨         Â¨Â°-._         _.-Â°Â¨         Â¨Â°-._         _.-
+   _.-Â°Â¨Â°-._     Â¨Â°-._.-Â°Â¨     _.-Â°Â¨Â°-._     Â¨Â°-._.-Â°Â¨
+-Â°Â¨         Â¨Â°-._         _.-Â°Â¨         Â¨Â°-._         _.-
+                 Â¨Â°-._.-Â°Â¨                   Â¨Â°-._.-Â°Â¨
 
 
 
@@ -786,16 +786,16 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_dble_arg(&Le, "-Le", argc, argvcp);
 		if(!lire_dble_arg(&h, "-h", argc, argvcp)) fprintf(stdout,"h = %f\n",h);
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		int marge = (int)MAX(2*Lg,2*Le);
-		int N_profil_plus = N_profil + 2*marge; /* On prend des marges qu'on enlève après convolution */
+		int N_profil_plus = N_profil + 2*marge; /* On prend des marges qu'on enlÃ¨ve aprÃ¨s convolution */
 		pr = allocate_DbleMatrix(2, N_profil_plus); /* Allocation d'1 ligne en +, pr calculs temporaires */
 		
 
-		/* Vérification des paramètres */
+		/* VÃ©rification des paramÃ¨tres */
 		
-		/* Génération de nombres aléatoires */
+		/* GÃ©nÃ©ration de nombres alÃ©atoires */
 		srand(time(NULL));
 		for(i=0;i<=N_profil_plus-1;i++){
 			pr[1][i] = (double) rand()/RAND_MAX;
@@ -812,7 +812,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 			}
 		}
 		
-		/* Ebavurage : on enlève les marges */
+		/* Ebavurage : on enlÃ¨ve les marges */
 		for (i=0;i<=N_profil;i++){
 			pr[0][i] = pr[0][i+marge];
 		}
@@ -868,9 +868,9 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_dble_arg(&fact1, "-fact1", argc, argvcp);
 		lire_dble_arg(&fact2, "-fact2", argc, argvcp);
 
-		/* Vérification des arguments */
+		/* VÃ©rification des arguments */
 
-		/* Ouverture des profils d'entrée */
+		/* Ouverture des profils d'entrÃ©e */
 		if (!(fp01 = fopen(file01,"r"))){
 			fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,file01);
 			return 1;
@@ -895,11 +895,11 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		pr01_tmp = *allocate_DbleMatrix(1,(N_layers+1) * N_profil);
 		pr02_tmp = *allocate_DbleMatrix(1,(N_layers+1) * N_profil);
 
-		/* Lecture des profils d'entrée */
+		/* Lecture des profils d'entrÃ©e */
 		lire_tab(file01, "profil", pr01_tmp, N_profil);
 		lire_tab(file02, "profil", pr02_tmp, N_profil);
 
-		/* Séparation en plsieurs interfaces */
+		/* SÃ©paration en plsieurs interfaces */
 		for (i=0; i<=N_profil-1;i++){
 			for (j=0; j<=N_layers; j++){
 				pr01[j][i] = pr01_tmp[i*(N_layers+1)+j];
@@ -938,7 +938,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		fprintf(stdout,"\n");
 	}
 	
-	/* Libération de la mémoire */
+	/* LibÃ©ration de la mÃ©moire */
 	free(pr[0]); free(pr);
 	
 	return 0;
@@ -948,9 +948,9 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn    int lire_int(FILE *fp, char *label, int *value)
  *
- *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
+ *  \brief	Lit dans le fichier pointÃ© par *fp la valeur entiere 'value' indiquÃ©e par 'label' \n
  *			sous la forme label = value (ex.: N2 = 10)
- *  \return	0 si lecture réussie 1 sinon
+ *  \return	0 si lecture rÃ©ussie 1 sinon
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_int(FILE *fp, const char *label, int *value){
@@ -976,12 +976,12 @@ int lire_int(FILE *fp, const char *label, int *value){
 /*!	\fn		int lire_tab(char *nom_fichier, const char *label, double *tab, int N)
  *
  *	\brief	Lit N valeurs de format double dans un fichier et les stocke dans un tableau   \n 
- *			Les valeurs doivent être séparées par un ou plusieurs espaces, tabulations     \n
- *			ou sauts de lignes et précédées d'un label éventuellement suivi d'un signe '='.\n
+ *			Les valeurs doivent Ãªtre sÃ©parÃ©es par un ou plusieurs espaces, tabulations     \n
+ *			ou sauts de lignes et prÃ©cÃ©dÃ©es d'un label Ã©ventuellement suivi d'un signe '='.\n
  *          ex. : (...) tab1 = 3.4  4.5e-3  +46  -7.6e+2 ...                               \n
  *          Remarque : Pour lire un tableau sans label, donner "" comme label.             \n
  *
- *	\return	0 si succès, 1 si le nombre d'éléments lus diffère de N ou si le label n'a pas été trouvé.
+ *	\return	0 si succÃ¨s, 1 si le nombre d'Ã©lÃ©ments lus diffÃ¨re de N ou si le label n'a pas Ã©tÃ© trouvÃ©.
  *
  *	\todo	RENDRE PLUS ROBUSTE : PAS DE BUFFER OVERFLOW AU CAS OU IL Y A PLUS DE N LIGNES
  *
@@ -1023,14 +1023,14 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 		pos = line;
 		
 	LABEL_TROUVE :
-		while(isspace(*pos)) pos++; /* on élimine les espaces */
-		while(pos < line+strlen(line)) { /* Tant qu'on est pas à la fin de la ligne */
+		while(isspace(*pos)) pos++; /* on Ã©limine les espaces */
+		while(pos < line+strlen(line)) { /* Tant qu'on est pas Ã  la fin de la ligne */
 			tmp = strtod(pos, &endptr); /* on lit le 'double' */
-			if (pos == endptr) {goto LECTURE_FINIE;} /* conversion ratée */
+			if (pos == endptr) {goto LECTURE_FINIE;} /* conversion ratÃ©e */
 			if (cpt <= N+1) tab[cpt] = tmp;
 			cpt ++;
 			pos = endptr;
-			while(isspace(*pos)) pos++; /* on élimine les espaces */
+			while(isspace(*pos)) pos++; /* on Ã©limine les espaces */
 		}
 	}
 
@@ -1047,7 +1047,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int lire_dble_arg(double *res, char *label, int argc, char **argvcp)
  *
- *	\brief	Lit la valeur de l'argument de la ligne de commande indiqué sous la forme "-label valeur"
+ *	\brief	Lit la valeur de l'argument de la ligne de commande indiquÃ© sous la forme "-label valeur"
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_dble_arg(double *res, char *label, int argc, char **argvcp)
@@ -1072,7 +1072,7 @@ int lire_dble_arg(double *res, char *label, int argc, char **argvcp)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn	int lire_int_arg(int *res, char *label, int argc, char **argvcp)
  *
- *	\brief	Lit la valeur de l'argument de la ligne de commande indiqué sous la forme "-label valeur"
+ *	\brief	Lit la valeur de l'argument de la ligne de commande indiquÃ© sous la forme "-label valeur"
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_int_arg(int *res, char *label, int argc, char **argvcp)
@@ -1096,7 +1096,7 @@ int lire_int_arg(int *res, char *label, int argc, char **argvcp)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int lire_str_arg(char *dest, char *label, int argc, char **argvcp)
  *
- *	\brief	Lit la valeur de l'argument de la ligne de commande indiqué sous la forme "-label valeur"
+ *	\brief	Lit la valeur de l'argument de la ligne de commande indiquÃ© sous la forme "-label valeur"
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_str_arg(char *dest, char *label, int argc, char **argvcp)
@@ -1143,13 +1143,13 @@ double **allocate_DbleMatrix(int nlign,int ncol)
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn		void skip_comment(char *str_in_out)
  *
- *  \brief	Elimine tout ce qui se trouve après un commentaire '#' dans str_in_out
+ *  \brief	Elimine tout ce qui se trouve aprÃ¨s un commentaire '#' dans str_in_out
  */
 /*---------------------------------------------------------------------------------------------*/
 void skip_comment(char *str_in_out){
 
 	char *pos;
-	/* Cherche CHAR_COMMENT et le remplace par le charactère nul '\0' */
+	/* Cherche CHAR_COMMENT et le remplace par le charactÃ¨re nul '\0' */
 	if((pos = strchr(str_in_out,CHAR_COMMENT)) != NULL) {
 		*pos = '\0';
 	}
@@ -1157,7 +1157,7 @@ void skip_comment(char *str_in_out){
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn		void lire_ligne(FILE *fp, char *line)
  *
- *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactères 
+ *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactÃ¨res 
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_ligne(FILE *fp, char *line)
@@ -1173,11 +1173,11 @@ int lire_ligne(FILE *fp, char *line)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		char *label_search(char *str,const char *label)
  *
- *	\brief	Cherche un label dans une chaine de caractères, le label doit être isolé, c.a.d, \n
- *          en début de ligne ou précédé d'un espace au sens de isspace() et suivi d'un espace \n
+ *	\brief	Cherche un label dans une chaine de caractÃ¨res, le label doit Ãªtre isolÃ©, c.a.d, \n
+ *          en dÃ©but de ligne ou prÃ©cÃ©dÃ© d'un espace au sens de isspace() et suivi d'un espace \n
  *          ou d'un signe '='
  *
- *	\return	La position de la 1ere occurence du label dans la chaine ou NULL si le label n'a pas été trouvé
+ *	\return	La position de la 1ere occurence du label dans la chaine ou NULL si le label n'a pas Ã©tÃ© trouvÃ©
  */
 /*---------------------------------------------------------------------------------------------*/
 char *label_search(char *str,const char *label)
@@ -1189,12 +1189,12 @@ char *label_search(char *str,const char *label)
 
 	/* Recherche du label */
 	while((pos=strstr(str,label)) != NULL) {
-		/* Vérification que le label est en début de ligne ou précédé par un espace */
+		/* VÃ©rification que le label est en dÃ©but de ligne ou prÃ©cÃ©dÃ© par un espace */
 		if (pos != str && !isspace(*(pos-1))) {
 			str = pos + strlen(label);
 			continue;
 		}
-		/* Vérification que le label est suivi par un espace, saut de ligne ou signe '=' */
+		/* VÃ©rification que le label est suivi par un espace, saut de ligne ou signe '=' */
 		if (strlen(pos) > strlen(label)) {
 			if (!isspace(*(pos+strlen(label))) && *(pos+strlen(label)) != '=') {
 				str = pos + strlen(label);

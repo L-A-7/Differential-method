@@ -38,7 +38,7 @@ srandom(time(&t1));
 			printf("tab[0][%d] = %d, tab[1][%d] = %d\n",k, tab[0][k],k,tab[1][k]);
 		}
 				
-		/* Génération de z */
+		/* GÃ©nÃ©ration de z */
 		z = ALEAT();
 		z_int = ROUND_LONG((z/h)*DBLE_CMP_EXIGEANCE);
 		printf("z = %d\n", z_int);
@@ -46,11 +46,11 @@ srandom(time(&t1));
 		/* Recherche de z */
 		adr = cherche(z_int, tab[0], Taille);
 		if (adr != NULL) {
-			/* z trouvé */
-			printf("z trouvé en position %d\n",adr-tab[0]);
+			/* z trouvÃ© */
+			printf("z trouvÃ© en position %d\n",adr-tab[0]);
 		}else{
 			/* Ajout de z */
-			Taille++; /* AJOUTER vérifications et allocation eventuelle */
+			Taille++; /* AJOUTER vÃ©rifications et allocation eventuelle */
 			k = Taille-2;
 			while(z_int > tab[0][k] && k>=0){
 				tab[0][k+1] = tab[0][k];
@@ -71,10 +71,10 @@ printf("FLOOR(%f) = %d\n",x,FLOOR(x));
 	}
 	printf("z_int  = %d\n",z_int);
 	printf("res = %d\n",res);
-	if (res) printf("z trouvé en position %d\n",adr-tab[0]);
+	if (res) printf("z trouvÃ© en position %d\n",adr-tab[0]);
 */
 
-	printf("Temps écoulé : %f s\n",CHRONO(clock(),clock0));
+	printf("Temps Ã©coulÃ© : %f s\n",CHRONO(clock(),clock0));
 
 	printf("time : %d s\n",time(&t1));
 
@@ -86,10 +86,10 @@ printf("FLOOR(%f) = %d\n",x,FLOOR(x));
 
 /*!	\fn		long int *cherche(long int z, long int *tab0, int N)
  *
- *	\brief	Recherche dichotomique de l'élément z dans un tableau tab0 de taille N \n
- *			classé dans l'ORDRE DECROISSANT. 
+ *	\brief	Recherche dichotomique de l'Ã©lÃ©ment z dans un tableau tab0 de taille N \n
+ *			classÃ© dans l'ORDRE DECROISSANT. 
  *
- * 	\return	L'adresse correspondant à l'élément trouvé ou NULL si l'élément n'est pas présent
+ * 	\return	L'adresse correspondant Ã  l'Ã©lÃ©ment trouvÃ© ou NULL si l'Ã©lÃ©ment n'est pas prÃ©sent
  */
 long int *cherche(long int z, long int *tab0, int N)
 {

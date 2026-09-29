@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
 	param.argc = argc;
 	param.argvcp = argvcp;
 
-	/* Initialisation du programme : lecture des données, allocation de mémoire, etc. */
+	/* Initialisation du programme : lecture des donnÃ©es, allocation de mÃ©moire, etc. */
 	md3D_init(&param, &effic, &nomfichier);
 
 /*********************************** DEBUG *************************************************************/
@@ -108,10 +108,10 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 	/* Calcul des amplitudes */
 	md3D_amplitudes(par->Ai, par->Ar, par->At, par->S12, par->S22, par);
 
-	/* Calcul des efficacités */
+	/* Calcul des efficacitÃ©s */
 	md3D_efficiencies(par->Ai, par->Ar, par->At, par, eff);
 
-	/* Ecriture des résultats dans fichier_results */
+	/* Ecriture des rÃ©sultats dans fichier_results */
 	md3D_genere_nom_fichier_results(nomfichier->fichier_results, par);
 
 	md3D_ecrire_results(nomfichier->fichier_results, par, eff);
@@ -130,13 +130,13 @@ int md3D_std (struct Param_struct *par, struct Efficacites_struct *eff,struct No
 int md3D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct Noms_fichiers *nomfichier) 
 {
 
-	/* Lecture des paramètres par defaut dans param_file */
+	/* Lecture des paramÃ¨tres par defaut dans param_file */
 	md3D_lire_param(nomfichier, par);
 
-	/* Allocation de mémoire pour le profil */
+	/* Allocation de mÃ©moire pour le profil */
 	md3D_alloc_init_profil(par);
 
-	/* Lecture du profil h(x) décrivant la surface */
+	/* Lecture du profil h(x) dÃ©crivant la surface */
 	(*par->md3D_lire_profil)(nomfichier->profile_file, par);
 
 	/* Initialisations de certaines variables */
@@ -145,13 +145,13 @@ int md3D_init (struct Param_struct *par, struct Efficacites_struct *eff,struct N
 	/* Calcul des limites des modes propagatifs */
 	md3D_propagativ_limits(par, eff);
 
-	/* Allocation de mémoire pour les tableaux */
+	/* Allocation de mÃ©moire pour les tableaux */
 	md3D_alloc(par, eff);
 
 	/* Initialising some arrays */
 	md3D_arrays_init(par, eff);
 	
-	/* Affichage des paramètres lus et calculés */
+	/* Affichage des paramÃ¨tres lus et calculÃ©s */
 	md3D_affiche_valeurs_param(par, nomfichier);
 
 	return 0;
@@ -244,8 +244,8 @@ printf("\n***************\nWARNING: Normal_N_XYZ not defined yet.\n*************
 /*---------------------------------------------------------------------------------------------*/
 int md3D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff)
 {
-	par->clock0 = clock(); /* Initialisation des chronomètres                  */
-	time(&(par->time0));   /* clock0 (courte durées) et time0 (longues durées) */
+	par->clock0 = clock(); /* Initialisation des chronomÃ¨tres                  */
+	time(&(par->time0));   /* clock0 (courte durÃ©es) et time0 (longues durÃ©es) */
 	par->last_clock = clock();
 	time(&(par->last_time)); 
 
@@ -267,7 +267,7 @@ int md3D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 	par->HXY_Normal_CALCULATED = 0;
 	par->toepNorm_CALCULATED = 0;
 	
-	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier à chaque étape Matrice-S*/
+	/* Calcul de la valeur exacte de delta_h de sorte qu'il y en ait un nb entier Ã  chaque Ã©tape Matrice-S*/
 	par->N_steps = 0; /* Counter initialisation */
 	int Nstep_S = ROUND(ceil((par->h/par->NS)/par->delta_h));
 	par->delta_h = (par->h/par->NS)/Nstep_S;
@@ -461,7 +461,7 @@ int md3D_alloc(struct Param_struct *par, struct Efficacites_struct *eff)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)
  *
- *	\brief	Libération de la mémoire
+ *	\brief	LibÃ©ration de la mÃ©moire
  */
 /*---------------------------------------------------------------------------------------------*/
 int md3D_free(struct Param_struct *par, struct Efficacites_struct *eff)

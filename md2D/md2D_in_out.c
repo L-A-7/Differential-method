@@ -1,6 +1,6 @@
 /*! \file		md2D_in_out.c
  *
- *	\brief		Routines de gestion des entrées-sorties pour md2D
+ *	\brief		Routines de gestion des entrÃ©es-sorties pour md2D
  *
  *	\version	0.1
  *  \date		../../2004
@@ -11,7 +11,7 @@
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int md2D_lire_param(struct Param_struct *par){
  *	
- *	\brief	Lecture des paramètres dans un fichier
+ *	\brief	Lecture des paramÃ¨tres dans un fichier
  *
  *---------------------------------------------------------------------------------------------*/
 int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
@@ -22,7 +22,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	char *erreur="NO_ERROR                     ";
 	char **argvcp=par->argvcp, str_profil[SIZE_STR_BUFFER], str_tmp[SIZE_STR_BUFFER];
 
-	/* Nom de fichier param : en ligne de commande ou par défaut */
+	/* Nom de fichier param : en ligne de commande ou par dÃ©faut */
 	if (lire_str_arg(nomfichier->fichier_param, "-param", argc, argvcp)) {
 		sprintf(nomfichier->fichier_param,"md2D_param.txt");}
 
@@ -37,7 +37,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 		if (lire_int (fp, "verbosity", &(par->verbosity) )) par->verbosity = 2;}
 	if (par->verbosity >=2 ) fprintf(stdout,"Reading parameters in %s\n",nomfichier->fichier_param);
 	
-	/* Lecture des paramètres, d'abord en ligne de commande, si rien en ligne de commande,
+	/* Lecture des paramÃ¨tres, d'abord en ligne de commande, si rien en ligne de commande,
 	   lecture dans fichier_param, sinon erreur et arret du programme */
 	arg_read(argc, argvcp, fp, "string", (void *) nomfichier->profile_file, "profile_file", EXIT_ON_ERROR);
 	arg_read(argc, argvcp, fp, "string", (void *) par->calcul_type, "calcul_type", EXIT_ON_ERROR);
@@ -228,14 +228,14 @@ printf("hmin_Sstep = %f\n",par->hmin_Sstep);
 
 	fclose(fp);
 
-	/* Vérification de l'absence d'erreurs de lecture */
+	/* VÃ©rification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
 		fprintf(stderr, "%s: ERROR, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
 	}
 
-	/* Lecture des paramètres dans fichier profil */
-	/* (Les paramètres liés à la nature ou indisociables du profil sont contenus dans profile_file) */
+	/* Lecture des paramÃ¨tres dans fichier profil */
+	/* (Les paramÃ¨tres liÃ©s Ã  la nature ou indisociables du profil sont contenus dans profile_file) */
 	if (par->verbosity >= 2) fprintf(stdout,"Reading parameters in %s\n",nomfichier->profile_file);
 	if (!(fp = fopen(nomfichier->profile_file,"r"))){
 		fprintf(stderr, "%s line %d: ERROR, can't open %s\n",__FILE__, __LINE__,nomfichier->profile_file);
@@ -260,7 +260,7 @@ printf("hmin_Sstep = %f\n",par->hmin_Sstep);
 
 	fclose(fp);
 	
-	/* Vérification de l'absence d'erreurs de lecture */
+	/* VÃ©rification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
 		fprintf(stderr, "%s: ERROR, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
@@ -387,7 +387,7 @@ int md2D_lire_profil_H_X(const char *nom_fichier, struct Param_struct *par)
 /*!	\fn		int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 
  *
- *	\brief	Fonction lisant les valeurs décrivant un profil multi
+ *	\brief	Fonction lisant les valeurs dÃ©crivant un profil multi
  *
  */
 /*---------------------------------------------------------------------------------------------*/
@@ -424,7 +424,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	par->invk2_layer[N_layers+1] = 1/par->k2_layer[N_layers+1];
 
 	fclose(fp);	
-	/* Vérification de l'absence d'erreurs de lecture */
+	/* VÃ©rification de l'absence d'erreurs de lecture */
 	if (strcmp(erreur,"NO_ERROR                     ")){
 		fprintf(stderr, "%s: ERROR, can't read \"%s\"\n",__FILE__,erreur);
 		exit(EXIT_FAILURE);
@@ -432,9 +432,9 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 
 	
 	/* Lecture des profils */
-	/* On lit comme un seul tableau, en lisant les lignes les unes à la suite des autres,  */
-	/* en considérant qu'une colonne représente les coordonnées d'une interface. On sépare */
-	/* ensuite les données en autant de tableaux qu'il y a d'interfaces                    */
+	/* On lit comme un seul tableau, en lisant les lignes les unes Ã  la suite des autres,  */
+	/* en considÃ©rant qu'une colonne reprÃ©sente les coordonnÃ©es d'une interface. On sÃ©pare */
+	/* ensuite les donnÃ©es en autant de tableaux qu'il y a d'interfaces                    */
 	if (par->verbosity >= 2) fprintf(stdout,"Reading profile %s: ",nom_fichier);
 	if (lire_tab(nom_fichier, "profil", profil_tmp, N_x*(N_layers+1)) == 0) {
 		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
@@ -443,7 +443,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 		exit(EXIT_FAILURE);
 	}
 /**************************************************/
-	/* Détermination de la hauteur du profil à partir des points h(x) */
+	/* DÃ©termination de la hauteur du profil Ã  partir des points h(x) */
 	double h_min = profil_tmp[0];
 	double h_max = profil_tmp[0];
 	double eps = 1.0e-10; 
@@ -465,7 +465,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	}
 	h_tmp = h_max - h_min;
 
-	/* Vérification que h(deteminé) = h(indiqué) et attribution si h = AUTO */
+	/* VÃ©rification que h(deteminÃ©) = h(indiquÃ©) et attribution si h = AUTO */
 	if (par->h == AUTO) {
 		par->h = h_tmp;
 	}else if (fabs(par->h - h_tmp) > eps*par->h && par->verbosity >= 2) {
@@ -475,17 +475,17 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 	for (i=0; i<=N_x*(N_layers+1)-1; i++) {
 		profil_tmp[i] -= h_min;
 	}
-	/* Vérification que les profils ne se chevauchent pas */
+	/* VÃ©rification que les profils ne se chevauchent pas */
 
 			
-	/* Multiplication par h_voulu / h_mesuré */
+	/* Multiplication par h_voulu / h_mesurÃ© */
 	if (h_tmp != 0.0) {
 		for (i=0; i<=N_x*(N_layers+1)-1; i++) {
 			profil_tmp[i] *= par->h / h_tmp;
 		}
 	}
 
-	/* Réarrangement en plusieurs tableaux */
+	/* RÃ©arrangement en plusieurs tableaux */
 	double eps2 = 0*par->h*1e-10;
 	for (nx=0; nx<=N_x-1;nx++){
 		/* superstrat, z=h */
@@ -506,7 +506,7 @@ int md2D_lire_profil_MULTI(const char *nom_fichier, struct Param_struct *par)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn	int md2D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
  *
- *	\brief	Fonction lisant les valeurs de indice(x,z) décrivant un profil volumique
+ *	\brief	Fonction lisant les valeurs de indice(x,z) dÃ©crivant un profil volumique
  */
 /*---------------------------------------------------------------------------------------------*/
 int md2D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
@@ -515,11 +515,11 @@ int md2D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 	COMPLEX **n_xyz = par->n_xyz;
 	
 
-	/* Allocations de mémoire pour variables temporaires */
+	/* Allocations de mÃ©moire pour variables temporaires */
 	double *Re_n_xyz = malloc(sizeof(double)*N_x*N_z);
 	double *Im_n_xyz = malloc(sizeof(double)*N_x*N_z);
 
-	/* Lecture de la partie réelle */
+	/* Lecture de la partie rÃ©elle */
 	if (par->verbosity >= 2) fprintf(stdout,"Reading profile %s:\nreal part: ",nom_fichier);
 	if (lire_tab(nom_fichier, "Re_n_xyz", Re_n_xyz, N_x*N_z) == 0) {
 		if (par->verbosity >= 2) fprintf(stdout,"OK\n");
@@ -538,7 +538,7 @@ int md2D_lire_profil_N_XYZ(const char *nom_fichier, struct Param_struct *par)
 		}
 	}
 	
-	/* Création de la matrice COMPLEXe n_xyz */
+	/* CrÃ©ation de la matrice COMPLEXe n_xyz */
 	for (nz=0; nz<=N_z-1; nz++){
 		for (nx=0; nx<=N_x-1; nx++){
 			n_xyz[nz][nx] = Re_n_xyz[nx+N_x*nz] + I*Im_n_xyz[nx+N_x*nz];
@@ -627,7 +627,7 @@ int md2D_genere_nom_fichier_results(char *nomfichier_results, struct Param_struc
 	struct tm  temps;
 	localtime_r(&ptime, &temps);
 	
-	/* Génération d'un nom de la forme  nom_2004_10_12_16h34.mdi */
+	/* GÃ©nÃ©ration d'un nom de la forme  nom_2004_10_12_16h34.mdi */
 /*	sprintf(nomfichier_results,"results/%s_%d_%02d_%02d_%02d%s%02d.txt",\
 		par->profile_name, temps.tm_year+1900, temps.tm_mon+1, temps.tm_mday, temps.tm_hour, "h", temps.tm_min);
 */
@@ -687,7 +687,7 @@ printf("Milieu: %s, lambda = %f, n = %f, k = %f\n",name,lambda,index_n,index_k);
 		tab_n= (double *) malloc(sizeof(double)*((int)npoints));
 		tab_k= (double *) malloc(sizeof(double)*((int)npoints));
 		lire_tab(filename, "TABLE", table_tmp, 3*(int)npoints);
-		/* Réarrangement en plusieurs tableaux */
+		/* RÃ©arrangement en plusieurs tableaux */
 		for (i=0; i<=(int)npoints -1;i++){
 			tab_lambda[i] = table_tmp[3*i];
 			tab_n[i] = table_tmp[3*i+1];
@@ -710,7 +710,7 @@ printf("Milieu: %s, lambda = %f, n = %f, k = %f\n",name,lambda,index_n,index_k);
 				exit(EXIT_FAILURE);
 			}
 		}
-		/* Interpolation linéaire */
+		/* Interpolation linÃ©aire */
 		double l1 = tab_lambda[numero];
 		double l2 = tab_lambda[numero+1];
 		double n1 = tab_n[numero];
@@ -731,5 +731,5 @@ printf("lambda= %f, n = %f, k= %f\n",lambda,index_n,index_k);
 
 		return index;
 	}
-	return -1;/* ERREUR, ne devrait pas arriver là ... */
+	return -1;/* ERREUR, ne devrait pas arriver lÃ  ... */
 }

@@ -3,20 +3,20 @@
 #
 
 
-# Paramètres de la surface
+# ParamÃ¨tres de la surface
 n_super = 1.0 + i0.0
 n_sub = 1.5 +i0.0
 
 L = 1.1
 h = 0.2
 
-# Paramètres du champ
+# ParamÃ¨tres du champ
 pola = TM
 lambda = 0.6
 i_field_mode = PLANE_WAVE
 theta_i = 0.0
 
-# Paramètres numériques
+# ParamÃ¨tres numÃ©riques
 calcul_type   = NEAR_FIELD
 #calcul_type   = STD
 #calcul_method = IMPROVED_RCWA

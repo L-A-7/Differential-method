@@ -47,13 +47,13 @@ int main(int argc, char *argv[]){
 		strncpy(argvcp[i], argv[i],SIZE_STR);
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (argc <= 1){
 		message_erreur();
 		return 1;
 	}
 	
-	/* Valeurs par défaut */
+	/* Valeurs par dÃ©faut */
 	int Nprx = NPR_DEFAULT;
 	int Npry = NPR_DEFAULT;
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
 		return 1;
 	}
 	
-	/* Libération de la mémoire */
+	/* LibÃ©ration de la mÃ©moire */
 	free(pr[0]); free(pr);
 	
 	return 0;

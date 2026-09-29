@@ -28,7 +28,7 @@ CFLAGS = -g -Wall -ansi
 PATH1 = -I/usr/local/include -I/home/lau/Programmes/md1D/fftw -I/opt/acml4.3.0/gfortran64/include
 PATH2 = -L/opt/acml4.3.0/gfortran64/lib/
 
-# Librairies à inclure :
+# Librairies Ã  inclure :
 #LIB = -lfftw3 -lgsl -lgslcblas -lm
 #LIB = -lfftw3 -lm
 LIB = -lfftw3 -latlas -llapack -lblas -lacml -lm
@@ -39,49 +39,49 @@ PG =
 
 utils : $(PROFIL_GEN) $(FFT_TEST) lire_tab lire_ligne lire_N1N2 add_col lire_plot lire_string diffsum $(TESTS)
 
-# ProfilGen (indépendant) :
+# ProfilGen (indÃ©pendant) :
 $(PROFIL_GEN) : $(PROFIL_GEN).c
 	$(CC) -c $(CFLAGS) $(PATH1) $(PROFIL_GEN).c ../md3D_utils.c ../md3D_io_utils.c
 	$(CC) -o $(PROFIL_GEN) $(PROFIL_GEN).o ../md3D_utils.o ../md3D_io_utils.o $(LIB) $(PATH2)
 	
-# ProfilGen2D (indépendant) :
+# ProfilGen2D (indÃ©pendant) :
 $(PROFIL_GEN2D) : $(PROFIL_GEN2D).c
 	$(CC) -c $(CFLAGS) $(PATH1) $(PROFIL_GEN2D).c ../md3D_utils.c ../md3D_io_utils.c
 	$(CC) -o $(PROFIL_GEN2D) $(PROFIL_GEN2D).o ../md3D_utils.o ../md3D_io_utils.o $(LIB) $(PATH2)
 	
-# fft_test (indépendant)
+# fft_test (indÃ©pendant)
 $(FFT_TEST) : $(FFT_TEST).c 
 	$(CC) -o $(FFT_TEST) $(CFLAGS) $(FFT_TEST).c -lm -lfftw3
 	
-# lire_tab (indépendant)
+# lire_tab (indÃ©pendant)
 lire_tab : lire_tab.c 
 	$(CC) -o lire_tab $(CFLAGS) lire_tab.c
 
-# lire_ligne (indépendant)
+# lire_ligne (indÃ©pendant)
 lire_ligne : lire_ligne.c 
 	$(CC) -o lire_ligne $(CFLAGS) lire_ligne.c
 
-# lire_N1N2 (indépendant)
+# lire_N1N2 (indÃ©pendant)
 lire_N1N2 : lire_N1N2.c 
 	$(CC) -o lire_N1N2 $(CFLAGS) lire_N1N2.c
 
-# add_col (indépendant)
+# add_col (indÃ©pendant)
 add_col : add_col.c 
 	$(CC) -o add_col $(CFLAGS) add_col.c
 
-# lire_plots (indépendant)
+# lire_plots (indÃ©pendant)
 lire_plot : lire_plot.c 
 	$(CC) -o lire_plot $(CFLAGS) lire_plot.c
 
-# lire_string (indépendant)
+# lire_string (indÃ©pendant)
 lire_string : lire_string.c 
 	$(CC) -o lire_string $(CFLAGS) lire_string.c
 
-# diffsum (indépendant)
+# diffsum (indÃ©pendant)
 diffsum : diffsum.c 
 	$(CC) -o diffsum $(CFLAGS) diffsum.c -lm
 	
-#tests (indépendant)
+#tests (indÃ©pendant)
 $(TESTS) : $(TESTS).c 
 	$(CC) -o $(TESTS) $(CFLAGS) $(TESTS).c -lm -lfftw3
 

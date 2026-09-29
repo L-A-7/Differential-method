@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
 		strncpy(argvcp[i], argv[i],STR_SIZE);
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (argc < 2){
 		err_message();
 		return 1;
@@ -105,7 +105,7 @@ SaveDbleTab2file (k_power, Nb_cauchy,"stdout", " ");printf("\n");*/
 		tab_n= (double *) malloc(sizeof(double)*((int)npoints));
 		tab_k= (double *) malloc(sizeof(double)*((int)npoints));
 		lire_tab(filename, "TABLE", table_tmp, 3*(int)npoints);
-		/* Réarrangement en plusieurs tableaux */
+		/* RÃ©arrangement en plusieurs tableaux */
 		for (i=0; i<=(int)npoints -1;i++){
 			tab_lambda[i] = table_tmp[3*i];
 			tab_n[i] = table_tmp[3*i+1];
@@ -128,7 +128,7 @@ SaveDbleTab2file (k_power, Nb_cauchy,"stdout", " ");printf("\n");*/
 				exit(EXIT_FAILURE);
 			}
 		}
-		/* Interpolation linéaire */
+		/* Interpolation linÃ©aire */
 		double l1 = tab_lambda[numero];
 		double l2 = tab_lambda[numero+1];
 		double n1 = tab_n[numero];
@@ -149,5 +149,5 @@ printf("lambda= %f, n = %f, k= %f\n",lambda,index_n,index_k);
 
 		return index;
 	}
-	return -1;/* ERREUR, ne devrait pas arriver là ... */
+	return -1;/* ERREUR, ne devrait pas arriver lÃ  ... */
 }

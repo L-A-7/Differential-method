@@ -382,7 +382,7 @@ int md2D_variables_init(struct Param_struct *par, struct Efficacites_struct *eff
 			sig0 = par->sigma0;
 		}else if (!strcmp(par->calcul_type,"VAR_I") || !strcmp(par->calcul_type,"VAR_I_BIS") || \
 			!strcmp(par->calcul_type,"VAR_I_ELLIPSO")){
-			sig0 = par->k_super; /* correspond à sigma0 pour theta_i = 90° => N constant et suffisant de 0 à 90°*/
+			sig0 = par->k_super; /* correspond Ã  sigma0 pour theta_i = 90Â° => N constant et suffisant de 0 Ã  90Â°*/
 		}else{
 			fprintf(stderr, "%s ligne %d, Calcul AUTO de N : %s, type calcul inconnu\n",__FILE__, __LINE__,par->calcul_type);
 			exit(EXIT_FAILURE);
@@ -816,7 +816,7 @@ int md2D_read_mat_S(struct Param_struct *par)
 		fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,nom_fichier);
 		return 1;
 	}
-	/* Lecture des paramètres */
+	/* Lecture des paramÃ¨tres */
 	if (lire_string (fp, "mat_S_name", par->mat_S_name)) erreur="mat_S_name";
 	if (lire_double (fp, "h_partial", &(par->h) )) erreur="h_partial";
 /*	if (lire_double (fp, "L", &(par->L) )) erreur="L";

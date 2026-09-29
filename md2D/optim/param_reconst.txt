@@ -1,19 +1,19 @@
 #
 
 
-# Paramètres de la surface
+# ParamÃ¨tres de la surface
 n_super = 1.0 + i0.0
 n_sub = 1.5 +i0.0
 h = AUTO
 
-# Paramètres du champ
+# ParamÃ¨tres du champ
 lambda = 1.0
 i_field_mode = PLANE_WAVE
 theta_i = 66.05
 phi_i = 0.0
 psi = 90.0
 
-# Paramètres numériques
+# ParamÃ¨tres numÃ©riques
 calcul_type   = ELLIPSO
 calcul_method = RCWA
 NS = 10

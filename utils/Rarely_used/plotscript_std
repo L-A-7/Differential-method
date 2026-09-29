@@ -11,13 +11,13 @@ set grid
 
 set size 0.6,0.45
 set origin 0.0,0.5
-set label "Efficacités en reflexion" at screen 0.33,0.95 center
+set label "EfficacitÃ©s en reflexion" at screen 0.33,0.95 center
 set xrange [-90:90]
 plot './eff_R.tmp' notitle with linespoints pt 6
 
 set size 0.6,0.45
 set origin 0.0,0.0
-set label "Efficacités en transmission" at screen 0.33,0.45 center
+set label "EfficacitÃ©s en transmission" at screen 0.33,0.45 center
 set xrange [-90:90]
 plot 'eff_T.tmp' notitle with linespoints pt 4
 

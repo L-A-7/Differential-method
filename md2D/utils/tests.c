@@ -21,7 +21,7 @@ int main()
 	B = allocate_CplxMatrix(N,N);
 
 	
-	/* Création d'une matrice */
+	/* CrÃ©ation d'une matrice */
 	srand(time(NULL));
 	for(i=0;i<=N-1;i++){
 		for(j=0;j<=N-1;j++){
@@ -33,7 +33,7 @@ int main()
 	for (i=0;i<1;i++) {
 		invMM(inv, A, N);
 	}
-	printf("Temps écoulé : %f s\n",CHRONO(clock(),clock0));
+	printf("Temps Ã©coulÃ© : %f s\n",CHRONO(clock(),clock0));
 	
 	M_x_M(B,inv,A,N,N);
 
@@ -48,7 +48,7 @@ int main()
 	printf("inv : %f\nA : %f\nB : %f\n",sommInv/N,sommA/N,sommB/N);
 
 
-	printf("Temps écoulé : %f s\n",CHRONO(clock(),clock0));
+	printf("Temps Ã©coulÃ© : %f s\n",CHRONO(clock(),clock0));
 	return 0;
 }
 
@@ -73,7 +73,7 @@ complex **invMM(complex **inv, const complex **A, int N)
 		}
 	}
 		
-	/* Matrice Identité */
+	/* Matrice IdentitÃ© */
 	for(i=0;i<=N-1;i++){
 		for(j=0;j<=N-1;j++){
 			Id[i][j] = (i==j);
@@ -83,8 +83,8 @@ complex **invMM(complex **inv, const complex **A, int N)
 	/* 'Triangularisation' de la matrice */
 	for(k=0;k<=N-2;k++){
 		/* Permutation des lignes pour que le pivot, M[k][k], soit le  */
-		/* plus grand élément de la colonne. Minimise la propagation   */
-		/* des erreurs d'arrondi, et évite les divisions par zero      */
+		/* plus grand Ã©lÃ©ment de la colonne. Minimise la propagation   */
+		/* des erreurs d'arrondi, et Ã©vite les divisions par zero      */
 		partialPivoting(M,Id,k,N);
 		
 		/* Eliminations des variables */
@@ -99,7 +99,7 @@ complex **invMM(complex **inv, const complex **A, int N)
 		}
 	}
 
-	/* Résolution du système A.[inv] = [Id] après 'triangularisation' */		
+	/* RÃ©solution du systÃ¨me A.[inv] = [Id] aprÃ¨s 'triangularisation' */		
 	for(k=0;k<=N-1;k++) {
 		inv[N-1][k] = Id[N-1][k]/M[N-1][N-1];
 		for(i=N-2;i>=0;i--){
@@ -123,7 +123,7 @@ void partialPivoting(complex **M, complex **b, int k, int N)
 	int i, max=k;
 	complex tmp;
 	
-	/* Recherche du plus grand élément */
+	/* Recherche du plus grand Ã©lÃ©ment */
 	for(i=k;i<=N-1;i++){
 		if (cabs(M[i][k]) > cabs(M[max][k])) max = i;
 	}

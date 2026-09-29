@@ -1,22 +1,22 @@
 ./md	#	Calculs Tayeb ACES_1994
-#	réseau diélectrique sinusoïdal
+#	rÃ©seau diÃ©lectrique sinusoÃ¯dal
 #	L=3.9 lambda, h=0.5 lambda
-#	eps=3eps0, n = 1.732050807+i0.0, incidence=30°
+#	eps=3eps0, n = 1.732050807+i0.0, incidence=30Â°
 
 
-# Paramètres de la surface
+# ParamÃ¨tres de la surface
 n_super = 1.000000 + i0.000000
 n_sub   = 1.732051 + i0.000000
 L       = 3.9
 h       = 0.5
 
-# Paramètres du champ
+# ParamÃ¨tres du champ
 i_field_mode = PLANE_WAVE
 pola = TM
 lambda = 1.0
 theta_i = 30.0
 
-# Paramètres numériques
+# ParamÃ¨tres numÃ©riques
 calcul_type = STD
 calcul_method = RK4
 #calcul_method = Z_INVAR

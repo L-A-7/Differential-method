@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){
 		strncpy(argvcp[i], argv[i],STR_SIZE);
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (argc < 11){
 		err_message();
 		return 1;

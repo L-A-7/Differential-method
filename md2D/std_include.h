@@ -109,7 +109,7 @@ struct Param_struct {
 	double Delta_sigma;
 	int smoothing;
 	double l_smooth;
-	COMPLEX sigma0_normed; /* sigma0_normed: used to define evenescent incident field (replaces theta_i which value will not be taken into account). By defintion sigma0_normed=sigma0/k0, ie sigma0_normed=1 corresponds to theta_i=90° in void */ 
+	COMPLEX sigma0_normed; /* sigma0_normed: used to define evenescent incident field (replaces theta_i which value will not be taken into account). By defintion sigma0_normed=sigma0/k0, ie sigma0_normed=1 corresponds to theta_i=90Â° in void */ 
 	COMPLEX sigma0;
 	COMPLEX ky_0;
 	COMPLEX k_super;
@@ -118,7 +118,7 @@ struct Param_struct {
 	COMPLEX *kz_super;
 	COMPLEX *kz_sub;
 
-/* A documenter tout ça...*/
+/* A documenter tout Ã§a...*/
 	/* Imposed S steps
 	if imposed_S_steps is entered in parameter file or command line. 2 values possible
 	. AUTO
@@ -245,7 +245,7 @@ struct Param_struct {
 	double delta_p;
 	double delta;
 
-	/* variable spécifiques pour aleat_T_ellipso NOT USED ANYMORE */
+	/* variable spÃ©cifiques pour aleat_T_ellipso NOT USED ANYMORE */
 /*	double L_segment;
 	double ecart_type_segment;
 	double h_total_aleat_T;
@@ -270,16 +270,16 @@ struct Param_struct {
 	int (*M_matrix)(COMPLEX **M, double z, struct Param_struct *par);
 	int (*P_matrix)(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
 	
-	clock_t clock0;         /* Stocke le temps de départ                              */
-	clock_t last_clock;     /* Durée écoulée depuis le dernier appel à md2D_temps     */
-	time_t  time0;			/* clock(): très précis mais cyclique => tps longs pas OK */
-	time_t last_time;		/* time() : précision d'1 s, non cyclique => tps longs OK */
+	clock_t clock0;         /* Stocke le temps de dÃ©part                              */
+	clock_t last_clock;     /* DurÃ©e Ã©coulÃ©e depuis le dernier appel Ã  md2D_temps     */
+	time_t  time0;			/* clock(): trÃ¨s prÃ©cis mais cyclique => tps longs pas OK */
+	time_t last_time;		/* time() : prÃ©cision d'1 s, non cyclique => tps longs OK */
 
 	int READ_MAT_S; /* Si READ_MAT_S = 1, la matrice S est lue dans un fichier au lieu d'etre calculee */		
 	char mat_S_file[SIZE_STR_BUFFER];
 	char mat_S_name[SIZE_STR_BUFFER];
 	int STOCKER_TF; /* Si STOCKER_TF = 0, calculs directs des TFs. si STOCKER_TF = 1 on stocke les  */
-					/* valeurs des calculs de TFs : plus rapide, mais nécessite plus de mémoire.    */
+					/* valeurs des calculs de TFs : plus rapide, mais nÃ©cessite plus de mÃ©moire.    */
 
 	int verbosity; /* Si verbose = 1, affiche plus d'infos sur le terminal */
 	char i_field_mode[SIZE_STR_BUFFER]; /* incident field (PLANE_WAVE, GAUSSIAN, FROM_BINARY, FROM_ASCII) */

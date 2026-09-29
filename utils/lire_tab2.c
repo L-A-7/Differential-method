@@ -1,8 +1,8 @@
 /*	lire_tab
  *
- *	Lit les valeurs de format double dans un fichier et les affiche à l'écran.      
- *	Les valeurs doivent être séparées par un ou plusieurs espaces, tabulations     
- *	ou sauts de lignes et précédées d'un label éventuellement suivi d'un signe '='.
+ *	Lit les valeurs de format double dans un fichier et les affiche Ã  l'Ã©cran.      
+ *	Les valeurs doivent Ãªtre sÃ©parÃ©es par un ou plusieurs espaces, tabulations     
+ *	ou sauts de lignes et prÃ©cÃ©dÃ©es d'un label Ã©ventuellement suivi d'un signe '='.
  *  ex. : (...) tab1 = 3.4  4.5e-3  +46  -7.6e+2 ...                               
  *
  *	Utilisation :
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 			
-	/* Lecture de label en argument n°1 */
+	/* Lecture de label en argument nÂ°1 */
 	char label[1000];
 	strncpy(label, argv[1], 1000);
 	
@@ -63,25 +63,25 @@ static int lire_tab(const char *label)
 		}
 	}
 
-	fprintf(stderr,"%s ligne %d : ERREUR, le label '%s' n'a pas été trouvé\n", __FILE__, __LINE__, label);
+	fprintf(stderr,"%s ligne %d : ERREUR, le label '%s' n'a pas Ã©tÃ© trouvÃ©\n", __FILE__, __LINE__, label);
 	return 1;
 
 	/* Lecture des valeurs */
-	while(!feof(stdin)){ /* Tant qu'on est pas à la fin du fichier */
+	while(!feof(stdin)){ /* Tant qu'on est pas Ã  la fin du fichier */
 		if (lire_ligne(stdin,line) != 0) goto LECTURE_FINIE;
 		line_cpt++;
 		skip_comment(line); 
 		pos = line;
 		
 LABEL_TROUVE :
-		while(isspace(*pos)) pos++; /* on élimine les espaces */
-		while(pos < line+strlen(line)) { /* Tant qu'on est pas à la fin de la ligne */
+		while(isspace(*pos)) pos++; /* on Ã©limine les espaces */
+		while(pos < line+strlen(line)) { /* Tant qu'on est pas Ã  la fin de la ligne */
 			tmp = strtod(pos, &endptr); /* on lit le 'double' */
-			if (pos == endptr) goto LECTURE_FINIE; /* conversion ratée */
+			if (pos == endptr) goto LECTURE_FINIE; /* conversion ratÃ©e */
 			fprintf(stdout,"%1.12e ",tmp);
 			cpt ++;
 			pos = endptr;
-			while(isspace(*pos)) pos++; /* on élimine les espaces */
+			while(isspace(*pos)) pos++; /* on Ã©limine les espaces */
 		}
 		fprintf(stdout,"\n");
 	}
@@ -93,14 +93,14 @@ LECTURE_FINIE:
 
 /*! \fn		static void lire_ligne(FILE *fp, char *line)
  *
- *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactères 
+ *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactÃ¨res 
  */
 static int lire_ligne(FILE *fp, char *line)
 {
 	if (fgets(line, SIZE_LINE_BUFFER, fp) == NULL) return 1;
 	if (strlen(line) == SIZE_LINE_BUFFER-1) {
 		fprintf(stderr, "%s ligne %d : ERREUR, taille de buffer insuffisante,impossible de lire plus de "
-						"%d caractères par ligne.\n",__FILE__, __LINE__,SIZE_LINE_BUFFER-1);
+						"%d caractÃ¨res par ligne.\n",__FILE__, __LINE__,SIZE_LINE_BUFFER-1);
 		exit(EXIT_FAILURE);
 	}
 	return 0;
@@ -109,12 +109,12 @@ static int lire_ligne(FILE *fp, char *line)
 
 /*! \fn		static void skip_comment(char *str_in_out)
  *
- *  \brief	Elimine tout ce qui se trouve après un commentaire '#' dans str_in_out
+ *  \brief	Elimine tout ce qui se trouve aprÃ¨s un commentaire '#' dans str_in_out
  */
 static void skip_comment(char *str_in_out){
 
 	char *pos;
-	/* Cherche CHAR_COMMENT et le remplace par le charactère nul '\0' */
+	/* Cherche CHAR_COMMENT et le remplace par le charactÃ¨re nul '\0' */
 	if((pos = strchr(str_in_out,CHAR_COMMENT)) != NULL) {
 		*pos = '\0';
 	}
@@ -123,11 +123,11 @@ static void skip_comment(char *str_in_out){
 
 /*!	\fn		char *label_search(char *str,const char *label)
  *
- *	\brief	Cherche un label dans une chaine de caractères, le label doit être isolé, c.a.d, \n
- *          en début de ligne ou précédé d'un espace au sens de isspace() et suivi d'un espace \n
+ *	\brief	Cherche un label dans une chaine de caractÃ¨res, le label doit Ãªtre isolÃ©, c.a.d, \n
+ *          en dÃ©but de ligne ou prÃ©cÃ©dÃ© d'un espace au sens de isspace() et suivi d'un espace \n
  *          ou d'un signe '='
  *
- *	\return	La position de la 1ere occurence du label dans la chaine ou NULL si le label n'a pas été trouvé
+ *	\return	La position de la 1ere occurence du label dans la chaine ou NULL si le label n'a pas Ã©tÃ© trouvÃ©
  */
 char *label_search(char *str,const char *label)
 {
@@ -138,12 +138,12 @@ char *label_search(char *str,const char *label)
 
 	/* Recherche du label */
 	while((pos=strstr(str,label)) != NULL) {
-		/* Vérification que le label est en début de ligne ou précédé par un espace */
+		/* VÃ©rification que le label est en dÃ©but de ligne ou prÃ©cÃ©dÃ© par un espace */
 		if (pos != str && !isspace(*(pos-1))) {
 			str = pos + strlen(label);
 			continue;
 		}
-		/* Vérification que le label est suivi par un espace, saut de ligne ou signe '=' */
+		/* VÃ©rification que le label est suivi par un espace, saut de ligne ou signe '=' */
 		if (strlen(pos) > strlen(label)) {
 			if (!isspace(*(pos+strlen(label))) && *(pos+strlen(label)) != '=') {
 				str = pos + strlen(label);

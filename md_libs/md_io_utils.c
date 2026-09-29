@@ -12,9 +12,9 @@
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn    int lire_int(FILE *fp, char *label, int *value)
  *
- *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
+ *  \brief	Lit dans le fichier pointÃ© par *fp la valeur entiere 'value' indiquÃ©e par 'label' \n
  *			sous la forme label = value (ex.: N2 = 10)
- *  \return	0 si lecture réussie 1 sinon
+ *  \return	0 si lecture rÃ©ussie 1 sinon
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_int(FILE *fp, const char *label, int *value){
@@ -39,9 +39,9 @@ int lire_int(FILE *fp, const char *label, int *value){
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn    int lire_double(FILE *fp, char *label, double *value)
  *
- *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
+ *  \brief	Lit dans le fichier pointÃ© par *fp la valeur entiere 'value' indiquÃ©e par 'label' \n
  *			sous la forme label = value (ex.:  x = 0.12310)
- *  \return	0 si lecture réussie 1 sinon
+ *  \return	0 si lecture rÃ©ussie 1 sinon
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_double(FILE *fp, const char *label, double *value){
@@ -71,9 +71,9 @@ int lire_double(FILE *fp, const char *label, double *value){
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn    int lire_string(FILE *fp, char *label, char *value)
  *
- *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
+ *  \brief	Lit dans le fichier pointÃ© par *fp la valeur entiere 'value' indiquÃ©e par 'label' \n
  *			sous la forme label = value (ex.: fichier = toto.dat)
- *  \return	0 si lecture réussie 1 sinon
+ *  \return	0 si lecture rÃ©ussie 1 sinon
  *	\todo	REMPLACER sscanf("%s") par qqchose de plus sur	
  */
 /*---------------------------------------------------------------------------------------------*/
@@ -148,9 +148,9 @@ int parse_complex(const char *str, COMPLEX *value){
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn    int lire_complex(FILE *fp,  char *label, COMPLEX *value)
  *
- *  \brief	Lit dans le fichier pointé par *fp la valeur entiere 'value' indiquée par 'label' \n
+ *  \brief	Lit dans le fichier pointÃ© par *fp la valeur entiere 'value' indiquÃ©e par 'label' \n
  *			sous la forme label = value (ex.: Z1 = 1.0 + i0.5 )
- *  \return	0 si lecture réussie 1 sinon
+ *  \return	0 si lecture rÃ©ussie 1 sinon
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_complex(FILE *fp, const char *label, COMPLEX *value){
@@ -176,12 +176,12 @@ int lire_complex(FILE *fp, const char *label, COMPLEX *value){
 /*!	\fn		int lire_tab(char *nom_fichier, const char *label, double *tab, int N)
  *
  *	\brief	Lit N valeurs de format double dans un fichier et les stocke dans un tableau   \n 
- *			Les valeurs doivent être séparées par un ou plusieurs espaces, tabulations     \n
- *			ou sauts de lignes et précédées d'un label éventuellement suivi d'un signe '='.\n
+ *			Les valeurs doivent Ãªtre sÃ©parÃ©es par un ou plusieurs espaces, tabulations     \n
+ *			ou sauts de lignes et prÃ©cÃ©dÃ©es d'un label Ã©ventuellement suivi d'un signe '='.\n
  *          ex. : (...) tab1 = 3.4  4.5e-3  +46  -7.6e+2 ...                               \n
  *          Remarque : Pour lire un tableau sans label, donner "" comme label.             \n
  *
- *	\return	0 si succès, 1 si le nombre d'éléments lus diffère de N ou si le label n'a pas été trouvé.
+ *	\return	0 si succÃ¨s, 1 si le nombre d'Ã©lÃ©ments lus diffÃ¨re de N ou si le label n'a pas Ã©tÃ© trouvÃ©.
  *
  *	\todo	RENDRE PLUS ROBUSTE : PAS DE BUFFER OVERFLOW AU CAS OU IL Y A PLUS DE N LIGNES
  *
@@ -223,14 +223,14 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 		pos = line;
 		
 	LABEL_TROUVE :
-		while(isspace(*pos)) pos++; /* on élimine les espaces */
-		while(pos < line+strlen(line)) { /* Tant qu'on est pas à la fin de la ligne */
+		while(isspace(*pos)) pos++; /* on Ã©limine les espaces */
+		while(pos < line+strlen(line)) { /* Tant qu'on est pas Ã  la fin de la ligne */
 			tmp = strtod(pos, &endptr); /* on lit le 'double' */
-			if (pos == endptr) {goto LECTURE_FINIE;} /* conversion ratée */
+			if (pos == endptr) {goto LECTURE_FINIE;} /* conversion ratÃ©e */
 			if (cpt <= N+1) tab[cpt] = tmp;
 			cpt ++;
 			pos = endptr;
-			while(isspace(*pos)) pos++; /* on élimine les espaces */
+			while(isspace(*pos)) pos++; /* on Ã©limine les espaces */
 		}
 	}
 
@@ -248,7 +248,7 @@ int lire_tab(const char *nom_fichier, const char *label, double *tab, int N)
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn		void lire_ligne(FILE *fp, char *line)
  *
- *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactères 
+ *  \brief	Lit une ligne dans un fichier et la stocke dans une chaine de charactÃ¨res 
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_ligne(FILE *fp, char *line)
@@ -265,11 +265,11 @@ int lire_ligne(FILE *fp, char *line)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		char *label_search(char *str,const char *label)
  *
- *	\brief	Cherche un label dans une chaine de caractères, le label doit être isolé, c.a.d, \n
- *          en début de ligne ou précédé d'un espace au sens de isspace() et suivi d'un espace \n
+ *	\brief	Cherche un label dans une chaine de caractÃ¨res, le label doit Ãªtre isolÃ©, c.a.d, \n
+ *          en dÃ©but de ligne ou prÃ©cÃ©dÃ© d'un espace au sens de isspace() et suivi d'un espace \n
  *          ou d'un signe '='
  *
- *	\return	La position de la 1ere occurence du label dans la chaine ou NULL si le label n'a pas été trouvé
+ *	\return	La position de la 1ere occurence du label dans la chaine ou NULL si le label n'a pas Ã©tÃ© trouvÃ©
  */
 /*---------------------------------------------------------------------------------------------*/
 char *label_search(char *str,const char *label)
@@ -281,12 +281,12 @@ char *label_search(char *str,const char *label)
 
 	/* Recherche du label */
 	while((pos=strstr(str,label)) != NULL) {
-		/* Vérification que le label est en début de ligne ou précédé par un espace */
+		/* VÃ©rification que le label est en dÃ©but de ligne ou prÃ©cÃ©dÃ© par un espace */
 		if (pos != str && !isspace(*(pos-1))) {
 			str = pos + strlen(label);
 			continue;
 		}
-		/* Vérification que le label est suivi par un espace, saut de ligne ou signe '=' */
+		/* VÃ©rification que le label est suivi par un espace, saut de ligne ou signe '=' */
 		if (strlen(pos) > strlen(label)) {
 			if (!isspace(*(pos+strlen(label))) && *(pos+strlen(label)) != '=') {
 				str = pos + strlen(label);
@@ -302,13 +302,13 @@ char *label_search(char *str,const char *label)
 /*---------------------------------------------------------------------------------------------*/
 /*! \fn		void skip_comment(char *str_in_out)
  *
- *  \brief	Elimine tout ce qui se trouve après un commentaire '#' dans str_in_out
+ *  \brief	Elimine tout ce qui se trouve aprÃ¨s un commentaire '#' dans str_in_out
  */
 /*---------------------------------------------------------------------------------------------*/
 void skip_comment(char *str_in_out){
 
 	char *pos;
-	/* Cherche CHAR_COMMENT et le remplace par le charactère nul '\0' */
+	/* Cherche CHAR_COMMENT et le remplace par le charactÃ¨re nul '\0' */
 	if((pos = strchr(str_in_out,CHAR_COMMENT)) != NULL) {
 		*pos = '\0';
 	}
@@ -318,8 +318,8 @@ void skip_comment(char *str_in_out){
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int	ecrire_dble_tab(FILE *fp, double *tab, int N, char *separateur1, int Nmax1, char *separateur2)
  *
- *	\brief	Ecrit les valeurs d'un tableau séparées par les 'séparateurs1' (par ex " "), plus par les \n
- *          'séparateurs2' (par ex "\n") une fois tous les Nmax1 éléments.
+ *	\brief	Ecrit les valeurs d'un tableau sÃ©parÃ©es par les 'sÃ©parateurs1' (par ex " "), plus par les \n
+ *          'sÃ©parateurs2' (par ex "\n") une fois tous les Nmax1 Ã©lÃ©ments.
  */
 /*---------------------------------------------------------------------------------------------*/
 int ecrire_dble_tab(FILE *fp, double *tab, int N, char *separateur1, int Nmax1, char *separateur2)
@@ -333,7 +333,7 @@ int ecrire_dble_tab(FILE *fp, double *tab, int N, char *separateur1, int Nmax1, 
 		k++;
 		fprintf(fp,"%s",separateur2);
 	}
-	/* Derniere ligne, traitée à part car pas de séparateur2 à la fin ! */
+	/* Derniere ligne, traitÃ©e Ã  part car pas de sÃ©parateur2 Ã  la fin ! */
 	for (i=k*Nmax1; i<=MIN(N-1,(k+1)*Nmax1-1); i++){
 		fprintf(fp,"% 1.12e%s",tab[i],separateur1);
 	}
@@ -344,8 +344,8 @@ int ecrire_dble_tab(FILE *fp, double *tab, int N, char *separateur1, int Nmax1, 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int	ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2)
  *
- *	\brief	Ecrit les valeurs d'un tableau séparées par les 'séparateurs1' (par ex " "), plus par les \n
- *          'séparateurs2' (par ex "\n") une fois tous les Nmax1 éléments, mode RE/IM
+ *	\brief	Ecrit les valeurs d'un tableau sÃ©parÃ©es par les 'sÃ©parateurs1' (par ex " "), plus par les \n
+ *          'sÃ©parateurs2' (par ex "\n") une fois tous les Nmax1 Ã©lÃ©ments, mode RE/IM
  */
 /*---------------------------------------------------------------------------------------------*/
 int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, int Nmax1, char *separateur2)
@@ -359,7 +359,7 @@ int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, 
 			k++;
 			fprintf(fp,"%s",separateur2);
 		}
-		/* Derniere ligne, traitée à part car pas de séparateur2 à la fin ! */
+		/* Derniere ligne, traitÃ©e Ã  part car pas de sÃ©parateur2 Ã  la fin ! */
 		for (i=k*Nmax1; i<=MIN(N-1,(k+1)*Nmax1-1); i++){
 			fprintf(fp,"% 1.12e%s",creal(tab[i]),separateur1);
 		}
@@ -371,7 +371,7 @@ int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, 
 			k++;
 			fprintf(fp,"%s",separateur2);
 		}
-		/* Derniere ligne, traitée à part car pas de séparateur2 à la fin ! */
+		/* Derniere ligne, traitÃ©e Ã  part car pas de sÃ©parateur2 Ã  la fin ! */
 		for (i=k*Nmax1; i<=MIN(N-1,(k+1)*Nmax1-1); i++){
 			fprintf(fp,"% 1.12e%s",cimag(tab[i]),separateur1);
 		}
@@ -386,7 +386,7 @@ int ecrire_cplx_tab(FILE *fp, COMPLEX *tab, int N, int mode, char *separateur1, 
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int lire_str_arg(char *dest, char *label, int argc, char **argvcp)
  *
- *	\brief	Lit la valeur de l'argument de la ligne de commande indiqué sous la forme "-label valeur"
+ *	\brief	Lit la valeur de l'argument de la ligne de commande indiquÃ© sous la forme "-label valeur"
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_str_arg(char *dest, char *label, int argc, char **argvcp)
@@ -405,7 +405,7 @@ int lire_str_arg(char *dest, char *label, int argc, char **argvcp)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int lire_dble_arg(double *res, char *label, int argc, char **argvcp)
  *
- *	\brief	Lit la valeur de l'argument de la ligne de commande indiqué sous la forme "-label valeur"
+ *	\brief	Lit la valeur de l'argument de la ligne de commande indiquÃ© sous la forme "-label valeur"
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_dble_arg(double *res, char *label, int argc, char **argvcp)
@@ -430,7 +430,7 @@ int lire_dble_arg(double *res, char *label, int argc, char **argvcp)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn	int lire_int_arg(int *res, char *label, int argc, char **argvcp)
  *
- *	\brief	Lit la valeur de l'argument de la ligne de commande indiqué sous la forme "-label valeur"
+ *	\brief	Lit la valeur de l'argument de la ligne de commande indiquÃ© sous la forme "-label valeur"
  */
 /*---------------------------------------------------------------------------------------------*/
 int lire_int_arg(int *res, char *label, int argc, char **argvcp)
@@ -477,7 +477,7 @@ int lire_complex_arg(COMPLEX *res, char *label, int argc, char **argvcp)
 /*---------------------------------------------------------------------------------------------*/
 /*!	\fn		int arg_read(int argc, char **argvcp, FILE *fp, char *type, void *var, char *flag, int exit_or_not)
  *	
- *	\brief	Lecture des paramètres dans un fichier
+ *	\brief	Lecture des paramÃ¨tres dans un fichier
  *
  *---------------------------------------------------------------------------------------------*/
 int arg_read(int argc, char **argvcp, FILE *fp, char *type, void *var, char *flag, int exit_or_not)
@@ -539,7 +539,7 @@ int ecrire_col(double *tab, char *nomtab, char *nom_fichier)
 	}
 
 	
-	/* Comptage du nombre de caractères de la plus longue ligne */
+	/* Comptage du nombre de caractÃ¨res de la plus longue ligne */
 	int max = 0;
 	while(!feof(fp)){ 
 		if (lire_ligne(fp,line) != 0) break;

@@ -1,5 +1,5 @@
 /* \file  md2D_in_out.h
- *  \brief Fichier d'en-tête pour le programme md2D_in_out
+ *  \brief Fichier d'en-tÃªte pour le programme md2D_in_out
  */
 
 #ifndef _md2D_IN_OUT_H

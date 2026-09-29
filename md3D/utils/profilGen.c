@@ -41,20 +41,20 @@ int main(int argc, char *argv[]){
 		strncpy(argvcp[i], argv[i],SIZE_STR);
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (argc <= 1){
 		message_erreur();
 		return 1;
 	}
 	
-	/* Valeurs par défaut */
+	/* Valeurs par dÃ©faut */
 	int N_profil = 512;
 	lire_int_arg(&N_profil, "-N_profil", argc, argvcp);
 	strncpy(pr_name,argvcp[1],SIZE_STR);
 
 	
 
-	/*----- Génération d'un profil -----*/
+	/*----- GÃ©nÃ©ration d'un profil -----*/
 	if (!strcmp(pr_name,"CMINCES")){
 	
 	/*     ---------------------------------  -
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]){
 	   pr2 ---------------------------------  -	
 	*/
 fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -73,7 +73,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_dble_arg(&h1, "-h1", argc, argvcp);
 	
 		if (h1>1) {
-			fprintf(stderr,"CMINCES : Problème de paramètre(s)");
+			fprintf(stderr,"CMINCES : ProblÃ¨me de paramÃ¨tre(s)");
 			free(pr);
 			return 1;
 		}
@@ -93,7 +93,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -109,7 +109,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (L1>1 || L1<0) {
-			fprintf(stderr,"CARRE01 : Problème de paramètre(s), L1 doit être compris entre 0 et 1");
+			fprintf(stderr,"CARRE01 : ProblÃ¨me de paramÃ¨tre(s), L1 doit Ãªtre compris entre 0 et 1");
 			free(pr);
 			return 1;
 		}
@@ -137,7 +137,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	         `.___,'         `.___,'  
 	*/
 fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 		
@@ -161,7 +161,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	   pr2 ---------------------------------  -	
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 1;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -173,7 +173,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (h1>1 || L1>1) {
-			fprintf(stderr,"CARRE02 : Problème de paramètre(s), L1 et h1 doivent être entre 0 et 1");
+			fprintf(stderr,"CARRE02 : ProblÃ¨me de paramÃ¨tre(s), L1 et h1 doivent Ãªtre entre 0 et 1");
 			free(pr);
 			return 1;
 		}
@@ -199,7 +199,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	   pr2 ---------------------------------  -	
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 2;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -215,7 +215,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 	
 	
 		if (h1<0 || h2<0 || h3<0 || L1>1 || L1<0) {
-			fprintf(stderr,"MULTI01 : Problème de paramètre(s), L1 doit être entre 0 et 1, h1, h2, h3 doivent etre > 0");
+			fprintf(stderr,"MULTI01 : ProblÃ¨me de paramÃ¨tre(s), L1 doit Ãªtre entre 0 et 1, h1, h2, h3 doivent etre > 0");
 			free(pr);
 			return 1;
 		}
@@ -250,7 +250,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 
 	*/
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 
@@ -269,17 +269,17 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		double tan_alpha = tan(alpha*PI/180.0);
 	
 		if (h1<0 || L1<0 || L1>=Ltotal) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s) h1<0 || L1<0 || L1>=Ltotal");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s) h1<0 || L1<0 || L1>=Ltotal");
 			free(pr);
 			return 1;
 		}
 		if (alpha <=0) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s) alpha <=0");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s) alpha <=0");
 			free(pr);
 			return 1;
 		}
 		if (h1*tan_alpha>L1/2) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s) h1*tan_alpha>L1/2");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s) h1*tan_alpha>L1/2");
 			free(pr);
 			return 1;
 		}
@@ -326,7 +326,7 @@ printf("i2 = %d\n",i2);fflush(stdout);
 
 	*/
 fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\n");exit(EXIT_FAILURE);
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 2;
 		pr = allocate_DbleMatrix(N_layers+1, N_profil);
 		int i0, imid;
@@ -348,7 +348,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		double tan_alpha = tan(alpha*PI/180.0);
 	
 		if (h1<0 || h2<0 || h3<0 || L1>1 || L1<0) {
-			fprintf(stderr,"TRAPEZ01 : Problème de paramètre(s), L1 doit être entre 0 et 1, h1, h2, h3 doivent etre > 0");
+			fprintf(stderr,"TRAPEZ01 : ProblÃ¨me de paramÃ¨tre(s), L1 doit Ãªtre entre 0 et 1, h1, h2, h3 doivent etre > 0");
 			free(pr);
 			return 1;
 		}
@@ -358,7 +358,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 			pr[1][i] = h1+h2;
 			pr[2][i] = h1+h2+h3;
 		}
-		/* _/¨ part  */
+		/* _/Â¨ part  */
 		i0 = N_profil*(1-L1);
 		imid = N_profil*(1-0.5*L1);
 		for(i=i0;i<=imid-1;i++){
@@ -375,7 +375,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 				pr[0][i] = 0;
 			}
 		}
-		/* ¨\_ part  */
+		/* Â¨\_ part  */
 		for(i=imid;i<=N_profil-1;i++){
 			pr[2][i] = h1+h2+h3;
 			x=(i-N_profil)*Ltotal/N_profil;
@@ -410,16 +410,16 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_dble_arg(&Le, "-Le", argc, argvcp);
 		if(!lire_dble_arg(&h, "-h", argc, argvcp)) fprintf(stdout,"h = %f\n",h);
 
-		/* Allocation de mémoire pour le profil*/
+		/* Allocation de mÃ©moire pour le profil*/
 		N_layers = 0;
 		int marge = (int)MAX(2*Lg,2*Le);
-		int N_profil_plus = N_profil + 2*marge; /* On prend des marges qu'on enlève après convolution */
+		int N_profil_plus = N_profil + 2*marge; /* On prend des marges qu'on enlÃ¨ve aprÃ¨s convolution */
 		pr = allocate_DbleMatrix(2, N_profil_plus); /* Allocation d'1 ligne en +, pr calculs temporaires */
 		
 
-		/* Vérification des paramètres */
+		/* VÃ©rification des paramÃ¨tres */
 		
-		/* Génération de nombres aléatoires */
+		/* GÃ©nÃ©ration de nombres alÃ©atoires */
 		srand(time(NULL));
 		for(i=0;i<=N_profil_plus-1;i++){
 			pr[1][i] = (double) rand()/RAND_MAX;
@@ -436,7 +436,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 			}
 		}
 		
-		/* Ebavurage : on enlève les marges */
+		/* Ebavurage : on enlÃ¨ve les marges */
 		for (i=0;i<=N_profil;i++){
 			pr[0][i] = pr[0][i+marge];
 		}
@@ -492,9 +492,9 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		lire_dble_arg(&fact1, "-fact1", argc, argvcp);
 		lire_dble_arg(&fact2, "-fact2", argc, argvcp);
 
-		/* Vérification des arguments */
+		/* VÃ©rification des arguments */
 
-		/* Ouverture des profils d'entrée */
+		/* Ouverture des profils d'entrÃ©e */
 		if (!(fp01 = fopen(file01,"r"))){
 			fprintf(stderr, "%s ligne %d : ERREUR, impossible d'ouvrir %s\n",__FILE__, __LINE__,file01);
 			return 1;
@@ -519,11 +519,11 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		pr01_tmp = *allocate_DbleMatrix(1,(N_layers+1) * N_profil);
 		pr02_tmp = *allocate_DbleMatrix(1,(N_layers+1) * N_profil);
 
-		/* Lecture des profils d'entrée */
+		/* Lecture des profils d'entrÃ©e */
 		lire_tab(file01, "profil", pr01_tmp, N_profil);
 		lire_tab(file02, "profil", pr02_tmp, N_profil);
 
-		/* Séparation en plsieurs interfaces */
+		/* SÃ©paration en plsieurs interfaces */
 		for (i=0; i<=N_profil-1;i++){
 			for (j=0; j<=N_layers; j++){
 				pr01[j][i] = pr01_tmp[i*(N_layers+1)+j];
@@ -587,7 +587,7 @@ fprintf(stderr,"ERREUR : Ancienne convention des axes, reprogrammer la fonction\
 		}
 	}
 	
-	/* Libération de la mémoire */
+	/* LibÃ©ration de la mÃ©moire */
 	free(pr[0]); free(pr);
 	
 	return 0;

@@ -126,7 +126,7 @@ zip :
 	zip $(NAME) ./*.c ./*.h ./Makefile ./md1D_param.txt ./utils/* ./TESTS/* ./doc/*
 
 
-# Nettoyage du répertoire de travail	
+# Nettoyage du rÃ©pertoire de travail	
 clean :
 	rm -f ./*.o
 	rm -f ./*~

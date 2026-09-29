@@ -47,7 +47,7 @@ int PsiMatrixTE(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par)
 int PsiMatrixTM(COMPLEX **Psi, COMPLEX k, COMPLEX *kz, struct Param_struct *par);
 int md2D_make_tab_S_steps(struct Param_struct* par);
 
-/* fonctions attribuées à des pointeurs de fonctions */
+/* fonctions attribuÃ©es Ã  des pointeurs de fonctions */
 int k2_H_X  (struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int k2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z);
 int invk2_H_X(struct Param_struct *par, COMPLEX *invk2_1D, double z);

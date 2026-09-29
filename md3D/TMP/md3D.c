@@ -646,7 +646,7 @@ printf("\nIm(par->T) :\n");
 SaveMatrix2file (par->T, 4*par->vec_size, 4*par->vec_size, "Im", "stdout");
 #endif
 
-	/*Affichage du temps restant à l'écran */
+	/*Affichage du temps restant Ã  l'Ã©cran */
 	md3D_affichTemps(par->Nx,par->Ny,nS,par->NS,par);
 	
 	free(T[0]);
@@ -1727,7 +1727,7 @@ COMPLEX **old_toeplitz_2D(COMPLEX **toep, int Nx, int Ny, COMPLEX *M_in, int Nxi
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		COMPLEX *k2_H_XY(struct Param_struct *par, COMPLEX *k2_2D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©
  *
  */
 /*-------------------------------------------------------------------------------------*/
@@ -1790,7 +1790,7 @@ printf("\nCOUCOU, I am in invk2_homog !\n\n");
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn			COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes k^2(xy) pour un z donné, pour un multicouches
+ *	\brief	DÃ©termine le tableau de COMPLEXes k^2(xy) pour un z donnÃ©, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
@@ -1820,7 +1820,7 @@ COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		COMPLEX *k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)	
  *
- *		\brief	Détermine le tableau de COMPLEXes k^2(x) pour un z donné
+ *		\brief	DÃ©termine le tableau de COMPLEXes k^2(x) pour un z donnÃ©
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
@@ -1847,7 +1847,7 @@ printf("\nreal(k2)\n");SaveCplxTab2file (k2_1D, par->Nprx*par->Npry, "Re", "stdo
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	COMPLEX *invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)	
  *
- *	\brief	Détermine le tableau de COMPLEXes invk^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes invk^2(x) pour un z donnÃ©
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -1873,10 +1873,10 @@ printf("\nreal(invk2)\n");SaveCplxTab2file (invk2_1D, par->Nprx*par->Npry, "Re",
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné
+ *	\brief	DÃ©termine le tableau de COMPLEXes 1/k^2(x) pour un z donnÃ©
  *
  *	\todo	Prend pour l'instant en compte seulement un profil de type h(x)\n
- *			Doit être plus polyvalent : accepter aussi les profils de type n(x,z)
+ *			Doit Ãªtre plus polyvalent : accepter aussi les profils de type n(x,z)
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -1899,7 +1899,7 @@ COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
  *
- *	\brief	Détermine le tableau de COMPLEXes 1/k^2(x) pour un z donné, pour un multicouches
+ *	\brief	DÃ©termine le tableau de COMPLEXes 1/k^2(x) pour un z donnÃ©, pour un multicouches
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
@@ -2186,7 +2186,7 @@ printf("\nCAUTION, norm set norm_x = 1, DEBUGGING and VALIDATION purpose only !\
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn		int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
  *
- *	\brief	Affichage du temps restant estimé en cours de calculs
+ *	\brief	Affichage du temps restant estimÃ© en cours de calculs
  */
 /*-------------------------------------------------------------------------------------*/
 int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
@@ -2195,7 +2195,7 @@ int md3D_affichTemps(int n, int N, int nS, int NS, struct Param_struct *par)
 	/* Si moins de 5 secondes depuis le dernier affichage, on ne change rien */
 	if (CHRONO(clock(), par->last_clock) < 5){
 		return 0;
-	/* Sinon, estimation et affichage de la durée restante */
+	/* Sinon, estimation et affichage de la durÃ©e restante */
 	}else if (par->verbosity >= 1){
 		int i;
 		time(&par->last_time);

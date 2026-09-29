@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 	double *pr, min, max;
 	FILE *fp;
 	
-	/* Valeurs par défaut */
+	/* Valeurs par dÃ©faut */
 	int N_profil = 256;
 	
 	/* Lecture des options de la ligne de commande */
@@ -54,16 +54,16 @@ int main(int argc, char *argv[]){
 		}
 	}
 	
-	/* Vérification de la présence du nombre minimal d'options */
+	/* VÃ©rification de la prÃ©sence du nombre minimal d'options */
 	if (cpt_options<MIN_OPTIONS){
 		message_erreur();
 		return 1;
 	}
 	
-	/* Allocation de mémoire pour le profil*/
+	/* Allocation de mÃ©moire pour le profil*/
 	pr = (double *) malloc(N_profil*sizeof(double));
 	
-	/* Génération d'un profil */
+	/* GÃ©nÃ©ration d'un profil */
 	if (!strcmp(pr_name,"COS")){
 		for(i=0;i<=N_profil-1;i++){
 			pr[i] = cos(2*M_PI*i/N_profil);
@@ -121,7 +121,7 @@ ENREGISTREMENT:
 		} 
 	fclose(fp);
 	
-	/* Libération de la mémoire */
+	/* LibÃ©ration de la mÃ©moire */
 	free(pr);
 	
 	return 0;

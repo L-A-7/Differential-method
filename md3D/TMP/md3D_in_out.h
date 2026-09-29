@@ -1,5 +1,5 @@
 /* \file  md3D_in_out.h
- *  \brief Fichier d'en-tête pour le programme md3D_in_out
+ *  \brief Fichier d'en-tÃªte pour le programme md3D_in_out
  */
 
 #ifndef _md3D_IN_OUT_H

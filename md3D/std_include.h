@@ -181,10 +181,10 @@ struct Param_struct {
 	int (*P_matrix)(COMPLEX **P, double z, double Delta_z, struct Param_struct *par);
 	int (*Normal_to_profile)(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, struct Param_struct *par);
 
-	clock_t clock0;         /* Stocke le temps de départ                              */
-	clock_t last_clock;     /* Durée écoulée depuis le dernier appel à md3D_temps     */
-	time_t  time0;			/* clock(): très précis mais cyclique => tps longs pas OK */
-	time_t last_time;		/* time() : précision d'1 s, non cyclique => tps longs OK */
+	clock_t clock0;         /* Stocke le temps de dÃ©part                              */
+	clock_t last_clock;     /* DurÃ©e Ã©coulÃ©e depuis le dernier appel Ã  md3D_temps     */
+	time_t  time0;			/* clock(): trÃ¨s prÃ©cis mais cyclique => tps longs pas OK */
+	time_t last_time;		/* time() : prÃ©cision d'1 s, non cyclique => tps longs OK */
 
 
 	int verbosity; /* Si verbose = 1, affiche plus d'infos sur le terminal */

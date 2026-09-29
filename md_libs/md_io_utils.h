@@ -1,5 +1,5 @@
 /* \file  md_io_utils.h
- *  \brief Fichier d'en-tête pour md_io_utils.c
+ *  \brief Fichier d'en-tÃªte pour md_io_utils.c
  */
 
 #ifndef _md3D_I0_UTILS_H

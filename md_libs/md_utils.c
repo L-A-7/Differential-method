@@ -12,7 +12,7 @@
 /*!-------------------------------------------------------------------------------------
  *	\fn		double md_chrono(struct Param_struct *par)
  *
- *	\brief	mesure du temps écoulé depuis le début de l'execution du programme
+ *	\brief	mesure du temps Ã©coulÃ© depuis le dÃ©but de l'execution du programme
  *
  *--------------------------------------------------------------------------------------*/
 double md_chrono(struct Param_struct *par)
@@ -23,9 +23,9 @@ double md_chrono(struct Param_struct *par)
   time(&time1);
   double chrono_long = difftime(time1,par->time0);
 
-  /* time()  permet un accès au temps à la seconde près sur une longue période  */
-  /* clock() permet un accès fin au temps (<< 1s), mais est cyclique, ne marche */
-  /*         sur une longue période.                                            */
+  /* time()  permet un accÃ¨s au temps Ã  la seconde prÃ¨s sur une longue pÃ©riode  */
+  /* clock() permet un accÃ¨s fin au temps (<< 1s), mais est cyclique, ne marche */
+  /*         sur une longue pÃ©riode.                                            */
   if (fabs(chrono_fin-chrono_long < 1)) {
     return chrono_fin;
   }
@@ -66,7 +66,7 @@ int SaveDbleTab2file (double *tab, int N, char *filename, char *separateur, int 
   int i,cpt=0;
   FILE *fp;
 	
-  /* Affichage à l'écran si filename = "stdout" */										
+  /* Affichage Ã  l'Ã©cran si filename = "stdout" */										
   if(!strcmp(filename,"stdout")) fp = stdout;
   else fp = fopen(filename, "w");
 	
@@ -95,11 +95,11 @@ int SaveCplxTab2file (COMPLEX *tab, int Nlign, char *mode, char *filename, char 
   int i,cpt=0;
   FILE *fp;
 	
-  /* Affichage à l'écran si filename = "stdout" */										
+  /* Affichage Ã  l'Ã©cran si filename = "stdout" */										
   if(!strcmp(filename,"stdout")) fp = stdout;
   else fp = fopen(filename, "w");
 	
-  /* Mode = "Re"/"Im" : enregistrement de la partie réelle/Imaginaire */
+  /* Mode = "Re"/"Im" : enregistrement de la partie rÃ©elle/Imaginaire */
   for (i=0;i<=Nlign-1;i++){
     if(!strcmp(mode,"Re")){
       fprintf(fp,"% 1.8e%s",creal(tab[i]),separateur);
@@ -132,11 +132,11 @@ int SaveMatrix2file (COMPLEX **M, int Nlign, int Ncol, char *mode, char *filenam
   int i,j;
   FILE *fp;
 	
-  /* Affichage à l'écran si filename = "stdout" */										
+  /* Affichage Ã  l'Ã©cran si filename = "stdout" */										
   if(!strcmp(filename,"stdout")) fp = stdout;
   else fp = fopen(filename, "w");
 	
-  /* Mode = "Re"/"Im" : enregistrement de la partie réelle/Imaginaire */
+  /* Mode = "Re"/"Im" : enregistrement de la partie rÃ©elle/Imaginaire */
   for (i=0;i<=Nlign-1;i++){
     for (j=0;j<=Ncol-1;j++){
       if(!strcmp(mode,"Re")){
@@ -190,7 +190,7 @@ COMPLEX **allocate_CplxMatrix(int nlin,int ncol)
 /*-------------------------------------------------------------------------------------*/
 /*!	\fn	COMPLEX ***allocate_CplxMatrix_3(int nlign, int ncol, int ntab)
  *
- *	\brief	accès avec mat_3[i_tab][i_col][i_ligne]
+ *	\brief	accÃ¨s avec mat_3[i_tab][i_col][i_ligne]
  */
 /*-------------------------------------------------------------------------------------*/
 COMPLEX ***allocate_CplxMatrix_3(int nlign, int ncol, int ntab)

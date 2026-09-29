@@ -3,21 +3,21 @@
 #
 
 
-# Paramètres de la surface
+# ParamÃ¨tres de la surface
 nu_super = 1.0 + i0.0
 nu_sub = 1.0 +i0.0
 Lx = 0.6
 Ly = 0.6
 h = 0.05
 
-# Paramètres du champ
+# ParamÃ¨tres du champ
 lambda = 10.0
 i_field_mode = PLANE_WAVE
 theta_i = 30.0
 phi_i = 30.0
 psi = 30.0
 
-# Paramètres numériques
+# ParamÃ¨tres numÃ©riques
 calcul_type   = STD
 calcul_method = RK4
 verbosity = 2

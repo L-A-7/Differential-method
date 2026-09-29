@@ -1,21 +1,21 @@
 # Comparison with results published in G. Granet "Analysis of diffraction by surface relief grating ... Chandezon method ..." JOSAA 1998
 
 
-# Paramètres de la surface
+# ParamÃ¨tres de la surface
 nu_super = 1.0 + i0.0
 nu_sub = 1.5 +i0.0
 Lx = 1.5
 Ly = 1.0
 h = 0.25
 
-# Paramètres du champ
+# ParamÃ¨tres du champ
 lambda = 1.533
 i_field_mode = PLANE_WAVE
 theta_i = 30.0
 phi_i = 45.0
 psi = 90.0
 
-# Paramètres numériques
+# ParamÃ¨tres numÃ©riques
 calcul_type   = STD
 calcul_method = RK4
 verbosity = 2
