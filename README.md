@@ -36,6 +36,7 @@ See [`tests/README.md`](tests/README.md).
 - [`validation_cases/review.html`](validation_cases/review.html): reproduction of the thesis validation tables with the current code
 - [`validation_cases/REPRODUCING.md`](validation_cases/REPRODUCING.md): how to rerun each validation case
 - [`PROVENANCE.md`](PROVENANCE.md): history of the code base
+- L. Arnaud, PhD thesis, Institut Fresnel, 2008 (in French), with the full derivations and the published validation tables: <https://theses.hal.science/tel-00385414v1/document>
 
 ## Layout
 

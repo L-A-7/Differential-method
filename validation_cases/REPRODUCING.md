@@ -53,10 +53,10 @@ Requirements: the md2D/md3D build dependencies (FFTW3, BLAS, LAPACK) and python3
 - **Speed**: 3D cost grows as N^6. With reference BLAS N=10 takes about an hour,
   N=15 about ten hours per point (pyramid, NS=20: N=5 1.5 min, N=9 22 min on a shared 8-core machine); an optimised BLAS (e.g. OpenBLAS) helps a lot.
 
-## Where the original inputs were found
+## Where the inputs come from
 
-Thesis-era parameters, scripts and spreadsheets survive in a personal backup
-(`Physique/Calculations/These/`: `Validation/`, `Validmd3D/`,
-`Compare3DThomasSchuster/`, `ValidImprovedDM/`), which is not part of this
-repository. The lost profile files were regenerated with `tools/mkprofile.py`
-and checked against saved outputs.
+The reference values are the published tables of L. Arnaud's PhD thesis
+(Institut Fresnel, 2008; full text: <https://theses.hal.science/tel-00385414v1/document>).
+The original parameter files and scripts of those computations are kept in the
+author's archive, not in this repository. The lost profile files were
+regenerated with `tools/mkprofile.py` and checked against saved outputs.
