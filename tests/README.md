@@ -11,6 +11,11 @@ Run from the repository root:
 | `make bench` / `make bench-quick` | timing benchmark, appended to `bench_history.jsonl` | ~5 min / ~2 min |
 
 pytest is used from the system if installed, otherwise `make` creates `.venv/` with it once.
+
+The benchmark records wall and CPU time per configuration, plus the load before the run, in
+`bench_history.jsonl` (one JSON line per run, tagged with the commit). On the `optimization`
+branch this file is tracked, so each optimisation commit carries its measured effect; compare
+CPU times when the machine was not idle.
 Any pytest option works directly, e.g. `.venv/bin/python -m pytest -k md3D -x`.
 
 ## What is tested

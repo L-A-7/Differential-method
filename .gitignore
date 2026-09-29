@@ -121,4 +121,3 @@ utils/_old_nested_git_repo_2010-2018/
 .venv/
 .pytest_cache/
 __pycache__/
-tests/bench_history.jsonl
