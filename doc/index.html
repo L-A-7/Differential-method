@@ -15,8 +15,8 @@
   <a href="index.html" aria-current="page">User manual</a>
   <a href="workflow.html">Practical guide</a>
   <a href="optimization_report.html">Optimization report</a>
-  <a href="../thesis_validation_cases/review.html">Validation review</a>
-  <a href="../thesis_validation_cases/index.html">Thesis test cases</a>
+  <a href="../validation_cases/review.html">Validation review</a>
+  <a href="../validation_cases/index.html">Thesis test cases</a>
 </nav>
 
 <header>
@@ -232,7 +232,7 @@ profil =
 <h3>Generating structure files</h3>
 <ul>
   <li><code>utils/profilGen TYPE [options] &gt; file</code> writes md2D profiles: <code>SINUS01</code>, <code>SINUS02</code>, <code>CARRE01</code>/<code>02</code>/<code>03</code> (lamellar), <code>RECTANGLE04</code>, <code>TRAPEZ01</code>/<code>02</code>, <code>FINITE_GRATING_B</code>, <code>ALEAT01</code> (random rough profile), <code>ORIGAMI</code>… The number of points is set with <code>-N_profil</code>, geometry with <code>-L1 -h1 -h2 -alpha</code>…</li>
-  <li><code>thesis_validation_cases/tools/mkprofile.py</code> (Python, no dependencies) writes an echelette (md2D), a rectangular pyramid (md3D <code>H_XY</code>) and a circular hole map (md3D <code>N_XY_ZINVAR</code>).</li>
+  <li><code>validation_cases/tools/mkprofile.py</code> (Python, no dependencies) writes an echelette (md2D), a rectangular pyramid (md3D <code>H_XY</code>) and a circular hole map (md3D <code>N_XY_ZINVAR</code>).</li>
   <li>Any script that prints the format above will do. Sample profiles are in <code>md2D/</code> (<code>sin_2048.txt</code>, <code>cos_256.txt</code>, <code>sinLayer_2048.txt</code>) and <code>md3D/</code> (<code>pr_sin3D_256x256.txt</code>, <code>carre_256_1D.txt</code>).</li>
 </ul>
 
@@ -250,7 +250,7 @@ profil =
 </tbody></table></div>
 <ul>
   <li><b>Absorbing substrate.</b> With a metal substrate, <code>eff_t</code> and <code>theta_t</code> are not meaningful (the transmitted waves are evanescent, and <code>nan</code> may appear). Use the reflected efficiencies; the absorption is 1 − Σ<i>e<sub>r</sub></i>.</li>
-  <li><b>Extracting values</b>: <code>cat res.txt | utils/lire_tab eff_r</code> prints one array, and <code>thesis_validation_cases/tools/mdres.py</code> reads an efficiency by order from Python.</li>
+  <li><b>Extracting values</b>: <code>cat res.txt | utils/lire_tab eff_r</code> prints one array, and <code>validation_cases/tools/mdres.py</code> reads an efficiency by order from Python.</li>
   <li><b>Non-periodic structures.</b> For a rough surface computed with an artificial period <i>L</i>, the scattered intensity per unit angle is
     <span class="eq">d<i>I</i>/d<i>θ</i> (<i>θ<sub>n</sub></i>) = (<i>L</i>/<i>λ</i>) <i>ν</i> cos <i>θ<sub>n</sub></i> <i>e<sub>n</sub></i></span>,
     with <i>ν</i> the index of the medium of observation [Arnaud 2008, § 1.6].</li>
@@ -300,9 +300,9 @@ profil =
 <h2 id="validation"><span class="num">9</span>Validation</h2>
 <p>The thirteen validation tables of the thesis were recomputed with the current code in September 2026. Nine are reproduced within the precision the thesis claims, one agrees to 0.01–0.3 % (conical incidence, originally computed with a code that no longer exists), and two could be checked only in part (the shooting-method column and absolute timings). The comparisons cover the method of fictitious sources, the integral method, RCWA, the Chandezon method, the method of variation of boundaries, GSolver, Schuster et al., energy conservation and reciprocity. The deep-aluminium table (4.6) is still to be run.</p>
 <ul>
-  <li><a href="../thesis_validation_cases/review.html">Validation review</a>: case-by-case results, charts and the remaining work.</li>
-  <li><a href="../thesis_validation_cases/REPRODUCING.md"><code>REPRODUCING.md</code></a> and one <code>run.sh</code> per case in <code>thesis_validation_cases/</code>. Each case is a complete, runnable example of a parameter file and a structure.</li>
-  <li><a href="../thesis_validation_cases/index.html">Thesis test cases</a>: the original tables and their parameters.</li>
+  <li><a href="../validation_cases/review.html">Validation review</a>: case-by-case results, charts and the remaining work.</li>
+  <li><a href="../validation_cases/REPRODUCING.md"><code>REPRODUCING.md</code></a> and one <code>run.sh</code> per case in <code>validation_cases/</code>. Each case is a complete, runnable example of a parameter file and a structure.</li>
+  <li><a href="../validation_cases/index.html">Thesis test cases</a>: the original tables and their parameters.</li>
 </ul>
 <h3>Automated tests</h3>
 <p>From the repository root: <code>make test</code> runs about 100 fast checks in under a minute. They compare with stored reference results, check physical laws (energy conservation, reciprocity, symmetries), compare with exact solutions (Fresnel, thin-film Airy formula), check md2D against md3D, and test input parsing and error handling. <code>make test-validation</code> recomputes every thesis table at reduced resolution against the published values (about 1.5 min), and <code>make bench</code> times a fixed set of runs. See <code>tests/README.md</code>.</p>
@@ -310,7 +310,7 @@ profil =
 <!-- ============================================================ -->
 <h2 id="refs"><span class="num">10</span>References</h2>
 <ol class="refs">
-  <li id="r-arnaud">[Arnaud 2008] L. Arnaud, <i>Diffraction et diffusion de la lumière : modélisation tridimensionnelle et application à la métrologie de la microélectronique et aux techniques d'imagerie sélective en milieu diffusant</i>, PhD thesis, Institut Fresnel (Marseille) and STMicroelectronics (Rousset), defended 17 July 2008. In French. <a href="../references/Arnaud_2008_PhD_thesis.pdf">PDF in this repository</a> (<code>references/Arnaud_2008_PhD_thesis.pdf</code>).</li>
+  <li id="r-arnaud">[Arnaud 2008] L. Arnaud, <i>Diffraction et diffusion de la lumière : modélisation tridimensionnelle et application à la métrologie de la microélectronique et aux techniques d'imagerie sélective en milieu diffusant</i>, PhD thesis, Institut Fresnel (Marseille) and STMicroelectronics (Rousset), defended 17 July 2008. In French.</li>
   <li>[Nevière &amp; Popov 2003] M. Nevière, E. Popov, <i>Light Propagation in Periodic Media: Differential Theory and Design</i>, Marcel Dekker, 2003. The reference text for the differential method.</li>
   <li>[Li 1996a] L. Li, “Use of Fourier series in the analysis of discontinuous periodic structures,” JOSA A 13, 1870 (1996). <a href="https://doi.org/10.1364/JOSAA.13.001870">doi:10.1364/JOSAA.13.001870</a></li>
   <li>[Li 1996b] L. Li, “Formulation and comparison of two recursive matrix algorithms for modeling layered diffraction gratings,” JOSA A 13, 1024 (1996). <a href="https://doi.org/10.1364/JOSAA.13.001024">doi:10.1364/JOSAA.13.001024</a></li>

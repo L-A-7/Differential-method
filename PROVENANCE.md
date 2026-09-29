@@ -144,7 +144,7 @@ not actually lost. md2D's `calcul_method = Z_INVAR` (and its alias
 `IMPROVED_RCWA`) propagates each S-matrix slice as a z-invariant layer, i.e.
 a staircase/RCWA computation. With `NS = 1000` it reproduces the RCWA column
 of thesis Table 2.5 to all six printed digits (TE, N = 0..50; see
-`thesis_validation_cases/case05_rcwa_convergence_metallic_TE/`). Only the
+`validation_cases/case05_rcwa_convergence_metallic_TE/`). Only the
 separate `calcul_method : RCWA` label is gone.
 
 ## mdConical/ (removed): subsumed by md3D with Ny=0

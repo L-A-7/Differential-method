@@ -167,10 +167,10 @@ pre{font:13px/1.55 var(--mono);background:var(--panel);border:1px solid var(--ru
 <p class="relkey">Done since the first version of this review: md2D initialises <code>smoothing</code> and <code>phi_i</code>, complex indices accept <code>a - ib</code>, and all sources are UTF-8.</p>
 
 <h2>How to rerun</h2>
-<p>Each case folder in <code>thesis_validation_cases/</code> has a <code>param.txt</code> and a <code>run.sh</code>. The script builds any missing profile, runs the solver in <code>run/</code> and prints this comparison.</p>
+<p>Each case folder in <code>validation_cases/</code> has a <code>param.txt</code> and a <code>run.sh</code>. The script builds any missing profile, runs the solver in <code>run/</code> and prints this comparison.</p>
 <pre>make -C md2D &amp;&amp; make -C md3D
-thesis_validation_cases/case04_metallic_grating_vs_MFS_IM/run.sh
-NMAX=15 thesis_validation_cases/case08_3d_pyramid_dielectric_multi_method/run.sh</pre>
+validation_cases/case04_metallic_grating_vs_MFS_IM/run.sh
+NMAX=15 validation_cases/case08_3d_pyramid_dielectric_multi_method/run.sh</pre>
 </div>
 
 <div id="tip" hidden></div>

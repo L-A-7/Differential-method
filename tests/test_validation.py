@@ -1,6 +1,6 @@
 """Validation tier: the thesis tables recomputed at reduced resolution (`make test-validation`, ~2 min).
 
-The reference is always the thesis (thesis_validation_cases/*/data.csv). Cost grows as N^3·NS
+The reference is always the thesis (validation_cases/*/data.csv). Cost grows as N^3·NS
 (md2D) and ((2N+1)^2)^3·NS (md3D), so each case runs at a reduced N or NS chosen to take seconds:
 
 - where the thesis tabulates convergence against N (cases 05, 09/10, 12, 13) the run is compared
@@ -9,7 +9,7 @@ The reference is always the thesis (thesis_validation_cases/*/data.csv). Cost gr
   convergence gap at the reduced N (thresholds are 2-3 x the deviation measured in Sept. 2026).
 
 Dielectrics: 02, 03, 06, 09/10, 11. Metals and absorbing media: 01, 04, 05, 12 (3D), 13.
-Full-resolution reproductions of every table: thesis_validation_cases/*/run.sh.
+Full-resolution reproductions of every table: validation_cases/*/run.sh.
 """
 import csv
 import os
@@ -23,7 +23,7 @@ from mdrun import MD2D, MD3D, REPO, read_arrays, Result
 
 pytestmark = pytest.mark.validation
 
-TVC = os.path.join(REPO, "thesis_validation_cases")
+TVC = os.path.join(REPO, "validation_cases")
 MKPROFILE = os.path.join(TVC, "tools", "mkprofile.py")
 SIN2048 = "md2D/sin_2048.txt"
 

@@ -15,8 +15,8 @@
   <a href="index.html">User manual</a>
   <a href="workflow.html" aria-current="page">Practical guide</a>
   <a href="optimization_report.html">Optimization report</a>
-  <a href="../thesis_validation_cases/review.html">Validation review</a>
-  <a href="../thesis_validation_cases/index.html">Thesis test cases</a>
+  <a href="../validation_cases/review.html">Validation review</a>
+  <a href="../validation_cases/index.html">Thesis test cases</a>
 </nav>
 
 <header>
@@ -42,7 +42,7 @@
 <ul>
   <li>Use one folder per study, holding the parameter file, the structure file and a script. Run the programs from that folder, since results are written to the current directory.</li>
   <li>Keep the parameter file for what does not change and give what varies on the command line. Build <code>profile_name</code> from the varying values: it names the result file, it may contain a sub-folder (<code>-profile_name scan/theta_30</code>), and a run overwrites an existing file of the same name.</li>
-  <li>Start from a validated case in <code>thesis_validation_cases/</code> that resembles your structure. Its <code>param.txt</code> is known to work.</li>
+  <li>Start from a validated case in <code>validation_cases/</code> that resembles your structure. Its <code>param.txt</code> is known to work.</li>
 </ul>
 
 <h2 id="scan"><span class="num">2</span>Scanning a parameter</h2>
@@ -55,7 +55,7 @@ for t in 0 10 20 30 40; do
     "$MD2D" -param tayeb_alu.txt -theta_i $t -verbosity 0 -profile_name scan/theta_$t
 done</code></pre>
 <pre><code># collect.py - one line per angle
-import sys; sys.path.insert(0, "/path/to/DifferentialMethod/thesis_validation_cases/tools")
+import sys; sys.path.insert(0, "/path/to/DifferentialMethod/validation_cases/tools")
 from mdres import eff          # eff(file, "r"|"t", n) for md2D, eff(file, "r"|"t", nx, ny) for md3D
 for t in (0, 10, 20, 30, 40):
     f = "scan/theta_%d.txt" % t
@@ -109,7 +109,7 @@ for c in ReEx ImEx ReEz ImEz ReHpy ImHpy; do utils/lire_tab2 $c &lt; field.txt &
 <h2 id="threed"><span class="num">7</span>3D structures and conical incidence</h2>
 <h3>Biperiodic surface</h3>
 <p>Write an <code>H_XY</code> file from any function <i>z(x,y)</i>; md3D computes the normals itself. For example, the pyramid of the validation cases:</p>
-<pre><code>python3 thesis_validation_cases/tools/mkprofile.py pyramid pyramid_512x512.txt --n 512
+<pre><code>python3 validation_cases/tools/mkprofile.py pyramid pyramid_512x512.txt --n 512
 # or, for your own shape:
 python3 - &lt;&lt;'EOF'
 import math
@@ -121,10 +121,10 @@ with open("mysurf.txt", "w") as f:
                          for i in range(n)) + "\n")      # columns: x
 EOF</code></pre>
 <h3>Conical incidence on a 1D grating</h3>
-<p>Use md3D with <code>Ny = 0</code>, a one-row profile (<code>Npry = 1</code>) and any <code>Ly</code>. <code>thesis_validation_cases/case06_conical_incidence_vs_gsolver/</code> is a complete example (lamellar grating, θ = 30°, φ = 45°, ψ = 45°).</p>
+<p>Use md3D with <code>Ny = 0</code>, a one-row profile (<code>Npry = 1</code>) and any <code>Ly</code>. <code>validation_cases/case06_conical_incidence_vs_gsolver/</code> is a complete example (lamellar grating, θ = 30°, φ = 45°, ψ = 45°).</p>
 <h3>Holes, pillars and other z-invariant patterns</h3>
 <p>Use an <code>N_XY_ZINVAR</code> index map with <code>calcul_method = Z_INVAR</code>. <code>NS = 1</code> is fine for thin patterned layers like this one (h = 0.05 L); follow <code>NS ≥ N·h/L</code> for thicker ones:</p>
-<pre><code>python3 thesis_validation_cases/tools/mkprofile.py circle holes.txt --n 1024 --R 0.25 --L 1.0 \
+<pre><code>python3 validation_cases/tools/mkprofile.py circle holes.txt --n 1024 --R 0.25 --L 1.0 \
         --n1 "1.0 + i0.0" --n2 "1.75 + i1.5"</code></pre>
 <p>Use 512 or more points per side; the 128-point map gives a 3·10⁻⁴ offset. The normal field is radial and centred on the cell, which suits centred round shapes only (manual § 8).</p>
 <h3>Planning the cost</h3>

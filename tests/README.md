@@ -28,7 +28,7 @@ Any pytest option works directly, e.g. `.venv/bin/python -m pytest -k md3D -x`.
 | `test_crosscode.py` | md3D with `Ny = 0` equals md2D (TE and TM, dielectric and metal); RK4 converges to Z_INVAR on a lamellar grating; Z_INVAR stays stable at large N with enough slices. |
 | `test_inputs.py` | complex-number syntax, command-line overrides, clean errors (non-zero exit code) for missing or invalid keys. |
 | `test_c_units.py` | C unit tests of `md_libs/md_io_utils.c` (`c/test_md_io_utils.c`). |
-| `test_validation.py` | all thesis cases except the timing table (07), at reduced N or NS so that each runs in seconds; dielectrics (02, 03, 06, 09/10, 11) and metals or absorbing media (01, 04, 05, 12, 13), in 2D and 3D. Where the thesis gives a convergence table (05, 09/10, 12, 13) the comparison is at the same N; otherwise the tolerance covers the convergence gap (≈ 2–3 × the measured deviation). Full-resolution runs: `thesis_validation_cases/*/run.sh`. |
+| `test_validation.py` | all thesis cases except the timing table (07), at reduced N or NS so that each runs in seconds; dielectrics (02, 03, 06, 09/10, 11) and metals or absorbing media (01, 04, 05, 12, 13), in 2D and 3D. Where the thesis gives a convergence table (05, 09/10, 12, 13) the comparison is at the same N; otherwise the tolerance covers the convergence gap (≈ 2–3 × the measured deviation). Full-resolution runs: `validation_cases/*/run.sh`. |
 
 ## When a test fails
 
