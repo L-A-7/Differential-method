@@ -161,7 +161,7 @@ profile_name = alu_TE ; profile_file = sin_2048.txt</code></pre>
 <tr><td><code>calcul_type</code></td><td><span class="req">req</span></td><td><code>STD</code> | <code>NEAR_FIELD</code></td><td>efficiencies; or efficiencies plus field maps. <code>GUIDED</code>, <code>SWIFTS</code>, <code>I_SWIFTS</code> are undocumented research modes</td></tr>
 <tr><td><code>calcul_method</code></td><td><span class="req">req</span></td><td><code>RK4</code> | <code>Z_INVAR</code> | <code>IMPROVED_RCWA</code></td><td>integration scheme (<a href="#numerics">§ 7</a>). <code>IMPLICIT_RK</code>, <code>EULER</code>, <code>EULER2</code> exist but are not validated</td></tr>
 <tr><td><code>i_field_mode</code></td><td><span class="req">req</span></td><td><code>PLANE_WAVE</code></td><td>only plane waves are implemented</td></tr>
-<tr><td><code>fft_filter</code></td><td><span class="req">req</span></td><td><code>NONE</code> | <code>HAMMING</code></td><td>optional Hamming window on the Fourier coefficients of the permittivity</td></tr>
+<tr><td><code>fft_filter</code></td><td><span class="req">req</span></td><td><code>NONE</code> | <code>HAMMING</code></td><td>optional Hamming window on the Fourier coefficients of the permittivity; applied in TM only</td></tr>
 <tr><td><code>delta_h</code></td><td><span class="req">req</span></td><td>length</td><td><b>read but not used</b> (one integration step per slice)</td></tr>
 <tr><td><code>smoothing</code></td><td><span class="opt">opt</span></td><td><code>0</code> | <code>1</code>, default 0</td><td><code>1</code> adds a transition layer of thickness <code>l_smooth</code> that smooths the permittivity at interfaces (convergence aid for metals)</td></tr>
 <tr><td><code>verbosity</code></td><td><span class="opt">opt</span></td><td>0 | 1 | 2</td><td>terminal output, default 2</td></tr>
@@ -221,7 +221,7 @@ profil =
 <dl class="keys">
   <dt>H_XY</dt><dd>One interface <i>z = h(x,y)</i>: <code>profile_type = H_XY</code>, <code>Nprx</code>, <code>Npry</code>, then <code>profil =</code> followed by <code>Npry</code> rows of <code>Nprx</code> values (<i>x</i> along a row). The normal field is computed automatically, so no separate normal-vector file is needed. <code>Npry = 1</code> describes a 1D profile, used for conical incidence with <code>Ny = 0</code>.</dd>
   <dt>MULTICOUCHES</dt><dd>As in md2D, with one line per (<i>x</i>, <i>y</i>) point (x fastest), <code>Nprx</code>, <code>Npry</code>, <code>N_layers</code>, <code>n1</code>…</dd>
-  <dt>N_XY_ZINVAR</dt><dd>z-invariant index map (holes, pillars, patterned layer of thickness <code>h</code>). The file lists indices <code>n1 = …</code>, <code>n2 = …</code>, then <code>profile_type = N_XY_ZINVAR</code>, <code>Nprx</code>, <code>Npry</code>, <code>Nprz = 1</code>, then <code>n_xyz =</code> followed by an integer map (1, 2, …) referring to those indices. <code>Re_n_xyz</code>/<code>Im_n_xyz</code> arrays can be given instead. Use <code>calcul_method = Z_INVAR</code> and <code>NS = 1</code>.</dd>
+  <dt>N_XY_ZINVAR</dt><dd>z-invariant index map (holes, pillars, patterned layer of thickness <code>h</code>). The file lists indices <code>n1 = …</code>, <code>n2 = …</code>, then <code>profile_type = N_XY_ZINVAR</code>, <code>Nprx</code>, <code>Npry</code>, <code>Nprz = 1</code>, then <code>n_xyz =</code> followed by an integer map (1, 2, …) referring to those indices. <code>Re_n_xyz</code>/<code>Im_n_xyz</code> arrays can be given instead. Use <code>calcul_method = Z_INVAR</code>; <code>NS = 1</code> is enough for a thin layer (see the slice rule in <a href="#numerics">§ 7</a>).</dd>
 </dl>
 <div class="figrow">
 <figure><img src="img/normal_decomposition.png" alt="Decomposition of the field into components normal and tangential to the interface." width="400" height="179"><figcaption>Normal/tangential decomposition that underlies the fast factorisation. The normal must be defined everywhere in the modulated zone. From [Arnaud 2008], chap. 2.</figcaption></figure>
@@ -269,7 +269,7 @@ profil =
 <h3>Choosing <code>calcul_method</code></h3>
 <ul>
   <li><code>RK4</code> is the general method for any profile, and the one to use for curved or sloped interfaces.</li>
-  <li><code>Z_INVAR</code> treats each slice as z-invariant and propagates it exactly, as RCWA / the Fourier modal method does. It is exact and fast for binary structures (lamellar gratings, holes; <code>NS = 1</code> per invariant layer). On a curved profile it is a staircase approximation. That remains acceptable in TE with many slices, but converges very slowly in TM because the staircase never has the right normal [Popov 2002; Arnaud 2008 § 2.4].</li>
+  <li><code>Z_INVAR</code> treats each slice as z-invariant and propagates it exactly, as RCWA / the Fourier modal method does. It is exact and fast for binary structures (lamellar gratings, holes), but a single slice must stay thin: inside a slice of thickness <i>t</i> the evanescent orders grow like e<sup>2πN t/L</sup>, which overflows for thick layers at large N (NS = 1 failed for h = 0.23 L at N = 32). A safe rule is <b>NS ≥ N·h/L</b>; the S-matrix algorithm then keeps the result stable. On a curved profile it is a staircase approximation. That remains acceptable in TE with many slices, but converges very slowly in TM because the staircase never has the right normal [Popov 2002; Arnaud 2008 § 2.4]. Conversely, RK4 is a poor choice for binary structures: with flat layer boundaries on slice boundaries it converges only to first order in NS (TE), and in TM its finite-difference normal of the vertical walls converges slowly in N.</li>
   <li><code>IMPROVED_RCWA</code> (md2D) uses z-invariant propagation with the true normal field of the profile.</li>
 </ul>
 <h3>Cost</h3>
@@ -302,6 +302,8 @@ profil =
   <li><a href="../thesis_validation_cases/REPRODUCING.md"><code>REPRODUCING.md</code></a> and one <code>run.sh</code> per case in <code>thesis_validation_cases/</code>. Each case is a complete, runnable example of a parameter file and a structure.</li>
   <li><a href="../thesis_validation_cases/index.html">Thesis test cases</a>: the original tables and their parameters.</li>
 </ul>
+<h3>Automated tests</h3>
+<p>From the repository root: <code>make test</code> runs about 100 fast checks in under a minute. They compare with stored reference results, check physical laws (energy conservation, reciprocity, symmetries), compare with exact solutions (Fresnel, thin-film Airy formula), check md2D against md3D, and test input parsing and error handling. <code>make test-validation</code> recomputes every thesis table at reduced resolution against the published values (about 1.5 min), and <code>make bench</code> times a fixed set of runs. See <code>tests/README.md</code>.</p>
 
 <!-- ============================================================ -->
 <h2 id="refs"><span class="num">10</span>References</h2>

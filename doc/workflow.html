@@ -72,7 +72,7 @@ grep -H one_minus_sum_eff conv/*.txt</code></pre>
 </ul>
 
 <h2 id="lamellar"><span class="num">4</span>Lamellar gratings and stacks</h2>
-<p>Binary structures (vertical walls, flat tops) are best described as a stack (<code>MULTICOUCHES</code>) and computed with <code>calcul_method = Z_INVAR</code>. Each z-invariant layer is then propagated exactly, like RCWA, and a few slices suffice.</p>
+<p>Binary structures (vertical walls, flat tops) are best described as a stack (<code>MULTICOUCHES</code>) and computed with <code>calcul_method = Z_INVAR</code>. Each z-invariant layer is then propagated exactly, like RCWA. Use enough slices that each stays thin, <code>NS ≥ N·h/L</code>: a single thick slice overflows at large N.</p>
 <pre><code># line of material n1 (width 40 % of the period) on the substrate
 utils/profilGen CARRE02_B -L1 0.4 -h1 0.2 -h2 0 -N_profil 1024 &gt; line_raw.txt
 { echo "n1 = 1.46 + i0.0"; cat line_raw.txt; } &gt; line.txt</code></pre>
@@ -122,7 +122,7 @@ EOF</code></pre>
 <h3>Conical incidence on a 1D grating</h3>
 <p>Use md3D with <code>Ny = 0</code>, a one-row profile (<code>Npry = 1</code>) and any <code>Ly</code>. <code>thesis_validation_cases/case06_conical_incidence_vs_gsolver/</code> is a complete example (lamellar grating, θ = 30°, φ = 45°, ψ = 45°).</p>
 <h3>Holes, pillars and other z-invariant patterns</h3>
-<p>Use an <code>N_XY_ZINVAR</code> index map with <code>calcul_method = Z_INVAR</code> and <code>NS = 1</code>:</p>
+<p>Use an <code>N_XY_ZINVAR</code> index map with <code>calcul_method = Z_INVAR</code>. <code>NS = 1</code> is fine for thin patterned layers like this one (h = 0.05 L); follow <code>NS ≥ N·h/L</code> for thicker ones:</p>
 <pre><code>python3 thesis_validation_cases/tools/mkprofile.py circle holes.txt --n 1024 --R 0.25 --L 1.0 \
         --n1 "1.0 + i0.0" --n2 "1.75 + i1.5"</code></pre>
 <p>Use 512 or more points per side; the 128-point map gives a 3·10⁻⁴ offset. The normal field is radial and centred on the cell, which suits centred round shapes only (manual § 8).</p>

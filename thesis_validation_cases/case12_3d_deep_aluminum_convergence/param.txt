@@ -1,6 +1,6 @@
 # Thesis Table 4.6 - deep aluminium biperiodic sinusoidal grating, convergence vs N.
 # Same geometry as case 11 but 5x deeper (h = 0.5) and aluminium.
-# NOT YET VALIDATED (not run in the 2026 reproduction).
+# Validated at N = 0-2 against the thesis table (1.6e-4 relative); see tests/test_validation.py.
 nu_super = 1.0 + i0.0
 nu_sub   = 1.3 + i7.1
 Lx = 1.0

@@ -18,6 +18,16 @@ make -C md2D && make -C md3D
 thesis_validation_cases/case04_metallic_grating_vs_MFS_IM/run.sh   # ~1 min, compares with published values
 ```
 
+## Testing
+
+```sh
+make test              # ~100 fast checks, under a minute
+make test-validation   # thesis validation tables at reduced resolution, ~1.5 min
+make bench             # timing benchmark
+```
+
+See [`tests/README.md`](tests/README.md).
+
 ## Documentation
 
 - [`doc/index.html`](doc/index.html): user manual ([PDF](doc/manual.pdf))
@@ -35,5 +45,6 @@ thesis_validation_cases/case04_metallic_grating_vs_MFS_IM/run.sh   # ~1 min, com
 | `md_libs/` | shared I/O, maths and utility code (symlinked into both programs) |
 | `utils/` | helpers: `profilGen` (profile generator), `lire_tab` (extract arrays from results), ... |
 | `thesis_validation_cases/` | 13 validation cases with inputs, run scripts and comparison tools |
+| `tests/` | automated test suite (pytest) and benchmark |
 | `Applications/` | a near-field example and post-processing scripts |
 | `doc/`, `references/` | documentation and reference material |

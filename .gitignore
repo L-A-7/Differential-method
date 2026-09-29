@@ -116,3 +116,9 @@ utils/re_im_2_mod_arg
 # Original nested utils git repo (github.com/leoofnature/utils), kept as a backup
 # after its full history was extracted and merged into this repo's history above
 utils/_old_nested_git_repo_2010-2018/
+
+# Test suite
+.venv/
+.pytest_cache/
+__pycache__/
+tests/bench_history.jsonl

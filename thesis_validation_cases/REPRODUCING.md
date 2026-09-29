@@ -31,7 +31,7 @@ Requirements: the md2D/md3D build dependencies (FFTW3, BLAS, LAPACK) and python3
 | 09 | 4.3 | reproduced N=1-9 | constant ~3.5e-4 rel. offset, same convergence | idem |
 | 10 | 4.4 | reproduced N=1-9 | ~5e-4 rel. | idem |
 | 11 | 4.5 | reproduced N=1-8 | 1e-8 abs. from N=6 | `md3D/pr_sin3D_256x256.txt` |
-| 12 | 4.6 | not yet run | - | inputs prepared, unvalidated |
+| 12 | 4.6 | reproduced N=0–2 | 1.6e-4 rel. at the same N | convergence table; higher N not run (NS=250 is costly) |
 | 13 | 4.7 | reproduced N=0-12 (full table) | ~4e-5 abs. | circle index map regenerated (1024x1024) |
 
 ## Things that are not obvious from the code
