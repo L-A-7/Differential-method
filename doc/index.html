@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>md2D / md3D User Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="doc">
+<nav class="docnav" aria-label="Documentation">
+  <a href="index.html" aria-current="page">User manual</a>
+  <a href="workflow.html">Practical guide</a>
+  <a href="../thesis_validation_cases/review.html">Validation review</a>
+  <a href="../thesis_validation_cases/index.html">Thesis test cases</a>
+</nav>
+
+<header>
+  <span class="eyebrow">Differential method · Institut Fresnel lineage</span>
+  <h1>md2D / md3D User Manual</h1>
+  <p class="lede">md2D and md3D compute the light diffracted by periodic or rough structures with the rigorous differential method. This manual covers what the programs compute, how to describe a structure, how to read the results and how to choose the numerical parameters.</p>
+  <p class="meta">Manual version 1 · September 2026 · Code as in branch <code>thesis-validation-reproduction</code></p>
+</header>
+
+<div class="toc"><ol>
+  <li><a href="#overview">Overview</a></li>
+  <li><a href="#build">Building and running</a></li>
+  <li><a href="#geometry">Geometry and conventions</a></li>
+  <li><a href="#params">Parameter file</a></li>
+  <li><a href="#profiles">Structure files</a></li>
+  <li><a href="#results">Result files</a></li>
+  <li><a href="#numerics">Numerical parameters and convergence</a></li>
+  <li><a href="#limits">Limitations and known issues</a></li>
+  <li><a href="#validation">Validation</a></li>
+  <li><a href="#refs">References</a></li>
+</ol></div>
+
+<!-- ============================================================ -->
+<h2 id="overview"><span class="num">1</span>Overview</h2>
+<p>Both programs solve Maxwell's equations in Fourier space inside the modulated region of a structure and match the solution to plane-wave (Rayleigh) expansions in the two homogeneous half-spaces around it. The only approximations are the truncation of the Fourier series and the discretisation along <i>z</i>. Four ingredients make the method stable, accurate and fast:</p>
+<ul>
+  <li><b>S-matrix propagation</b> through <code>NS</code> slices, which removes the numerical instability of thick structures [Li 1996b].</li>
+  <li><b>Fast Fourier factorisation</b> with a normal-vector field (Li's rules as extended by Popov and Nevière), which gives fast convergence in TM polarisation and for metals [Li 1996a; Popov &amp; Nevière 2000, 2001].</li>
+  <li><b>Matrix Runge–Kutta integration</b>: the propagation matrix of each slice is built directly by an order-4 Runge–Kutta scheme, instead of integrating once per unknown as the classical shooting method did. This makes the code tens to hundreds of times faster.</li>
+  <li><b>A z-invariant mode</b> (<code>Z_INVAR</code>) for binary structures, equivalent to RCWA / the Fourier modal method.</li>
+</ul>
+<div class="tablewrap"><table>
+<thead><tr><th>Program</th><th>Structure</th><th>Illumination</th><th>Structure descriptions</th></tr></thead>
+<tbody>
+<tr><td><code>md2D</code></td><td>invariant along <i>y</i>, periodic along <i>x</i> (period <i>L</i>)</td><td>plane of incidence ⟂ grooves, TE or TM</td><td>surface <i>h(x)</i>, stack of interfaces, index map <i>n(x,z)</i></td></tr>
+<tr><td><code>md3D</code></td><td>periodic along <i>x</i> and <i>y</i> (<i>L<sub>x</sub></i>, <i>L<sub>y</sub></i>)</td><td>any <i>θ</i>, azimuth <i>φ</i>, linear polarisation <i>ψ</i></td><td>surface <i>h(x,y)</i>, stack of interfaces, z-invariant index map <i>n(x,y)</i></td></tr>
+</tbody></table></div>
+<p>Conical incidence on a one-dimensional grating is computed with <code>md3D</code> and <code>Ny = 0</code>. A non-periodic object (rough surface, isolated defect) is computed as one period of a large artificial period <i>L</i>. The Fourier discretisation makes every structure periodic, and the scattered intensity is recovered from the efficiencies (<a href="#results">§ 6</a>).</p>
+<p>The code comes from L. Arnaud's PhD work at Institut Fresnel (Marseille, 2004–2008; thesis in French [Arnaud 2008]), with later additions up to 2019. The thesis chapters used here are 1 (classical formulation), 2 (stable algorithms and validation), 3 (conical incidence) and 4 (three-dimensional method). Part 2 of the thesis contains applications: scatterometry, rough surfaces, rough gratings.</p>
+
+<!-- ============================================================ -->
+<h2 id="build"><span class="num">2</span>Building and running</h2>
+<p>Requirements: a C compiler (gcc), FFTW 3, BLAS and LAPACK. On Debian or Ubuntu: <code>apt install build-essential libfftw3-dev libblas-dev liblapack-dev</code>. An optimised BLAS such as OpenBLAS makes the 3D program much faster.</p>
+<pre><code>make -C md2D          # builds md2D/md2D
+make -C md3D          # builds md3D/md3D
+make -C utils profilGen lire_tab lire_tab2 refractive_index   # optional helpers (no default target)</code></pre>
+<p>Library choices are switches at the top of the <code>md2D</code> and <code>md3D</code> Makefiles (<code>HAVE_BLAS</code>, <code>HAVE_LAPACK</code>, <code>HAVE_MKL</code>, <code>HAVE_ATLAS</code>). The default uses plain BLAS/LAPACK.</p>
+<h3>Running</h3>
+<pre><code>md2D -param my_param.txt                       # default: md2D_param.txt in the current directory
+md2D -param my_param.txt -N 60 -pola TM -lambda 0.55
+md3D -param my_param.txt -Nx 8 -Ny 8 -psi 90</code></pre>
+<p>Any parameter can be given on the command line as <code>-key value</code>, and the command line wins over the file. Complex indices are split on the command line: <code>-n_sub_re 1.3 -n_sub_im 7.1</code> for md2D, <code>-nu_sub_re</code> / <code>-nu_sub_im</code> for md3D. This makes scans easy to script (<a href="workflow.html">Practical guide</a>).</p>
+<p>Results go to <code>&lt;profile_name&gt;.txt</code> in the <em>current directory</em>, and an existing file with that name is overwritten. The terminal shows progress and a summary. <code>verbosity</code> 0, 1 or 2 controls the amount.</p>
+<h3>A first run</h3>
+<p>Aluminium sinusoidal grating of Tayeb (1994), TE, normal incidence. Copy the profile file <code>md2D/sin_2048.txt</code>, which ships with the code, next to the parameter file.</p>
+<pre><code># tayeb_alu.txt
+n_super = 1.0 + i0.0
+n_sub   = 1.3 + i7.1        # aluminium at 0.6 µm
+L       = 0.8333333
+h       = 0.8
+lambda  = 0.6
+theta_i = 0.0
+pola    = TE
+i_field_mode  = PLANE_WAVE
+calcul_type   = STD
+calcul_method = RK4
+fft_filter    = NONE
+smoothing     = 0
+N  = 40
+NS = 1000
+delta_h = 0.0001            # required, not used
+profile_name = alu_TE ; profile_file = sin_2048.txt</code></pre>
+<p>Run <code>md2D -param tayeb_alu.txt</code>; it takes about a minute. The file <code>alu_TE.txt</code> then contains <code>eff_r = 0.31553 0.17990 0.31553</code> for orders −1, 0, +1, against 0.31558 / 0.18016 from the method of fictitious sources.</p>
+
+<!-- ============================================================ -->
+<h2 id="geometry"><span class="num">3</span>Geometry and conventions</h2>
+<figure>
+<svg viewBox="0 0 760 262" width="720" role="img" aria-label="Geometry of md2D: superstrate above z = h, modulated zone between z = 0 and h, substrate below z = 0, incident wave coming from the superstrate at angle theta i.">
+  <rect x="0" y="0" width="760" height="262" fill="#ffffff"/>
+  <path d="M60 150 C 130 150, 130 104, 200 104 S 270 150, 340 150 S 410 104, 480 104 S 550 150, 620 150 L620 222 L60 222 Z" fill="#d9e2e8"/>
+  <path d="M60 150 C 130 150, 130 104, 200 104 S 270 150, 340 150 S 410 104, 480 104 S 550 150, 620 150" fill="none" stroke="#15191c" stroke-width="1.6"/>
+  <line x1="60" y1="104" x2="636" y2="104" stroke="#6d767d" stroke-dasharray="4 4"/>
+  <line x1="60" y1="150" x2="636" y2="150" stroke="#6d767d" stroke-dasharray="4 4"/>
+  <line x1="90" y1="228" x2="90" y2="16" stroke="#15191c" stroke-width="1.2"/>
+  <polygon points="90,10 86,20 94,20" fill="#15191c"/>
+  <text x="100" y="20" font-size="14" fill="#15191c">z</text>
+  <line x1="60" y1="150" x2="630" y2="150" stroke="#15191c" stroke-width="1.2"/>
+  <polygon points="638,150 628,146 628,154" fill="#15191c"/>
+  <text x="642" y="155" font-size="14" fill="#15191c">x</text>
+  <text x="40" y="109" font-size="13" fill="#15191c">h</text>
+  <text x="40" y="155" font-size="13" fill="#15191c">0</text>
+  <text x="642" y="60" font-size="13" fill="#15191c">superstrate</text>
+  <text x="642" y="77" font-size="13" fill="#465058">n_super (ν₁), z &gt; h</text>
+  <line x1="636" y1="104" x2="636" y2="150" stroke="#1c5f8d"/>
+  <text x="642" y="124" font-size="13" fill="#15191c">modulated zone</text>
+  <text x="642" y="141" font-size="13" fill="#465058">0 ≤ z ≤ h</text>
+  <text x="642" y="190" font-size="13" fill="#15191c">substrate</text>
+  <text x="642" y="207" font-size="13" fill="#465058">n_sub (ν₂), z &lt; 0</text>
+  <line x1="200" y1="30" x2="288" y2="100" stroke="#c0392b" stroke-width="2"/>
+  <polygon points="294,105 282,102 288,94" fill="#c0392b"/>
+  <line x1="290" y1="20" x2="290" y2="100" stroke="#6d767d" stroke-dasharray="3 3"/>
+  <path d="M290 58 A 44 44 0 0 0 258 72" fill="none" stroke="#c0392b"/>
+  <text x="246" y="54" font-size="14" fill="#c0392b">θᵢ</text>
+  <line x1="200" y1="240" x2="480" y2="240" stroke="#1c5f8d" stroke-width="1"/>
+  <line x1="200" y1="234" x2="200" y2="246" stroke="#1c5f8d"/><line x1="480" y1="234" x2="480" y2="246" stroke="#1c5f8d"/>
+  <text x="336" y="258" font-size="13" fill="#1c5f8d">L</text>
+</svg>
+<figcaption>md2D geometry. The structure is invariant along <i>y</i>; the wave comes from the superstrate and propagates towards −<i>z</i>. The material below the profile line is the substrate material, unless a stack or an index map says otherwise.</figcaption>
+</figure>
+<ul>
+  <li><b>Units.</b> Any length unit may be used, as long as <code>lambda</code>, <code>L</code>/<code>Lx</code>/<code>Ly</code> and <code>h</code> use the same one. Angles are in degrees.</li>
+  <li><b>Refractive indices</b> are complex, <i>ν = n + iκ</i>. An absorbing medium has κ &gt; 0: aluminium at 0.6 µm is <code>1.3 + i7.1</code>. The file syntax is <code>a + ib</code>, with or without spaces. A negative imaginary part must be written <code>a + i-0.5</code>; <code>a - i0.5</code> is not understood.</li>
+  <li><b>Diffraction orders.</b> With <i>ν₁</i> the superstrate index, order <i>n</i> has the tangential wave number <i>σ<sub>n</sub> = k₀ ν₁ sin θ<sub>i</sub> + n 2π/L</i>. Its direction satisfies <i>ν sin θ<sub>n</sub> = ν₁ sin θ<sub>i</sub> + nλ/L</i>, with <i>ν</i> the index of the medium it propagates in. The specular order 0 comes out at <i>θ₀ = θ<sub>i</sub></i>. In md3D the orders are pairs (<i>n<sub>x</sub>, n<sub>y</sub></i>) with <i>σ<sub>x</sub> = k₀ν₁ sin θ cos φ + n<sub>x</sub>2π/L<sub>x</sub></i> and <i>σ<sub>y</sub> = k₀ν₁ sin θ sin φ + n<sub>y</sub>2π/L<sub>y</sub></i>.</li>
+  <li><b>Efficiency</b> of an order is the flux of its Poynting vector through a plane <i>z</i> = const., divided by the incident flux. For lossless media the reflected and transmitted efficiencies add up to 1.</li>
+</ul>
+<h3>Incidence and polarisation in md3D</h3>
+<div class="figrow">
+<figure><img src="img/axes_3d.png" alt="3D axes: plane of incidence at azimuth phi from the x axis, incidence angle theta from the z axis, over a biperiodic surface." width="450" height="303"><figcaption>Axes of md3D. <i>φ<sub>i</sub></i> is the angle between the plane of incidence and (<i>Ox</i>); <i>θ<sub>i</sub></i> is measured from (<i>Oz</i>). From [Arnaud 2008], chap. 4.</figcaption></figure>
+<figure><img src="img/polarization_psi.png" alt="Polarisation angle psi between the incident electric field and the normal y-prime to the plane of incidence." width="330" height="315"><figcaption><i>ψ</i> is the angle between <b>E</b><sub>i</sub> and the normal (<i>Oy′</i>) to the plane of incidence: <b>ψ = 0° is TE (s), ψ = 90° is TM (p)</b>. From [Arnaud 2008], chap. 3.</figcaption></figure>
+</div>
+<p>The incident field is</p>
+<p class="eq"><b>E</b><sub>i</sub> = (cos θ cos φ sin ψ − sin φ cos ψ) <b>e</b><sub>x</sub> + (cos φ cos ψ + cos θ sin φ sin ψ) <b>e</b><sub>y</sub> + sin θ sin ψ <b>e</b><sub>z</sub>.</p>
+<p>md2D has no <code>phi_i</code> or <code>psi</code>. Its polarisation is set by <code>pola = TE</code> (<b>E</b> ∥ <i>y</i>) or <code>pola = TM</code> (<b>H</b> ∥ <i>y</i>).</p>
+
+<!-- ============================================================ -->
+<h2 id="params"><span class="num">4</span>Parameter file</h2>
+<p>A parameter file is plain text with lines <code>key = value</code>. Several pairs may share a line when separated by <code>;</code>. Text after <code>#</code> is a comment. If a key appears twice, the first occurrence wins. Keys are case-sensitive.</p>
+<div class="warn"><b>Unknown keys are silently ignored.</b> A typo such as <code>theta = 30</code> leaves <code>theta_i</code> missing (an error) or, for optional keys, at its default value. The parameter summary printed with <code>verbosity = 2</code> shows what was actually read.</div>
+
+<h3>md2D keys</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Key</th><th></th><th>Values</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>profile_file</code></td><td><span class="req">req</span></td><td>path</td><td>structure file (<a href="#profiles">§ 5</a>)</td></tr>
+<tr><td><code>profile_name</code></td><td><span class="req">req</span></td><td>text</td><td>results are written to <code>&lt;profile_name&gt;.txt</code></td></tr>
+<tr><td><code>lambda</code>, <code>L</code></td><td><span class="req">req</span></td><td>length</td><td>wavelength in vacuum, period</td></tr>
+<tr><td><code>h</code></td><td><span class="req">req</span></td><td>length or <code>AUTO</code></td><td>thickness of the modulated zone; the profile is rescaled to [0, h]. <code>AUTO</code> keeps the height found in the file</td></tr>
+<tr><td><code>theta_i</code></td><td><span class="req">req</span></td><td>degrees</td><td>angle of incidence</td></tr>
+<tr><td><code>pola</code></td><td><span class="req">req</span></td><td><code>TE</code> | <code>TM</code></td><td>polarisation</td></tr>
+<tr><td><code>n_super</code>, <code>n_sub</code></td><td><span class="req">req</span></td><td>complex</td><td>superstrate and substrate indices</td></tr>
+<tr><td><code>N</code></td><td><span class="req">req</span></td><td>integer or <code>AUTO</code></td><td>truncation: orders −N…N are kept (2N+1 harmonics)</td></tr>
+<tr><td><code>NS</code></td><td><span class="req">req</span></td><td>integer or <code>AUTO</code></td><td>number of S-matrix slices = number of integration steps</td></tr>
+<tr><td><code>calcul_type</code></td><td><span class="req">req</span></td><td><code>STD</code> | <code>NEAR_FIELD</code></td><td>efficiencies; or efficiencies plus field maps. <code>GUIDED</code>, <code>SWIFTS</code>, <code>I_SWIFTS</code> are undocumented research modes</td></tr>
+<tr><td><code>calcul_method</code></td><td><span class="req">req</span></td><td><code>RK4</code> | <code>Z_INVAR</code> | <code>IMPROVED_RCWA</code></td><td>integration scheme (<a href="#numerics">§ 7</a>). <code>IMPLICIT_RK</code>, <code>EULER</code>, <code>EULER2</code> exist but are not validated</td></tr>
+<tr><td><code>i_field_mode</code></td><td><span class="req">req</span></td><td><code>PLANE_WAVE</code></td><td>only plane waves are implemented</td></tr>
+<tr><td><code>fft_filter</code></td><td><span class="req">req</span></td><td><code>NONE</code> | <code>HAMMING</code></td><td>optional Hamming window on the Fourier coefficients of the permittivity</td></tr>
+<tr><td><code>delta_h</code></td><td><span class="req">req</span></td><td>length</td><td><b>read but not used</b> (one integration step per slice)</td></tr>
+<tr><td><code>smoothing</code></td><td><span class="req">set it</span></td><td><code>0</code> | <code>1</code></td><td><code>1</code> adds a transition layer of thickness <code>l_smooth</code> that smooths the permittivity at interfaces (convergence aid for metals). Always write <code>smoothing = 0</code> otherwise (<a href="#limits">§ 8</a>)</td></tr>
+<tr><td><code>verbosity</code></td><td><span class="opt">opt</span></td><td>0 | 1 | 2</td><td>terminal output, default 2</td></tr>
+<tr><td><code>sigma0_normed</code></td><td><span class="opt">opt</span></td><td>complex</td><td><i>σ₀/k₀</i>; replaces <code>theta_i</code> and allows an evanescent incident wave (|σ₀/k₀| &gt; ν₁)</td></tr>
+<tr><td><code>imposed_S_steps</code></td><td><span class="opt">opt</span></td><td><code>AUTO</code> | <code>FROM_FILE</code></td><td>put slice boundaries on horizontal interfaces (multilayers); with <code>hmin_Sstep</code>, <code>imposed_S_steps_filename</code></td></tr>
+</tbody></table></div>
+
+<h3>md3D keys</h3>
+<p>md3D uses <code>nu_…</code> instead of <code>n_…</code> for indices and has no <code>pola</code>, <code>fft_filter</code> or <code>smoothing</code>.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Key</th><th></th><th>Values</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>profile_file</code>, <code>profile_name</code></td><td><span class="req">req</span></td><td>path, text</td><td>as in md2D</td></tr>
+<tr><td><code>lambda</code>, <code>Lx</code>, <code>Ly</code></td><td><span class="req">req</span></td><td>length</td><td>wavelength, periods. With <code>Ny = 0</code>, <code>Ly</code> is arbitrary</td></tr>
+<tr><td><code>h</code></td><td><span class="req">req</span></td><td>length or <code>AUTO</code></td><td>thickness of the modulated zone</td></tr>
+<tr><td><code>coef_h</code></td><td><span class="opt">opt</span></td><td>number, default 1</td><td>multiplies <code>h</code> and the profile heights</td></tr>
+<tr><td><code>theta_i</code>, <code>phi_i</code>, <code>psi</code></td><td><span class="req">req</span></td><td>degrees</td><td>incidence, azimuth, polarisation (<a href="#geometry">§ 3</a>)</td></tr>
+<tr><td><code>nu_super</code>, <code>nu_sub</code></td><td><span class="req">req</span></td><td>complex</td><td>superstrate and substrate indices</td></tr>
+<tr><td><code>Nx</code>, <code>Ny</code></td><td><span class="req">req</span></td><td>integers</td><td>truncation along x and y: (2Nx+1)(2Ny+1) harmonics</td></tr>
+<tr><td><code>NS</code></td><td><span class="req">req</span></td><td>integer or <code>AUTO</code></td><td>number of slices = integration steps</td></tr>
+<tr><td><code>calcul_type</code></td><td><span class="req">req</span></td><td><code>STD</code></td><td>only mode</td></tr>
+<tr><td><code>calcul_method</code></td><td><span class="req">req</span></td><td><code>RK4</code> | <code>Z_INVAR</code></td><td><code>Z_INVAR</code> for z-invariant index maps</td></tr>
+<tr><td><code>i_field_mode</code></td><td><span class="req">req</span></td><td><code>PLANE_WAVE</code></td><td></td></tr>
+<tr><td><code>delta_h</code></td><td><span class="req">req</span></td><td>length or <code>AUTO</code></td><td>not used (a warning says so)</td></tr>
+<tr><td><code>verbosity</code></td><td><span class="opt">opt</span></td><td>0 | 1 | 2</td><td>default 2</td></tr>
+</tbody></table></div>
+<p><b>AUTO values</b> (both programs): <code>NS = ⌈5 h |ν_sub| / λ⌉</code>, i.e. slices of about λ/(5|ν|). This is enough for rough work on dielectrics and too coarse for metals in TM. <code>N = AUTO</code> (md2D) keeps all propagating orders plus max(3, 10 %) evanescent ones.</p>
+
+<!-- ============================================================ -->
+<h2 id="profiles"><span class="num">5</span>Structure files</h2>
+<p>A structure file starts with a few <code>key = value</code> lines, followed by a labelled array of numbers separated by blanks or line breaks. The heights in a profile are shifted and scaled to span [0, <code>h</code>], so only the shape matters. The optional keys <code>h_min</code> / <code>h_max</code> in the file extend the modulated zone beyond the profile, which is useful for near-field maps.</p>
+
+<h3>md2D</h3>
+<dl class="keys">
+  <dt>H_X</dt><dd>One interface <i>z = h(x)</i> between superstrate and substrate, sampled at <code>N_x</code> equidistant points over one period.
+<pre><code>type_profil = H_X
+N_x = 2048
+profil =
+0.500000
+0.501534
+...</code></pre></dd>
+  <dt>MULTICOUCHES</dt><dd>A stack of <code>N_layers</code> materials bounded by <code>N_layers + 1</code> interfaces. There is one line per <i>x</i> point and one column per interface, ordered from top to bottom. Layer <i>j</i>, of index <code>nj</code>, lies between columns <i>j</i> and <i>j</i>+1; the superstrate is above column 1 and the substrate below the last column. Interfaces may touch (zero thickness) but must not cross. Example: a lamellar line of index <code>n1</code> on the substrate (<code>profilGen CARRE02_B</code>):
+<pre><code>N_x = 1024
+type_profil = MULTICOUCHES
+N_layers = 1
+n1 = 9.128 + i66.433
+profil =
+0.2  0.2         # no line here: layer 1 has zero thickness
+...
+0.2  0.0         # line of material n1 from z = 0 to 0.2
+...</code></pre></dd>
+  <dt>N_XYZ</dt><dd>Index map with <code>N_x</code>, <code>N_z</code> and arrays <code>Re_n_xyz</code> and (optionally) <code>Im_n_xyz</code>, row by row from the top (<i>z = h</i>) down, <i>x</i> varying fastest. <b>TE only</b>: no normal-vector field is defined for this type.</dd>
+</dl>
+<p>The normal vector needed in TM is computed automatically from <i>h(x)</i> by centred finite differences. For stacks it is interpolated between the interfaces.</p>
+
+<h3>md3D</h3>
+<dl class="keys">
+  <dt>H_XY</dt><dd>One interface <i>z = h(x,y)</i>: <code>profile_type = H_XY</code>, <code>Nprx</code>, <code>Npry</code>, then <code>profil =</code> followed by <code>Npry</code> rows of <code>Nprx</code> values (<i>x</i> along a row). The normal field is computed automatically, so no separate normal-vector file is needed. <code>Npry = 1</code> describes a 1D profile, used for conical incidence with <code>Ny = 0</code>.</dd>
+  <dt>MULTICOUCHES</dt><dd>As in md2D, with one line per (<i>x</i>, <i>y</i>) point (x fastest), <code>Nprx</code>, <code>Npry</code>, <code>N_layers</code>, <code>n1</code>…</dd>
+  <dt>N_XY_ZINVAR</dt><dd>z-invariant index map (holes, pillars, patterned layer of thickness <code>h</code>). The file lists indices <code>n1 = …</code>, <code>n2 = …</code>, then <code>profile_type = N_XY_ZINVAR</code>, <code>Nprx</code>, <code>Npry</code>, <code>Nprz = 1</code>, then <code>n_xyz =</code> followed by an integer map (1, 2, …) referring to those indices. <code>Re_n_xyz</code>/<code>Im_n_xyz</code> arrays can be given instead. Use <code>calcul_method = Z_INVAR</code> and <code>NS = 1</code>.</dd>
+</dl>
+<div class="figrow">
+<figure><img src="img/normal_decomposition.png" alt="Decomposition of the field into components normal and tangential to the interface." width="400" height="179"><figcaption>Normal/tangential decomposition that underlies the fast factorisation. The normal must be defined everywhere in the modulated zone. From [Arnaud 2008], chap. 2.</figcaption></figure>
+<figure><img src="img/normal_radial_holes.png" alt="Radial normal-vector field around a circular hole." width="210" height="207"><figcaption>For <code>N_XY_ZINVAR</code> md3D uses a radial normal field centred on the cell. It suits a centred round inclusion [Schuster 2007] and nothing else (<a href="#limits">§ 8</a>).</figcaption></figure>
+</div>
+<p><code>N_XYZ</code> (non-invariant 3D index map) and <code>H_XY_plus_STACK</code> are parsed by md3D but have no validated normal field or energy balance; treat them as experimental.</p>
+<h3>Generating structure files</h3>
+<ul>
+  <li><code>utils/profilGen TYPE [options] &gt; file</code> writes md2D profiles: <code>SINUS01</code>, <code>SINUS02</code>, <code>CARRE01</code>/<code>02</code>/<code>03</code> (lamellar), <code>RECTANGLE04</code>, <code>TRAPEZ01</code>/<code>02</code>, <code>FINITE_GRATING_B</code>, <code>ALEAT01</code> (random rough profile), <code>ORIGAMI</code>… The number of points is set with <code>-N_profil</code>, geometry with <code>-L1 -h1 -h2 -alpha</code>…</li>
+  <li><code>thesis_validation_cases/tools/mkprofile.py</code> (Python, no dependencies) writes an echelette (md2D), a rectangular pyramid (md3D <code>H_XY</code>) and a circular hole map (md3D <code>N_XY_ZINVAR</code>).</li>
+  <li>Any script that prints the format above will do. Sample profiles are in <code>md2D/</code> (<code>sin_2048.txt</code>, <code>cos_256.txt</code>, <code>sinLayer_2048.txt</code>) and <code>md3D/</code> (<code>pr_sin3D_256x256.txt</code>, <code>carre_256_1D.txt</code>).</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="results"><span class="num">6</span>Result files</h2>
+<p>The result file repeats the parameters, then lists the results as labelled arrays:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Label</th><th>Content</th></tr></thead>
+<tbody>
+<tr><td><code>sum_eff</code>, <code>one_minus_sum_eff</code></td><td>total efficiency and its departure from 1 (absorption, or numerical error in lossless cases)</td></tr>
+<tr><td><code>somm_eff_r</code>, <code>somm_eff_t</code></td><td>total reflected and transmitted efficiency</td></tr>
+<tr><td><code>N_eff_r</code>, <code>theta_r</code>, <code>eff_r</code>, <code>arg_Ar</code></td><td>md2D, reflected propagating orders: order number, angle (deg), efficiency, phase of the amplitude (rad)</td></tr>
+<tr><td><code>N_eff_t</code>, <code>theta_t</code>, <code>eff_t</code>, <code>arg_At</code></td><td>md2D, same for transmission</td></tr>
+<tr><td><code>eff_r</code>, <code>nx_eff_r</code>, <code>ny_eff_r</code> (and <code>_t</code>)</td><td>md3D: 2D tables, one printed row per <i>n<sub>y</sub></i>. Entries <code>inf</code> mark evanescent orders inside the rectangle of printed indices</td></tr>
+</tbody></table></div>
+<ul>
+  <li><b>Absorbing substrate.</b> With a metal substrate, <code>eff_t</code> and <code>theta_t</code> are not meaningful (the transmitted waves are evanescent, and <code>nan</code> may appear). Use the reflected efficiencies; the absorption is 1 − Σ<i>e<sub>r</sub></i>.</li>
+  <li><b>Extracting values</b>: <code>cat res.txt | utils/lire_tab eff_r</code> prints one array, and <code>thesis_validation_cases/tools/mdres.py</code> reads an efficiency by order from Python.</li>
+  <li><b>Non-periodic structures.</b> For a rough surface computed with an artificial period <i>L</i>, the scattered intensity per unit angle is
+    <span class="eq">d<i>I</i>/d<i>θ</i> (<i>θ<sub>n</sub></i>) = (<i>L</i>/<i>λ</i>) <i>ν</i> cos <i>θ<sub>n</sub></i> <i>e<sub>n</sub></i></span>,
+    with <i>ν</i> the index of the medium of observation [Arnaud 2008, § 1.6].</li>
+  <li><b>Near field</b> (<code>calcul_type = NEAR_FIELD</code>, md2D). Besides the result file, the program prints field maps to the terminal on an NS × N_x grid: <code>ReEx ImEx ReEz ImEz ReHpy ImHpy</code> in TM, <code>ReEy ImEy ReHpx ImHpx ReHpz ImHpz</code> in TE. <code>Hp</code> is the magnetic field scaled by the code's normalisation. Redirect the output to a file and extract each map with <code>utils/lire_tab2 ReEx</code>. A complete example is in <code>Applications/ExempleUtilisationNearField/</code>.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="numerics"><span class="num">7</span>Numerical parameters and convergence</h2>
+<p>Three numbers control accuracy and cost: the truncation <code>N</code> (or <code>Nx</code>, <code>Ny</code>), the number of slices <code>NS</code>, and the sampling of the structure file. In the current code each S-matrix slice is integrated by exactly one Runge–Kutta step. The thesis's separate integration step Δh is therefore h/NS, and <code>delta_h</code> is ignored.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Parameter</th><th>Effect</th><th>Guidance (from the thesis and the 2026 reproduction)</th></tr></thead>
+<tbody>
+<tr><td><code>N</code></td><td>md2D cost ∝ N³·NS; md3D cost ∝ ((2Nx+1)(2Ny+1))³·NS</td><td>Dielectric gratings: errors below 10⁻⁵ once all propagating orders plus a few evanescent ones are kept. Metals: ≈10⁻³ at N = 20, ≈10⁻⁴ at N = 40–50. <b>Energy conservation does not detect a too-small N</b>, so always compare two values of N.</td></tr>
+<tr><td><code>NS</code></td><td>cost ∝ NS; errors of the RK4 scheme</td><td>Dielectric, h/NS = λ/200: ≈10⁻⁵; λ/2000: ≈10⁻⁶; λ/10 000: ≈10⁻⁸. Metal in TM: h/NS ≤ λ/700 (NS = 100 diverged for h = 1.3λ). 1 − Σe is a good indicator here.</td></tr>
+<tr><td>profile points</td><td>the Fourier coefficients of the permittivity and the normal are computed from the samples</td><td>Use many more points than harmonics. 256 points at N = 100 cost 2 % on weak orders; with 2048 points the results agreed with an independent method to 10⁻⁸. For md3D, 256–512 points per side.</td></tr>
+</tbody></table></div>
+<h3>Choosing <code>calcul_method</code></h3>
+<ul>
+  <li><code>RK4</code> is the general method for any profile, and the one to use for curved or sloped interfaces.</li>
+  <li><code>Z_INVAR</code> treats each slice as z-invariant and propagates it exactly, as RCWA / the Fourier modal method does. It is exact and fast for binary structures (lamellar gratings, holes; <code>NS = 1</code> per invariant layer). On a curved profile it is a staircase approximation. That remains acceptable in TE with many slices, but converges very slowly in TM because the staircase never has the right normal [Popov 2002; Arnaud 2008 § 2.4].</li>
+  <li><code>IMPROVED_RCWA</code> (md2D) uses z-invariant propagation with the true normal field of the profile.</li>
+</ul>
+<h3>Cost</h3>
+<p>Measured with reference BLAS on a shared 8-core PC: md2D, N = 40, NS = 1000, TE, about 1 min (TM about twice as long); N = 100, NS = 1000 takes 10–20 min. md3D pyramid with NS = 20 takes 1.5 min at N = 5 and 22 min at N = 9; N = 15 needs about 10 h per point. The thesis reported 13.7 h at N = 15, NS = 50 on a 2008 Opteron.</p>
+<h3>Recommended routine</h3>
+<ol>
+  <li>Start with AUTO or modest values and check that 1 − Σe is small for a lossless structure.</li>
+  <li>Double NS until the efficiencies you need no longer change at the wanted precision.</li>
+  <li>Increase N by 30–50 % and check again. Report the pair (N, NS) with the results.</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id="limits"><span class="num">8</span>Limitations and known issues</h2>
+<ul>
+  <li><b>Isotropic, non-magnetic, linear media only</b> (μ = μ₀). Only plane-wave illumination (<code>PLANE_WAVE</code>) is implemented.</li>
+  <li><b>md2D <code>smoothing</code></b> is left uninitialised when absent, and the parser may then ask for <code>l_smooth</code>. Always write <code>smoothing = 0</code>.</li>
+  <li><b>md2D <code>phi_i</code></b> is never read (the code is commented out) but enters σ₀ = k sin θ cos φ. It happens to be 0 in practice; the fix is to initialise it to 0. Do not use md2D for conical incidence: use md3D with <code>Ny = 0</code>.</li>
+  <li><b><code>delta_h</code></b> is required but unused in both programs.</li>
+  <li><b>The shooting method</b> of the thesis (Table 2.1) is disabled; the matrix RK4 scheme replaces it and gives the same results.</li>
+  <li><b>Normal fields</b> are automatic only for single surfaces and stacks of interfaces. md2D <code>N_XYZ</code> has none (TE only). md3D <code>N_XY_ZINVAR</code> uses a hard-coded radial field centred on the cell (<code>Normal_N_XY_ZINVAR</code> in <code>md3D.c</code>); the code that would read <code>norm_x</code>/<code>norm_y</code> from the structure file is never reached. Any other shape needs a code change.</li>
+  <li><b>Experimental</b>: md3D <code>N_XYZ</code>, <code>H_XY_plus_STACK</code> (a sample run violates energy conservation), md2D <code>GUIDED</code>/<code>SWIFTS</code> modes and the <code>IMPLICIT_RK</code>/<code>EULER</code> schemes.</li>
+  <li><b>3D size</b>: the cost grows as the cube of the number of harmonics. Structures larger than a few wavelengths per period need an optimised BLAS and patience.</li>
+  <li>Source comments are in French and in Latin-1/CP1252 encoding.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="validation"><span class="num">9</span>Validation</h2>
+<p>The thirteen validation tables of the thesis were recomputed with the current code in September 2026. Nine are reproduced within the precision the thesis claims, one agrees to 0.01–0.3 % (conical incidence, originally computed with a code that no longer exists), and two could be checked only in part (the shooting-method column and absolute timings). The comparisons cover the method of fictitious sources, the integral method, RCWA, the Chandezon method, the method of variation of boundaries, GSolver, Schuster et al., energy conservation and reciprocity. The deep-aluminium table (4.6) is still to be run.</p>
+<ul>
+  <li><a href="../thesis_validation_cases/review.html">Validation review</a>: case-by-case results, charts and the remaining work.</li>
+  <li><a href="../thesis_validation_cases/REPRODUCING.md"><code>REPRODUCING.md</code></a> and one <code>run.sh</code> per case in <code>thesis_validation_cases/</code>. Each case is a complete, runnable example of a parameter file and a structure.</li>
+  <li><a href="../thesis_validation_cases/index.html">Thesis test cases</a>: the original tables and their parameters.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="refs"><span class="num">10</span>References</h2>
+<ol class="refs">
+  <li id="r-arnaud">[Arnaud 2008] L. Arnaud, <i>Diffraction et diffusion de la lumière : modélisation tridimensionnelle et application à la métrologie de la microélectronique et aux techniques d'imagerie sélective en milieu diffusant</i>, PhD thesis, Institut Fresnel (Marseille) and STMicroelectronics (Rousset), defended 17 July 2008. In French. <a href="../references/Arnaud_2008_PhD_thesis.pdf">PDF in this repository</a> (<code>references/Arnaud_2008_PhD_thesis.pdf</code>).</li>
+  <li>[Nevière &amp; Popov 2003] M. Nevière, E. Popov, <i>Light Propagation in Periodic Media: Differential Theory and Design</i>, Marcel Dekker, 2003. The reference text for the differential method.</li>
+  <li>[Li 1996a] L. Li, “Use of Fourier series in the analysis of discontinuous periodic structures,” JOSA A 13, 1870 (1996). <a href="https://doi.org/10.1364/JOSAA.13.001870">doi:10.1364/JOSAA.13.001870</a></li>
+  <li>[Li 1996b] L. Li, “Formulation and comparison of two recursive matrix algorithms for modeling layered diffraction gratings,” JOSA A 13, 1024 (1996). <a href="https://doi.org/10.1364/JOSAA.13.001024">doi:10.1364/JOSAA.13.001024</a></li>
+  <li>[Popov &amp; Nevière 2000] E. Popov, M. Nevière, “Grating theory: new equations in Fourier space leading to fast converging results for TM polarization,” JOSA A 17, 1773 (2000). <a href="https://doi.org/10.1364/JOSAA.17.001773">doi:10.1364/JOSAA.17.001773</a></li>
+  <li>[Popov &amp; Nevière 2001] E. Popov, M. Nevière, “Maxwell equations in Fourier space: fast-converging formulation for diffraction by arbitrary shaped, periodic, anisotropic media,” JOSA A 18, 2886 (2001). <a href="https://doi.org/10.1364/JOSAA.18.002886">doi:10.1364/JOSAA.18.002886</a></li>
+  <li>[Popov 2002] E. Popov, M. Nevière, B. Gralak, G. Tayeb, “Staircase approximation validity for arbitrary-shaped gratings,” JOSA A 19, 33 (2002). <a href="https://doi.org/10.1364/JOSAA.19.000033">doi:10.1364/JOSAA.19.000033</a></li>
+  <li>[Li 1997] L. Li, “New formulation of the Fourier modal method for crossed surface-relief gratings,” JOSA A 14, 2758 (1997). <a href="https://doi.org/10.1364/JOSAA.14.002758">doi:10.1364/JOSAA.14.002758</a></li>
+  <li>[Schuster 2007] T. Schuster, J. Ruoff, N. Kerwien, S. Rafler, W. Osten, “Normal vector method for convergence improvement using the RCWA for crossed gratings,” JOSA A 24, 2880 (2007). <a href="https://doi.org/10.1364/JOSAA.24.002880">doi:10.1364/JOSAA.24.002880</a></li>
+  <li>[Moharam 1995] M. G. Moharam, E. B. Grann, D. A. Pommet, T. K. Gaylord, “Formulation for stable and efficient implementation of the rigorous coupled-wave analysis of binary gratings,” JOSA A 12, 1068 (1995). <a href="https://doi.org/10.1364/JOSAA.12.001068">doi:10.1364/JOSAA.12.001068</a></li>
+  <li>[Lalanne 1996] P. Lalanne, G. M. Morris, “Highly improved convergence of the coupled-wave method for TM polarization,” JOSA A 13, 779 (1996). <a href="https://doi.org/10.1364/JOSAA.13.000779">doi:10.1364/JOSAA.13.000779</a> · [Granet 1996] G. Granet, B. Guizal, JOSA A 13, 1019 (1996). <a href="https://doi.org/10.1364/JOSAA.13.001019">doi:10.1364/JOSAA.13.001019</a></li>
+  <li>[Tayeb 1994] G. Tayeb, “The method of fictitious sources applied to diffraction gratings,” ACES Journal 9, 90 (1994). Reference values used in validation cases 03–05.</li>
+</ol>
+<footer>md2D / md3D User Manual. Figures marked “from [Arnaud 2008]” are reproduced from the author's thesis. A4 PDF versions: <a href="manual.pdf">manual.pdf</a>, <a href="practical_guide.pdf">practical_guide.pdf</a>.</footer>
+</div>
+</body>
+</html>

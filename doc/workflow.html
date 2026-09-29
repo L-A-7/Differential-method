@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>md2D / md3D Practical Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="doc">
+<nav class="docnav" aria-label="Documentation">
+  <a href="index.html">User manual</a>
+  <a href="workflow.html" aria-current="page">Practical guide</a>
+  <a href="../thesis_validation_cases/review.html">Validation review</a>
+  <a href="../thesis_validation_cases/index.html">Thesis test cases</a>
+</nav>
+
+<header>
+  <span class="eyebrow">Companion to the user manual</span>
+  <h1>md2D / md3D Practical Guide</h1>
+  <p class="lede">Recipes for everyday studies: scans, convergence checks, lamellar and multilayer structures, rough surfaces, near-field maps and 3D structures, plus a troubleshooting table. The <a href="index.html">user manual</a> defines every parameter used here.</p>
+</header>
+
+<div class="toc"><ol>
+  <li><a href="#organise">Organising a study</a></li>
+  <li><a href="#scan">Scanning a parameter</a></li>
+  <li><a href="#converge">Checking convergence</a></li>
+  <li><a href="#lamellar">Lamellar gratings and stacks</a></li>
+  <li><a href="#rough">Rough surfaces and non-periodic objects</a></li>
+  <li><a href="#nearfield">Near-field maps</a></li>
+  <li><a href="#threed">3D structures and conical incidence</a></li>
+  <li><a href="#materials">Material indices</a></li>
+  <li><a href="#trouble">Troubleshooting</a></li>
+  <li><a href="#legacy">Older material in the repository</a></li>
+</ol></div>
+
+<h2 id="organise"><span class="num">1</span>Organising a study</h2>
+<ul>
+  <li>Use one folder per study, holding the parameter file, the structure file and a script. Run the programs from that folder, since results are written to the current directory.</li>
+  <li>Keep the parameter file for what does not change and give what varies on the command line. Build <code>profile_name</code> from the varying values: it names the result file, it may contain a sub-folder (<code>-profile_name scan/theta_30</code>), and a run overwrites an existing file of the same name.</li>
+  <li>Start from a validated case in <code>thesis_validation_cases/</code> that resembles your structure. Its <code>param.txt</code> is known to work.</li>
+</ul>
+
+<h2 id="scan"><span class="num">2</span>Scanning a parameter</h2>
+<p>One run per value, then one pass to collect the results. The example scans the angle of incidence for the aluminium grating of the manual's first run.</p>
+<pre><code>#!/bin/sh
+# scan.sh - angle scan, results in scan/theta_&lt;angle&gt;.txt
+MD2D=${MD2D:-$HOME/DifferentialMethod/md2D/md2D}
+mkdir -p scan
+for t in 0 10 20 30 40; do
+    "$MD2D" -param tayeb_alu.txt -theta_i $t -verbosity 0 -profile_name scan/theta_$t
+done</code></pre>
+<pre><code># collect.py - one line per angle
+import sys; sys.path.insert(0, "/path/to/DifferentialMethod/thesis_validation_cases/tools")
+from mdres import eff          # eff(file, "r"|"t", n) for md2D, eff(file, "r"|"t", nx, ny) for md3D
+for t in (0, 10, 20, 30, 40):
+    f = "scan/theta_%d.txt" % t
+    print(t, eff(f, "r", 0), eff(f, "r", -1))</code></pre>
+<p>An order that is evanescent at some angle returns <code>None</code>. Wavelength scans work the same way with <code>-lambda</code>. If the indices change with wavelength, pass them too: <code>-n_sub_re … -n_sub_im …</code> (md2D) or <code>-nu_sub_re … -nu_sub_im …</code> (md3D). Independent runs can go in parallel (<code>&amp;</code> and <code>wait</code>, or GNU <code>parallel</code>), one per core.</p>
+
+<h2 id="converge"><span class="num">3</span>Checking convergence</h2>
+<p>Do this once per new kind of structure, on the most demanding configuration: the largest angle, the shortest wavelength and TM polarisation.</p>
+<pre><code>for NS in 250 500 1000 2000; do md2D -param p.txt -NS $NS -verbosity 0 -profile_name conv/NS$NS; done
+for N  in 20 30 40 60;       do md2D -param p.txt -N  $N  -verbosity 0 -profile_name conv/N$N;   done
+grep -H one_minus_sum_eff conv/*.txt</code></pre>
+<ul>
+  <li><code>one_minus_sum_eff</code> tracks the NS convergence for lossless structures, but <b>not</b> the N convergence. Compare the efficiencies you need between successive N.</li>
+  <li>Typical outcome: dielectric gratings converge with slices of λ/100–λ/1000 and N just above the number of propagating orders. Metals in TM need slices of λ/1000 or finer and N of 30–50.</li>
+</ul>
+
+<h2 id="lamellar"><span class="num">4</span>Lamellar gratings and stacks</h2>
+<p>Binary structures (vertical walls, flat tops) are best described as a stack (<code>MULTICOUCHES</code>) and computed with <code>calcul_method = Z_INVAR</code>. Each z-invariant layer is then propagated exactly, like RCWA, and a few slices suffice.</p>
+<pre><code># line of material n1 (width 40 % of the period) on the substrate
+utils/profilGen CARRE02_B -L1 0.4 -h1 0.2 -h2 0 -N_profil 1024 &gt; line_raw.txt
+{ echo "n1 = 1.46 + i0.0"; cat line_raw.txt; } &gt; line.txt</code></pre>
+<ul>
+  <li>For more materials, add columns (one per interface, top to bottom) and indices <code>n2</code>, <code>n3</code>… (manual § 5). <code>profilGen CARRE03</code>, <code>RECTANGLE04</code> and <code>TRAPEZ02</code> write such files.</li>
+  <li>Sloped walls (trapezoids) are no longer z-invariant: use <code>RK4</code> with enough slices, or <code>Z_INVAR</code> as an explicit staircase approximation in TE only.</li>
+  <li><code>imposed_S_steps = AUTO</code> (md2D) places the slice boundaries on the horizontal interfaces found in the file, so that no slice straddles one.</li>
+</ul>
+
+<h2 id="rough"><span class="num">5</span>Rough surfaces and non-periodic objects</h2>
+<p>A non-periodic surface is computed as one period of a large artificial period <i>L</i>. The diffracted orders then sample the scattering diagram with a step Δ(sin θ) = λ/(νL).</p>
+<pre><code>utils/profilGen ALEAT01 -N_profil 2048 -Ag 1 -Lg 20 -Ae 0 &gt; rough.txt   # Gaussian-correlated random profile
+md2D -param rough_param.txt -L 50.3 -N AUTO -h 0.2 -profile_name rough_TE</code></pre>
+<p>The scattered intensity per unit angle (per radian) of each order is</p>
+<p class="eq">d<i>I</i>/d<i>θ</i> (<i>θ<sub>n</sub></i>) = (<i>L</i>/<i>λ</i>) <i>ν</i> cos <i>θ<sub>n</sub></i> <i>e<sub>n</sub></i>,</p>
+<p>with <i>ν</i> the index of the medium where it is observed.</p>
+<ul>
+  <li><b>N must cover every propagating order</b>: N ≥ (max(ν₁, ν₂) + ν₁|sin θ<sub>i</sub>|)·L/λ, plus a margin. <code>N = AUTO</code> does this. Too small an N silently drops orders while the energy balance still looks perfect. The cost grows as N³, so an <i>L</i> of 50λ means N ≈ 110 and about a minute per run in md2D.</li>
+  <li><b>Avoid Rayleigh anomalies.</b> If an order is exactly grazing (ν sin θ<sub>n</sub> = ±ν exactly, e.g. L = 50λ at θ = 30°), the results are <code>nan</code>. Shift <i>L</i> or θ slightly (L = 50.3λ).</li>
+  <li>The profile length <i>L</i> must be many correlation lengths long. The heights are rescaled to span <code>h</code>, so set <code>h</code> (peak-to-valley) from the wanted rms and the profile statistics. Average d<i>I</i>/d<i>θ</i> over several random profiles for a smooth diagram.</li>
+  <li>The same approach handles an isolated defect or line: put one object in a large period of flat surface.</li>
+</ul>
+
+<h2 id="nearfield"><span class="num">6</span>Near-field maps</h2>
+<p><code>calcul_type = NEAR_FIELD</code> (md2D) writes the field inside the computation box to the terminal, one row per slice (NS rows of N_x values). A complete example, a copper edge in silicon at 10.6 µm, is in <code>Applications/ExempleUtilisationNearField/</code>.</p>
+<pre><code>md2D -param param_snomIR_edges.txt -calcul_type NEAR_FIELD -pola TM -verbosity 0 &gt; field.txt
+for c in ReEx ImEx ReEz ImEz ReHpy ImHpy; do utils/lire_tab2 $c &lt; field.txt &gt; $c.txt; done</code></pre>
+<ul>
+  <li>Put <code>h_min</code> / <code>h_max</code> in the structure file to extend the box above and below the structure, so the map includes some air and substrate.</li>
+  <li>The vertical resolution is h/NS and the horizontal one L/N_x. Use <code>Z_INVAR</code> for binary structures: fields near sharp edges are singular and need a large N to resolve.</li>
+</ul>
+
+<h2 id="threed"><span class="num">7</span>3D structures and conical incidence</h2>
+<h3>Biperiodic surface</h3>
+<p>Write an <code>H_XY</code> file from any function <i>z(x,y)</i>; md3D computes the normals itself. For example, the pyramid of the validation cases:</p>
+<pre><code>python3 thesis_validation_cases/tools/mkprofile.py pyramid pyramid_512x512.txt --n 512
+# or, for your own shape:
+python3 - &lt;&lt;'EOF'
+import math
+n = 256
+with open("mysurf.txt", "w") as f:
+    f.write("profile_type = H_XY\nNprx = %d\nNpry = %d\nprofil =\n" % (n, n))
+    for j in range(n):                                   # rows: y
+        f.write(" ".join("%.8e" % (math.sin(2*math.pi*i/n) + math.sin(2*math.pi*j/n))
+                         for i in range(n)) + "\n")      # columns: x
+EOF</code></pre>
+<h3>Conical incidence on a 1D grating</h3>
+<p>Use md3D with <code>Ny = 0</code>, a one-row profile (<code>Npry = 1</code>) and any <code>Ly</code>. <code>thesis_validation_cases/case06_conical_incidence_vs_gsolver/</code> is a complete example (lamellar grating, θ = 30°, φ = 45°, ψ = 45°).</p>
+<h3>Holes, pillars and other z-invariant patterns</h3>
+<p>Use an <code>N_XY_ZINVAR</code> index map with <code>calcul_method = Z_INVAR</code> and <code>NS = 1</code>:</p>
+<pre><code>python3 thesis_validation_cases/tools/mkprofile.py circle holes.txt --n 1024 --R 0.25 --L 1.0 \
+        --n1 "1.0 + i0.0" --n2 "1.75 + i1.5"</code></pre>
+<p>Use 512 or more points per side; the 128-point map gives a 3·10⁻⁴ offset. The normal field is radial and centred on the cell, which suits centred round shapes only (manual § 8).</p>
+<h3>Planning the cost</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Nx = Ny</th><th>harmonics</th><th>time per run (pyramid, NS = 20, reference BLAS)</th></tr></thead>
+<tbody>
+<tr><td>3</td><td>49</td><td>7 s</td></tr>
+<tr><td>5</td><td>121</td><td>1.5 min</td></tr>
+<tr><td>7</td><td>225</td><td>8 min</td></tr>
+<tr><td>9</td><td>361</td><td>22 min</td></tr>
+<tr><td>15</td><td>961</td><td>≈ 10 h (extrapolated)</td></tr>
+</tbody></table></div>
+<p>Time grows linearly with NS. An optimised BLAS (OpenBLAS, MKL) typically divides these times by several. Choose unequal <code>Nx</code>, <code>Ny</code> when the periods differ.</p>
+
+<h2 id="materials"><span class="num">8</span>Material indices</h2>
+<ul>
+  <li>Indices go directly into the parameter or structure file as <code>n + ik</code> with k ≥ 0 for absorption. Tabulated data for most materials are at <a href="https://refractiveindex.info">refractiveindex.info</a>.</li>
+  <li>For a wavelength scan, interpolate the table in your script and pass the index on the command line at each step.</li>
+  <li><code>utils/refractive_index</code> reads material files in a spectroscopic-ellipsometry format (see <code>md2D/Optimization_var_lambda/*_index.txt</code>). Its lookup mode takes the wavelength in nm; the Cauchy mode is currently unreachable (the method argument is ignored).</li>
+</ul>
+
+<h2 id="trouble"><span class="num">9</span>Troubleshooting</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
+<tbody>
+<tr><td><code>ERROR, can't read "fft_filter"</code> (or another key)</td><td>A required key is missing from the parameter file (manual § 4). Old parameter files lack <code>fft_filter</code>.</td></tr>
+<tr><td><code>can't read "l_smooth"</code> although you do not smooth</td><td><code>smoothing</code> is missing and was left uninitialised. Add <code>smoothing = 0</code>.</td></tr>
+<tr><td><code>nan</code> efficiencies</td><td>An order is exactly grazing (Rayleigh anomaly). Change <i>L</i> or θ slightly. With a metal substrate, <code>nan</code> in <code>theta_t</code> is normal.</td></tr>
+<tr><td>Efficiencies far above 1 or wildly varying (metal, TM)</td><td>Too few slices: increase <code>NS</code> until h/NS ≤ λ/1000.</td></tr>
+<tr><td>Good energy balance but results change with N</td><td>Not converged in N; energy conservation cannot detect it. Increase N.</td></tr>
+<tr><td>Weak orders off by a few %</td><td>Structure file too coarse for the number of harmonics. Use more points (≥ 2048 in 2D for N ≈ 100).</td></tr>
+<tr><td>Orders appear mirrored (n ↔ −n) compared with another code</td><td>Different x or angle orientation. Mirror the profile or change the sign of θ.</td></tr>
+<tr><td><code>h determined … is … and h indicated …</code></td><td>Information only: the profile is rescaled to <code>h</code> (× <code>coef_h</code>). Use <code>h = AUTO</code> to keep the file's height.</td></tr>
+<tr><td>A result file disappeared or was replaced</td><td>Two runs used the same <code>profile_name</code>.</td></tr>
+<tr><td>Debug lines (<code>MxV</code>, <code>pointer par-&gt;…</code>) at verbosity 0</td><td>Leftover prints in md2D; harmless.</td></tr>
+<tr><td>md3D very slow</td><td>Expected ∝ harmonics³; install an optimised BLAS and relink, or lower Nx, Ny.</td></tr>
+</tbody></table></div>
+
+<h2 id="legacy"><span class="num">10</span>Older material in the repository</h2>
+<ul>
+  <li><code>md2D/Optimization_var_lambda/</code>: fitting of a line's width and height to spectroscopic-ellipsometry data with Levenberg–Marquardt (scatterometry, thesis Part 2). It relies on a <code>calcul_type = ELLIPSO</code> that the current md2D no longer provides, so it needs porting before use.</li>
+  <li><code>Applications/</code>: the near-field example and two Octave scripts for post-processing (<code>inverse_reflexion_TE.m</code>, <code>inverse_reflexion_TM.m</code>).</li>
+  <li><code>PROVENANCE.md</code>: history of the code and of the removed older variants.</li>
+</ul>
+<footer>Practical guide to md2D / md3D. Recipes tested with the current code in September 2026. A4 PDF: <a href="practical_guide.pdf">practical_guide.pdf</a>.</footer>
+</div>
+</body>
+</html>
