@@ -66,7 +66,7 @@ int md2D_lire_param(struct Noms_fichiers *nomfichier, struct Param_struct *par){
 	}
 	
 	if (arg_read(argc, argvcp, fp, "complex", (void *) &par->sigma0_normed, "sigma0_normed", CONTINUE_ON_ERROR) != 0) par->sigma0_normed = SIGMA0_NORMED_NOT_DEFINED;
-/*printf("sigma0_normed = %f + i%f\n",creal(par->sigma0_normed),cimag(par->sigma0_normed));*/
+/*printf("sigma0_normed = %f %c i%f\n", creal(par->sigma0_normed), (cimag(par->sigma0_normed) < 0 ? '-' : '+'), fabs(cimag(par->sigma0_normed)));*/
 
 
 /*	arg_read(argc, argvcp, fp, "complex", (void *) &par->n_super, "n_super", EXIT_ON_ERROR);
@@ -283,8 +283,8 @@ int md2D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 
 	/* Affichage des valeurs lues */
 	if (par->verbosity >= 2){
-		fprintf(stdout,"n_super = %f + i%f\n", creal((par->n_super)), cimag((par->n_super)));
-		fprintf(stdout,"n_sub   = %f + i%f\n", creal((par->n_sub)), cimag((par->n_sub)));
+		fprintf(stdout,"n_super = %f %c i%f\n", creal(par->n_super), (cimag(par->n_super) < 0 ? '-' : '+'), fabs(cimag(par->n_super)));
+		fprintf(stdout,"n_sub   = %f %c i%f\n", creal(par->n_sub), (cimag(par->n_sub) < 0 ? '-' : '+'), fabs(cimag(par->n_sub)));
 		fprintf(stdout,"lambda  = %f\n",par->lambda);
 		fprintf(stdout,"theta_i = %f rad (%f deg)\n",par->theta_i,par->theta_i*180.0/PI);
 		fprintf(stdout,"L       = %f\n",par->L);
@@ -581,8 +581,8 @@ int md2D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"pola    : %s\n",(par->pola==TE ? "TE" : "TM"));	
 	fprintf(fp,"theta_i = %f deg\n",par->theta_i*180.0/PI);
 
-	fprintf(fp,"n_super = %f + i%f\n", creal((par->n_super)), cimag((par->n_super)));
-	fprintf(fp,"n_sub   = %f + i%f\n", creal((par->n_sub)), cimag((par->n_sub)));
+	fprintf(fp,"n_super = %f %c i%f\n", creal(par->n_super), (cimag(par->n_super) < 0 ? '-' : '+'), fabs(cimag(par->n_super)));
+	fprintf(fp,"n_sub   = %f %c i%f\n", creal(par->n_sub), (cimag(par->n_sub) < 0 ? '-' : '+'), fabs(cimag(par->n_sub)));
 	fprintf(fp,"L       = %f\n",par->L);
 	fprintf(fp,"h       = %f\n",par->h);
 	fprintf(fp,"lambda  = %f\n",par->lambda);

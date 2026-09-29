@@ -308,7 +308,7 @@ int md2D_alloc_init_profil(struct Param_struct *par)
 	par->Delta_sigma = 2*PI/par->L;
 	par->sigma0 = par->k_super*sin(par->theta_i)*cos(par->phi_i);
 	if (cabs(par->sigma0_normed/SIGMA0_NORMED_NOT_DEFINED-1) > EPS){
-		fprintf(stdout,"*** sigma0_normed = %1.10f + i%f ***\n",creal(par->sigma0_normed),cimag(par->sigma0_normed));
+		fprintf(stdout,"*** sigma0_normed = %1.10f %c i%f ***\n", creal(par->sigma0_normed), (cimag(par->sigma0_normed) < 0 ? '-' : '+'), fabs(cimag(par->sigma0_normed)));
 		par->sigma0 = 2*PI*par->sigma0_normed/par->lambda;
 	}
 /*	par->ky_0   = par->k_super*sin(par->theta_i)*sin(par->phi_i);*/

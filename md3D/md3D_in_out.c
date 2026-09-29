@@ -220,8 +220,8 @@ int md3D_affiche_valeurs_param(struct Param_struct *par, struct Noms_fichiers *n
 
 	/* Affichage des valeurs lues */
 	if (par->verbosity >= 2){
-		fprintf(stdout,"nu_super = %f + i%f\n", creal((par->nu_super)), cimag((par->nu_super)));
-		fprintf(stdout,"nu_sub   = %f + i%f\n", creal((par->nu_sub)), cimag((par->nu_sub)));
+		fprintf(stdout,"nu_super = %f %c i%f\n", creal(par->nu_super), (cimag(par->nu_super) < 0 ? '-' : '+'), fabs(cimag(par->nu_super)));
+		fprintf(stdout,"nu_sub   = %f %c i%f\n", creal(par->nu_sub), (cimag(par->nu_sub) < 0 ? '-' : '+'), fabs(cimag(par->nu_sub)));
 		fprintf(stdout,"lambda  = %f\n",par->lambda);
 		fprintf(stdout,"theta_i = %f rad (%f deg)\n",par->theta_i,par->theta_i*180.0/PI);
 		fprintf(stdout,"phi_i   = %f rad (%f deg)\n",par->phi_i,par->phi_i*180.0/PI);
@@ -627,8 +627,8 @@ int md3D_ecrire_results(char *nom_fichier, struct Param_struct *par, struct Effi
 	fprintf(fp,"phi_i   = %f deg\n",par->phi_i*180.0/PI);
 	fprintf(fp,"psi     = %f deg\n",par->psi*180.0/PI);
 
-	fprintf(fp,"nu_super = %f + i%f\n", creal((par->nu_super)), cimag((par->nu_super)));
-	fprintf(fp,"nu_sub   = %f + i%f\n", creal((par->nu_sub)), cimag((par->nu_sub)));
+	fprintf(fp,"nu_super = %f %c i%f\n", creal(par->nu_super), (cimag(par->nu_super) < 0 ? '-' : '+'), fabs(cimag(par->nu_super)));
+	fprintf(fp,"nu_sub   = %f %c i%f\n", creal(par->nu_sub), (cimag(par->nu_sub) < 0 ? '-' : '+'), fabs(cimag(par->nu_sub)));
 	fprintf(fp,"Lx       = %f\n",par->Lx);
 	fprintf(fp,"Ly       = %f\n",par->Ly);
 	fprintf(fp,"h       = %f\n",par->h);
