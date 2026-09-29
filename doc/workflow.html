@@ -128,15 +128,15 @@ EOF</code></pre>
 <p>Use 512 or more points per side; the 128-point map gives a 3·10⁻⁴ offset. The normal field is radial and centred on the cell, which suits centred round shapes only (manual § 8).</p>
 <h3>Planning the cost</h3>
 <div class="tablewrap"><table>
-<thead><tr><th>Nx = Ny</th><th>harmonics</th><th>time per run (pyramid, NS = 20, reference BLAS)</th></tr></thead>
+<thead><tr><th>Nx = Ny</th><th>harmonics</th><th>time per run (pyramid, NS = 20, OpenBLAS, automatic threads)</th></tr></thead>
 <tbody>
-<tr><td>3</td><td>49</td><td>7 s</td></tr>
-<tr><td>5</td><td>121</td><td>1.5 min</td></tr>
-<tr><td>7</td><td>225</td><td>8 min</td></tr>
-<tr><td>9</td><td>361</td><td>22 min</td></tr>
-<tr><td>15</td><td>961</td><td>≈ 10 h (extrapolated)</td></tr>
+<tr><td>4</td><td>81</td><td>1 s</td></tr>
+<tr><td>6</td><td>169</td><td>4 s</td></tr>
+<tr><td>8</td><td>289</td><td>26 s</td></tr>
+<tr><td>10</td><td>441</td><td>1.6 min</td></tr>
+<tr><td>15</td><td>961</td><td>≈ 20 min (extrapolated)</td></tr>
 </tbody></table></div>
-<p>Time grows linearly with NS. An optimised BLAS (OpenBLAS, MKL) typically divides these times by several. Choose unequal <code>Nx</code>, <code>Ny</code> when the periods differ.</p>
+<p>Time grows linearly with NS. With the reference BLAS instead of OpenBLAS these times are 3–8 times longer. Choose unequal <code>Nx</code>, <code>Ny</code> when the periods differ.</p>
 
 <h2 id="materials"><span class="num">8</span>Material indices</h2>
 <ul>
@@ -159,7 +159,7 @@ EOF</code></pre>
 <tr><td><code>h determined … is … and h indicated …</code></td><td>Information only: the profile is rescaled to <code>h</code> (× <code>coef_h</code>). Use <code>h = AUTO</code> to keep the file's height.</td></tr>
 <tr><td>A result file disappeared or was replaced</td><td>Two runs used the same <code>profile_name</code>.</td></tr>
 <tr><td>Debug lines (<code>MxV</code>, <code>pointer par-&gt;…</code>) at verbosity 0</td><td>Leftover prints in md2D; harmless.</td></tr>
-<tr><td>md3D very slow</td><td>Expected ∝ harmonics³; install an optimised BLAS and relink, or lower Nx, Ny.</td></tr>
+<tr><td>md3D very slow</td><td>Expected ∝ harmonics³. Check that OpenBLAS is in use (<code>ldd md3D/md3D | grep blas</code>), or lower Nx, Ny.</td></tr>
 </tbody></table></div>
 
 <h2 id="legacy"><span class="num">10</span>Older material in the repository</h2>

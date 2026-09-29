@@ -58,7 +58,7 @@
 
 <!-- ============================================================ -->
 <h2 id="build"><span class="num">2</span>Building and running</h2>
-<p>Requirements: a C compiler (gcc), FFTW 3, BLAS and LAPACK. On Debian or Ubuntu: <code>apt install build-essential libfftw3-dev libblas-dev liblapack-dev</code>. An optimised BLAS such as OpenBLAS makes the 3D program much faster.</p>
+<p>Requirements: a C compiler (gcc), FFTW 3, BLAS and LAPACK. On Debian or Ubuntu: <code>apt install build-essential libfftw3-dev libblas-dev liblapack-dev</code>. Also install OpenBLAS (<code>apt install libopenblas0-pthread</code>): it replaces the reference BLAS without any rebuild and makes both programs 3–8 times faster.</p>
 <pre><code>make -C md2D          # builds md2D/md2D
 make -C md3D          # builds md3D/md3D
 make -C utils profilGen lire_tab lire_tab2 refractive_index   # optional helpers (no default target)</code></pre>
@@ -266,14 +266,15 @@ profil =
 <tr><td><code>NS</code></td><td>cost ∝ NS; errors of the RK4 scheme</td><td>Dielectric, h/NS = λ/200: ≈10⁻⁵; λ/2000: ≈10⁻⁶; λ/10 000: ≈10⁻⁸. Metal in TM: h/NS ≤ λ/700 (NS = 100 diverged for h = 1.3λ). 1 − Σe is a good indicator here.</td></tr>
 <tr><td>profile points</td><td>the Fourier coefficients of the permittivity and the normal are computed from the samples</td><td>Use many more points than harmonics. 256 points at N = 100 cost 2 % on weak orders; with 2048 points the results agreed with an independent method to 10⁻⁸. For md3D, 256–512 points per side.</td></tr>
 </tbody></table></div>
+<p><b>Slice boundaries.</b> Each slice samples the structure from its own side: at its bottom as the limit from above, at its top as the limit from below. So when an interface lies exactly on a slice boundary (flat layers, lamellar gratings, layered index maps), a flat interface is exact at any NS and layered structures converge at fourth order.</p>
 <h3>Choosing <code>calcul_method</code></h3>
 <ul>
   <li><code>RK4</code> is the general method for any profile, and the one to use for curved or sloped interfaces.</li>
-  <li><code>Z_INVAR</code> treats each slice as z-invariant and propagates it exactly, as RCWA / the Fourier modal method does. It is exact and fast for binary structures (lamellar gratings, holes), but a single slice must stay thin: inside a slice of thickness <i>t</i> the evanescent orders grow like e<sup>2πN t/L</sup>, which overflows for thick layers at large N (NS = 1 failed for h = 0.23 L at N = 32). A safe rule is <b>NS ≥ N·h/L</b>; the S-matrix algorithm then keeps the result stable. On a curved profile it is a staircase approximation. That remains acceptable in TE with many slices, but converges very slowly in TM because the staircase never has the right normal [Popov 2002; Arnaud 2008 § 2.4]. Conversely, RK4 is a poor choice for binary structures: with flat layer boundaries on slice boundaries it converges only to first order in NS (TE), and in TM its finite-difference normal of the vertical walls converges slowly in N.</li>
+  <li><code>Z_INVAR</code> treats each slice as z-invariant and propagates it exactly, as RCWA / the Fourier modal method does. It is exact and fast for binary structures (lamellar gratings, holes), but a single slice must stay thin: inside a slice of thickness <i>t</i> the evanescent orders grow like e<sup>2πN t/L</sup>, which overflows for thick layers at large N (NS = 1 failed for h = 0.23 L at N = 32). A safe rule is <b>NS ≥ N·h/L</b>; the S-matrix algorithm then keeps the result stable. On a curved profile it is a staircase approximation. That remains acceptable in TE with many slices, but converges very slowly in TM because the staircase never has the right normal [Popov 2002; Arnaud 2008 § 2.4]. For binary structures in TM, RK4 uses the finite-difference normal of the vertical walls, which converges more slowly in N than <code>Z_INVAR</code>; prefer <code>Z_INVAR</code> there.</li>
   <li><code>IMPROVED_RCWA</code> (md2D) uses z-invariant propagation with the true normal field of the profile.</li>
 </ul>
 <h3>Cost</h3>
-<p>Measured with reference BLAS on a shared 8-core PC: md2D, N = 40, NS = 1000, TE, about 1 min (TM about twice as long); N = 100, NS = 1000 takes 10–20 min. md3D pyramid with NS = 20 takes 1.5 min at N = 5 and 22 min at N = 9; N = 15 needs about 10 h per point. The thesis reported 13.7 h at N = 15, NS = 50 on a 2008 Opteron.</p>
+<p>With OpenBLAS on an 8-core PC: md2D at N = 40, NS = 1000 takes 4 s in TE and 11 s in TM; md3D (pyramid, NS = 20) takes 4 s at N = 6 and about 1.5 min at N = 10. The programs choose the number of OpenBLAS threads themselves (1 for small matrices, 4 for large ones) unless <code>OPENBLAS_NUM_THREADS</code> is set. The reference BLAS is 3–8 times slower.</p>
 <h3>Recommended routine</h3>
 <ol>
   <li>Start with AUTO or modest values and check that 1 − Σe is small for a lossless structure.</li>

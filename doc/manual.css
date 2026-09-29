@@ -103,4 +103,5 @@ svg text{font-family:var(--sans)}
   figure img,figure svg{max-height:62mm;width:auto}
   .figrow{grid-template-columns:1fr 1fr}
   .figrow figure img{max-height:52mm}
+  footer{display:none}  /* redundant on paper: figure captions credit the thesis */
 }
