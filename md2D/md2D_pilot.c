@@ -31,6 +31,7 @@ int main(int argc, char *argv[]){
 	param.argvcp = argvcp;
 
 	/* Program initialisation: inputs reading, memory allocations, etc. */
+	param.z_side = 0;
 	md2D_init(&param, &effic, &nomfichier);
 	md_blas_threads(2*param.vec_size, param.verbosity);
 

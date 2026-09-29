@@ -47,19 +47,22 @@ def test_md2D_flat_interface_fresnel(n2, pol, theta, tmp_path):
 
 
 @pytest.mark.parametrize("pol", ["TE", "TM"])
-def test_md2D_flat_interface_RK4_converges(pol, tmp_path):
-    """RK4 through a homogeneous zone converges to Fresnel as the slices get thinner.
+@pytest.mark.parametrize("ns", [1, 10, 100])
+def test_md2D_flat_interface_RK4_exact(pol, ns, tmp_path):
+    """The flat profile lies on the bottom slice boundary. Each slice samples the structure from
+    inside itself (one-sided rule), so RK4 integrates a homogeneous zone and reproduces Fresnel
+    exactly at any NS (before the rule: an O(NS^-2) error from sampling the substrate at z = 0)."""
+    res = run(MD2D, tmp_path, dict(n_sub="1.5 + i0.0", L=1.0, h=0.2, theta_i=35.0, pola=pol, N=3, NS=ns,
+                                   **{"lambda": 0.6}), h_x([0.0] * 32))
+    assert res.eff("r", 0) == pytest.approx(fresnel_R(1.0, 1.5, 35.0, pol), rel=1e-12)
 
-    The interface sits on a slice boundary, where the permittivity is discontinuous,
-    so the error falls as NS^-2 rather than NS^-4."""
-    ref = fresnel_R(1.0, 1.5, 35.0, pol)
-    errs = []
-    for ns in (100, 1000):
-        res = run(MD2D, tmp_path / str(ns), dict(n_sub="1.5 + i0.0", L=1.0, h=0.2, theta_i=35.0, pola=pol, N=3,
-                                                 NS=ns, **{"lambda": 0.6}), h_x([0.0] * 32))
-        errs.append(abs(res.eff("r", 0) - ref))
-    assert errs[1] < 1e-7
-    assert errs[0] / errs[1] > 50          # second order at least
+
+@pytest.mark.parametrize("psi", [0.0, 90.0])
+def test_md3D_flat_interface_RK4_exact(psi, tmp_path):
+    res = run(MD3D, tmp_path, dict(nu_sub="1.5 + i0.0", Lx=1.0, Ly=1.0, h=0.2, theta_i=35.0, phi_i=30.0, psi=psi,
+                                   Nx=1, Ny=1, NS=5, **{"lambda": 0.6}), h_xy([[0.0] * 16 for _ in range(16)]))
+    ref = fresnel_R(1.0, 1.5, 35.0, "TE" if psi == 0 else "TM")
+    assert res.eff("r", 0, 0) == pytest.approx(ref, rel=1e-12)
 
 
 @pytest.mark.parametrize("pol", ["TE", "TM"])

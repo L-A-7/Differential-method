@@ -29,6 +29,7 @@ int main(int argc, char *argv[]){
 	param.argvcp = argvcp;
 
 	/* Initialisation du programme : lecture des données, allocation de mémoire, etc. */
+	param.z_side = 0;
 	md3D_init(&param, &effic, &nomfichier);
 	md_blas_threads(4*param.vec_size, param.verbosity);
 

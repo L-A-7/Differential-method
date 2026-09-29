@@ -93,9 +93,10 @@ int rk4_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 	double dz_2 = 0.5*dz;
 
 	/* M matrix calculation */
-	(*par->M_matrix)(Mz,   z-dz_2, par);
-	(*par->M_matrix)(Mzd,  z,      par);
-	(*par->M_matrix)(Mzdd, z+dz_2, par);
+	par->z_side = +1; (*par->M_matrix)(Mz,   z-dz_2, par);   /* slice bottom, seen from inside the slice */
+	par->z_side =  0; (*par->M_matrix)(Mzd,  z,      par);
+	par->z_side = -1; (*par->M_matrix)(Mzdd, z+dz_2, par);   /* slice top, seen from inside the slice */
+	par->z_side =  0;
 
 	/* M1 = Mz */
 
@@ -289,7 +290,8 @@ int euler2_P_matrix(COMPLEX **P, double z, double dz, struct Param_struct *par)
 	Mzd   = allocate_CplxMatrix(2*vec_size,2*vec_size);
 
 	/* M matrix calculation */
-	(*par->M_matrix)(Mzd,  z+0.5*dz	, par);
+	par->z_side = -1; (*par->M_matrix)(Mzd,  z+0.5*dz	, par);   /* slice top, seen from inside */
+	par->z_side =  0;
 
 	/* P = Id + h*M(h+dz/2) */
 	for (i=0;i<=2*vec_size-1;i++){

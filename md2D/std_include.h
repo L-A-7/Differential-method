@@ -77,6 +77,14 @@
 #define REAL double
 
 /* Structures */
+/* One-sided evaluation of the structure at slice boundaries: an integration step samples the
+   structure at its own slice's bottom (as the limit from above, z_side = +1) and top (limit
+   from below, z_side = -1). Where no exact comparison is possible, z is moved by this
+   fraction of h towards the requested side (above interface tolerances, far below any
+   physical scale). */
+#define Z_SIDE_SHIFT 2e-10
+#define ONE_SIDED(z,par) ((z) + (par)->z_side*Z_SIDE_SHIFT*(par)->h)
+
 struct Param_struct {
 	int argc;
 	char **argvcp;
@@ -281,6 +289,7 @@ struct Param_struct {
 	int STOCKER_TF; /* Si STOCKER_TF = 0, calculs directs des TFs. si STOCKER_TF = 1 on stocke les  */
 					/* valeurs des calculs de TFs : plus rapide, mais nécessite plus de mémoire.    */
 
+	int z_side; /* side from which the structure is sampled at z: +1 above, -1 below, 0 at z (see ONE_SIDED) */
 	int verbosity; /* Si verbose = 1, affiche plus d'infos sur le terminal */
 	char i_field_mode[SIZE_STR_BUFFER]; /* incident field (PLANE_WAVE, GAUSSIAN, FROM_BINARY, FROM_ASCII) */
 

@@ -1,7 +1,7 @@
 """md2D and md3D must agree where their domains overlap."""
 import pytest
 
-from mdrun import MD2D, MD3D, run, h_x, h_xy, sine, multi, lamellar_rows
+from mdrun import MD2D, MD3D, run, h_x, h_xy, sine, multi, lamellar_rows, n_xyz
 
 
 @pytest.mark.parametrize("pol,psi", [("TE", 0.0), ("TM", 90.0)])
@@ -19,8 +19,8 @@ def test_md3D_Ny0_equals_md2D(pol, psi, n_sub, tmp_path):
 
 
 def test_RK4_converges_to_ZINVAR_on_binary_structure_TE(tmp_path):
-    """TE, lamellar line: RK4 converges to the exact z-invariant result. Flat layer boundaries
-    fall on slice boundaries, so convergence is only first order in NS."""
+    """TE, lamellar line whose flat top and bottom lie on slice boundaries: with the one-sided
+    rule RK4 converges to the exact z-invariant result at fourth order in NS (first order before)."""
     prof = multi(["2.0 + i0.1"], lamellar_rows(128, 0.4))
     p = dict(n_sub="1.5 + i0.0", L=1.3, h=0.3, theta_i=20.0, pola="TE", N=8, **{"lambda": 0.6})
     exact = run(MD2D, tmp_path / "z", dict(p, calcul_method="Z_INVAR", NS=4), prof).orders("r")
@@ -28,9 +28,23 @@ def test_RK4_converges_to_ZINVAR_on_binary_structure_TE(tmp_path):
     def worst(ns):
         rk = run(MD2D, tmp_path / str(ns), dict(p, NS=ns), prof).orders("r")
         return max(abs(rk[n] - e) / e for n, e in exact.items())
-    coarse, fine = worst(400), worst(1600)
-    assert fine < 5e-3
-    assert coarse / fine > 3
+    coarse, fine = worst(100), worst(400)
+    assert fine < 1e-7
+    assert coarse / fine > 100          # ~4^4
+
+
+def test_RK4_converges_to_ZINVAR_on_layered_index_map(tmp_path):
+    """Index map made of 4 horizontal rows, row boundaries on slice boundaries: fourth order."""
+    nmap = n_xyz([[1.0 if abs(i - 32) < 8 + 4 * k else 1.6 for i in range(64)] for k in range(4)])
+    p = dict(n_sub="1.5 + i0.0", L=1.3, h=0.2, theta_i=20.0, pola="TE", N=8, **{"lambda": 0.6})
+    exact = run(MD2D, tmp_path / "z", dict(p, calcul_method="Z_INVAR", NS=4), nmap).orders("r")
+
+    def worst(ns):
+        rk = run(MD2D, tmp_path / str(ns), dict(p, NS=ns), nmap).orders("r")
+        return max(abs(rk[n] - e) / e for n, e in exact.items())
+    coarse, fine = worst(40), worst(160)
+    assert fine < 1e-7
+    assert coarse / fine > 100
 
 
 def test_ZINVAR_and_IMPROVED_RCWA_converge_together_TM(tmp_path):

@@ -882,8 +882,9 @@ int zinvar_P_matrix(COMPLEX **P, double z0, double Delta_z, struct Param_struct 
 	M_invVec_Psi      = allocate_CplxMatrix(P_size,P_size);
 	M_buffer_4vecsize = allocate_CplxMatrix(P_size,P_size);
 
-	/* M matrix calculation */
-	(*par->M_matrix)(par->M, z, par);
+	/* M matrix calculation (z is the slice bottom: seen from inside the slice) */
+	par->z_side = +1; (*par->M_matrix)(par->M, z, par);
+	par->z_side =  0;
 
 	/* Diagonalisation of M */
 	eigen_values(par->M, eig_values, EigVectors, eig_buffer, P_size);
@@ -956,7 +957,8 @@ int rk4_P_matrix(COMPLEX **P, double z0, double dz, struct Param_struct *par)
 
 	/* M1 = Mz */
 	Mz = M_tmp1;
-	(*par->M_matrix)(Mz,   z0,         par);
+	par->z_side = +1; (*par->M_matrix)(Mz,   z0,         par);   /* slice bottom, seen from inside the slice */
+	par->z_side =  0;
 	M1 = Mz;
 	/* P = Id + (h/6)M1 */
 	for (i=0;i<=P_size-1;i++){
@@ -1009,7 +1011,8 @@ int rk4_P_matrix(COMPLEX **P, double z0, double dz, struct Param_struct *par)
 	}
 	M4 = M_tmp3;
 	Mzdd = M_tmp1;
-	(*par->M_matrix)(Mzdd, z0+dz,      par);
+	par->z_side = -1; (*par->M_matrix)(Mzdd, z0+dz,      par);   /* slice top, seen from inside the slice */
+	par->z_side =  0;
 	M_x_M(M4, Mzdd, M_tmp2, P_size, P_size);
 	/* P = Id + (h/6)M1 + (h/3)M2 + (h/3)M3 + (h/6)M4 */
 	for (i=0;i<=P_size-1;i++){
@@ -1736,7 +1739,7 @@ COMPLEX *k2_H_XY(struct Param_struct *par, COMPLEX *k2_2D, double z)
 	int i;
 	
 	for (i=0;i<=par->Nprx*par->Npry-1;i++){
-		if (z > par->profil[0][i]) 
+		if (par->z_side > 0 ? z >= par->profil[0][i] : z > par->profil[0][i]) 
 			k2_2D[i] = par->k2_layer[0]; /* Superstrat */
 		else
 			k2_2D[i] = par->k2_layer[1]; /* Substrat */
@@ -1795,6 +1798,7 @@ printf("\nCOUCOU, I am in invk2_homog !\n\n");
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
 {
+	z = ONE_SIDED(z, par);
 	
 	int nxy, n_layer=0;
 	
@@ -1825,6 +1829,7 @@ COMPLEX *k2_MULTI(struct Param_struct *par, COMPLEX *k2_2D, double z)
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	int i, nz;
 	double DeuxPisurLambda2 = (2*PI/par->lambda)*(2*PI/par->lambda);
 	double z_inv = par->h - z;
@@ -1852,6 +1857,7 @@ printf("\nreal(k2)\n");SaveCplxTab2file (k2_1D, par->Nprx*par->Npry, "Re", "stdo
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	int i, nz;
 	double invDeuxPisurLambda2 = 1/(2*PI/par->lambda*2*PI/par->lambda);
 	double z_inv = par->h - z;
@@ -1885,7 +1891,7 @@ COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 	int i;
 	
 	for (i=0;i<=par->Nprx*par->Npry-1;i++){
-		if (z > par->profil[0][i]) 
+		if (par->z_side > 0 ? z >= par->profil[0][i] : z > par->profil[0][i]) 
 			invk2_1D[i] = par->invk2_layer[0]; /* Superstrat */
 		else
 			invk2_1D[i] = par->invk2_layer[1]; /* Substrat */
@@ -1904,6 +1910,7 @@ COMPLEX *invk2_H_XY(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 COMPLEX *invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	
 	int nx, n_layer=0;
 	
@@ -2059,6 +2066,7 @@ norm_z[i][j] = 1.0;
 /*-------------------------------------------------------------------------------------*/
 int Normal_MULTI(COMPLEX **norm_x, COMPLEX **norm_y, COMPLEX **norm_z, double z, double *profil, struct Param_struct *par)
 {
+	z = ONE_SIDED(z, par);
 	int nx,ny,nxy, n_layer=0;
 	double zb,zt,dz,ct,cb, check_norm;
 

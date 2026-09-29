@@ -1422,7 +1422,7 @@ int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
 	int i;
 	
 	for (i=0;i<=par->N_x-1;i++){
-		if (z > par->profil[0][i]) 
+		if (par->z_side > 0 ? z >= par->profil[0][i] : z > par->profil[0][i]) 
 			k2_1D[i] = par->k2_layer[0]; /* Superstrat */
 		else
 			k2_1D[i] = par->k2_layer[1]; /* Substrat */
@@ -1441,6 +1441,7 @@ int k2_H_X(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	int nx, n_layer=0;
 	double eps = EPS*par->h;
 
@@ -1501,6 +1502,7 @@ int k2_MULTI(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	int nx, n_layer=0;
 	double eps = EPS*par->h;
 
@@ -1535,6 +1537,7 @@ int invk2_MULTI(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	int i, nz;
 	double DeuxPisurLambda2 = (2*PI/par->lambda)*(2*PI/par->lambda);
 	double z_inv = par->h - z;
@@ -1559,6 +1562,7 @@ int k2_N_XYZ(struct Param_struct *par, COMPLEX *k2_1D, double z)
 /*-------------------------------------------------------------------------------------*/
 int invk2_N_XYZ(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 {
+	z = ONE_SIDED(z, par);
 	int i, nz;
 	double invDeuxPisurLambda2 = 1/(2*PI/par->lambda*2*PI/par->lambda);
 	double z_inv = par->h - z;
@@ -1590,7 +1594,7 @@ int invk2_H_X(struct Param_struct *par, COMPLEX *invk2_1D, double z)
 	int i;
 	
 	for (i=0;i<=par->N_x-1;i++){
-		if (z > par->profil[0][i]) 
+		if (par->z_side > 0 ? z >= par->profil[0][i] : z > par->profil[0][i]) 
 			invk2_1D[i] = par->invk2_layer[0]; /* Superstrat */
 		else
 			invk2_1D[i] = par->invk2_layer[1]; /* Substrat */
@@ -1674,6 +1678,7 @@ int Normal_H_X(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *N
 /*-------------------------------------------------------------------------------------*/
 int Normal_H_X_Multi(struct Param_struct *par, COMPLEX *Nx2, COMPLEX *NxNz, COMPLEX *Nz2, double z)
 {
+	z = ONE_SIDED(z, par);
 	int nx, nx_left, nx_right;
 	int Nx = par->N_x; 	/* Caution : this 'Nx', corresponds to the number of points in x              */
 								/* while 'Nx2', corresponds to the square of the surface normal x component */

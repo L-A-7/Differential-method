@@ -111,11 +111,12 @@ def test_case05_metal_convergence_DM_and_RCWA(N, tmp_path):
 # ---------------------------------------------------------------- md3D
 
 def test_case06_dielectric_conical_vs_gsolver(tmp_path):
-    """Lamellar glass grating, conical incidence (thesis Nx=50). Nx=20, NS=200: ~10 s."""
+    """Lamellar glass grating, conical incidence (thesis Nx=50). Nx=20, NS=200: ~10 s.
+    Within 3.2e-3 of GSolver since the one-sided slice-boundary rule (1.3e-2 before)."""
     res = run_case("case06", tmp_path, MD3D, ["-Nx", 20, "-NS", 200], profile="md3D/carre_256_1D.txt")
     for r in table("case06"):
         rt = "r" if r["direction"] == "reflection" else "t"
-        assert res.eff(rt, -int(r["order"]), 0) == pytest.approx(float(r["e_GSolver"]), rel=3e-2, abs=1e-3)
+        assert res.eff(rt, -int(r["order"]), 0) == pytest.approx(float(r["e_GSolver"]), rel=1e-2)
 
 
 @pytest.mark.parametrize("N", [2, 3])
