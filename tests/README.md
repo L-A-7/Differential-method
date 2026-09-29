@@ -8,7 +8,7 @@ Run from the repository root:
 | `make test-validation` | thesis validation tables at reduced resolution (`test_validation.py`) | ~1.5 min |
 | `make test-all` | both | |
 | `make update-golden` | rewrite `golden/` from the current build | seconds |
-| `make bench` / `make bench-quick` | timing benchmark, appended to `bench_history.jsonl` | ~3 min / ~1 min |
+| `make bench` / `make bench-quick` | timing benchmark, appended to `bench_history.jsonl` | ~5 min / ~2 min |
 
 pytest is used from the system if installed, otherwise `make` creates `.venv/` with it once.
 Any pytest option works directly, e.g. `.venv/bin/python -m pytest -k md3D -x`.

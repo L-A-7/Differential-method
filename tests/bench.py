@@ -47,7 +47,7 @@ BENCHMARKS = [
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--quick", action="store_true", help="only the short benchmarks (about 1 min)")
+    ap.add_argument("--quick", action="store_true", help="only the short benchmarks (about 2 min)")
     ap.add_argument("--repeat", type=int, default=1, help="runs per benchmark; the minimum time is kept")
     args = ap.parse_args()
 
