@@ -51,6 +51,17 @@ int blas_MxM(COMPLEX **M_out, COMPLEX **A, COMPLEX **B, int N)
   char *TransB = "N";
   extern void zgemm_(char *TRANSA, char *TRANSB, int *, int *, int *, COMPLEX *ALPHA, COMPLEX *a, int *, COMPLEX *, int *, COMPLEX *, COMPLEX *, int *);
 
+  /* Fast path: a row-major matrix is its transpose in Fortran's column-major order, so
+     C = A*B (row-major) is obtained as C^T = B^T * A^T (column-major) by passing B and A
+     in swapped order: no copy, no transposition. Needs contiguous rows (allocate_CplxMatrix)
+     and an output distinct from the inputs; otherwise fall back to the copying code below. */
+  if (N > 0 && M_out[0] != A[0] && M_out[0] != B[0]
+      && A[N-1] == A[0] + (size_t)(N-1)*N && B[N-1] == B[0] + (size_t)(N-1)*N
+      && M_out[N-1] == M_out[0] + (size_t)(N-1)*N) {
+    zgemm_(TransA, TransB, &N, &N, &N, &alpha, B[0], &N, A[0], &N, &beta, M_out[0], &N);
+    return 0;
+  }
+
   /* Making a copy of A and B (some blas implementations modify their values...) */
   /* The copies are transposed matrices of A and B (because of the different matrices memory storing conventions in Fortran and C) */
   /* (transposition could also be performed by seting TRANSA and TRANSB to "T") */
